@@ -48,15 +48,19 @@ async function getAllPredictions() {
         if (!fs.existsSync(filePath)) {
             try {
                 const predictionDetails = await replicate.predictions.get(prediction.id);
-                const outputUrl = predictionDetails.output;
-                if (!outputUrl || outputUrl.length < 10) {
+                if (!predictionDetails.output) {
                     emptyOutput++;
-                    continue;
-                }else {
-                    await downloadFile(outputUrl, filePath);
-                    console.log(`Downloaded prediction ${prediction.id} to ${filePath}`);
+                } else {
+                    predictionDetails.output.forEach(async outputUrl => {
+                        if (!outputUrl || outputUrl.length < 10) {
+                            emptyOutput++;
+                        }else {
+                            await downloadFile(outputUrl, filePath);
+                            console.log(`Downloaded prediction ${prediction.id} to ${filePath}`);
+                            downloaded++; 
+                        }
+                    });
                 }
-                downloaded++;
             } catch (error) {
                 console.error(`Failed to download prediction ${prediction.id}:`, error);
             }

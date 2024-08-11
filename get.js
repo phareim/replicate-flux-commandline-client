@@ -41,6 +41,7 @@ async function downloadFile(url, filePath) {
             response.pipe(file);
             file.on("finish", () => {
                 file.close(resolve);
+                console.log(`Downloaded prediction to ${filePath}, from ${url}`);
             });
         }).on("error", (err) => {
             fs.unlink(filePath, () => reject(err));
@@ -54,11 +55,10 @@ async function getPredictionAndDownload() {
         const prediction = await replicate.predictions.get(predictionId);
         console.log(prediction);
 
-        const outputUrl = prediction.urls.get;
-        const filePath = path.join(outputDir, `${predictionId}.jpg`);
-
-        await downloadFile(outputUrl, filePath);
-        console.log(`Downloaded prediction ${predictionId} to ${filePath}`);
+        prediction.output.forEach(async outputUrl => {
+            const filePath = path.join(outputDir, `${predictionId}.jpg`);
+            await downloadFile(outputUrl, filePath); 
+        });
     } catch (error) {
         console.error(`Failed to download prediction ${predictionId}:`, error);
     }
