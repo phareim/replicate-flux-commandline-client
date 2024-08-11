@@ -3,18 +3,17 @@ import fs from "fs";
 import path from "path";
 import https from "https";
 
-// Check if REPLICATE_API_TOKEN is defined
 if (!process.env.REPLICATE_API_TOKEN) {
     console.error("Error: REPLICATE_API_TOKEN is not defined.");
     process.exit(1);
 }
 
+const outputDir = process.env.REPLICATE_OUTPUT_DIR || path.join(process.cwd(), "output");
+
 const replicate = new Replicate({
     auth: process.env.REPLICATE_API_TOKEN
 });
 
-// Set outputDir to REPLICATE_OUTPUT_DIR if set, otherwise default to "output"
-const outputDir = process.env.REPLICATE_OUTPUT_DIR || path.join(process.cwd(), "output");
 
 // Ensure the output directory exists
 if (!fs.existsSync(outputDir)) {

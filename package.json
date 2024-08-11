@@ -15,6 +15,11 @@
   "author": "phareim@gmail.com",
   "license": "ISC",
   "dependencies": {
-    "replicate": "^0.32.0"
+    "axios": "^1.7.3",
+    "chromedriver": "^127.0.2",
+    "node-fetch": "^3.3.2",
+    "puppeteer": "^23.0.2",
+    "replicate": "^0.32.0",
+    "selenium-webdriver": "^4.23.0"
   }
 }
