@@ -35,27 +35,38 @@ async function downloadFile(url, filePath) {
     });
 }
 
-async function listPredictions() {
+async function getAllPredictions() {
     const page = await replicate.predictions.list();
     console.log(`You've created ${page.results.length} images.`);
-
+    console.log("Getting predictions...");
+    let alreadyDownloaded = 0;
+    let downloaded = 0;
+    let emptyOutput = 0;
     for (const prediction of page.results) {
         const filePath = path.join(outputDir, `${prediction.id}.jpg`);
         
         if (!fs.existsSync(filePath)) {
             try {
-                console.log("Getting prediction...");
                 const predictionDetails = await replicate.predictions.get(prediction.id);
                 const outputUrl = predictionDetails.output;
-                await downloadFile(outputUrl, filePath);
-                console.log(`Downloaded prediction ${prediction.id} to ${filePath}`);
+                if (!outputUrl || outputUrl.length < 10) {
+                    emptyOutput++;
+                    continue;
+                }else {
+                    await downloadFile(outputUrl, filePath);
+                    console.log(`Downloaded prediction ${prediction.id} to ${filePath}`);
+                }
+                downloaded++;
             } catch (error) {
                 console.error(`Failed to download prediction ${prediction.id}:`, error);
             }
         } else {
-            console.log(`Prediction ${prediction.id} already exists.`);
+            alreadyDownloaded++;
         }
     }
+    console.log(`Already downloaded: ${alreadyDownloaded}`);
+    console.log(`Empty output: ${emptyOutput}`);
+    console.log(`Downloaded: ${downloaded}`);
 }
 
-listPredictions();
+getAllPredictions();
