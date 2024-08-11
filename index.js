@@ -8,10 +8,18 @@ if (!process.env.REPLICATE_API_TOKEN) {
     console.error("Error: REPLICATE_API_TOKEN is not defined.");
     process.exit(1);
 }
-const replicate = new Replicate();
+
+const replicate = new Replicate({
+    auth: process.env.REPLICATE_API_TOKEN
+});
 
 // Set outputDir to REPLICATE_OUTPUT_DIR if set, otherwise default to "output"
 const outputDir = process.env.REPLICATE_OUTPUT_DIR || path.join(process.cwd(), "output");
+
+// Ensure the output directory exists
+if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+}
 
 async function downloadFile(url, filePath) {
     return new Promise((resolve, reject) => {
@@ -22,8 +30,7 @@ async function downloadFile(url, filePath) {
                 file.close(resolve);
             });
         }).on("error", (err) => {
-            fs.unlink(filePath);
-            reject(err);
+            fs.unlink(filePath, () => reject(err));
         });
     });
 }
