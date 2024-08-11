@@ -1,0 +1,20 @@
+{
+  "name": "flux-client",
+  "version": "0.0.1",
+  "description": "A client for the flux image-generation model available at replicate.com",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "flux",
+    "replicate",
+    "ai"
+  ],
+  "author": "phareim@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "replicate": "^0.32.0"
+  }
+}
