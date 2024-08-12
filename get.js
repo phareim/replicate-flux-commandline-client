@@ -52,10 +52,15 @@ async function getPredictionAndDownload() {
         const prediction = await replicate.predictions.get(predictionId);
         console.log(prediction);
 
-        prediction.output.forEach(async outputUrl => {
+        if (prediction.output.forEach) { 
+                prediction.output.forEach(async outputUrl => {
+                const filePath = path.join(outputDir, `${predictionId}.jpg`);
+                await downloadFile(outputUrl, filePath); 
+            });
+        } else {
             const filePath = path.join(outputDir, `${predictionId}.jpg`);
-            await downloadFile(outputUrl, filePath); 
-        });
+            await downloadFile(prediction.output, filePath); 
+        }
     } catch (error) {
         console.error(`Failed to download prediction ${predictionId}:`, error);
     }
