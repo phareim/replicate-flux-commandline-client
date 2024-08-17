@@ -50,15 +50,22 @@ async function getAllPredictions() {
                 if (!predictionDetails.output) {
                     emptyOutput++;
                 } else {
-                    predictionDetails.output.forEach(async outputUrl => {
-                        if (!outputUrl || outputUrl.length < 10) {
-                            emptyOutput++;
-                        }else {
-                            await downloadFile(outputUrl, filePath);
-                            console.log(`Downloaded prediction ${prediction.id} to ${filePath}`);
-                            downloaded++; 
-                        }
-                    });
+                    if(predictionDetails.output.forEach){
+                        predictionDetails.output.forEach(async outputUrl => {
+                            if (!outputUrl || outputUrl.length < 10) {
+                                emptyOutput++;
+                            }else {
+                                await downloadFile(outputUrl, filePath);
+                                console.log(`Downloaded prediction ${prediction.id} to ${filePath}`);
+                                downloaded++; 
+                            }
+                        });
+                    } 
+                    else {
+                        await downloadFile(predictionDetails.output, filePath);
+                        console.log(`Downloaded prediction ${prediction.id} to ${filePath}`);
+                        downloaded++; 
+                    }
                 }
             } catch (error) {
                 console.error(`Failed to download prediction ${prediction.id}:`, error);
