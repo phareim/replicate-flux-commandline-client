@@ -92,11 +92,11 @@ const run = async () => {
     try {
         result = await fal.subscribe("fal-ai/flux-pro", {
             input: { prompt,
-                "image_size": "portrait_4_3",
-                "num_inference_steps": 28,
-                "guidance_scale": 3.5,
-                "num_images": 1,
-                "safety_tolerance": "6"
+                image_size: "portrait_4_3",
+                num_inference_steps: 50,
+                guidance_scale: 3.5,
+                num_images: 1,
+                safety_tolerance: "6"
              },
             logs: true,
             onQueueUpdate: (update) => {
