@@ -1,0 +1,14 @@
+{
+    "images": [
+      {
+        "url": "https://fal.media/files/monkey/VRJrT9nRv5RdDOaBUB0mq_5569867fe1b44e4fb277afa046777d01.jpg",
+        "width": 1024,
+        "height": 768,
+        "content_type": "image/jpeg"
+      }
+    ],
+    "timings": {},
+    "seed": 1775325632,
+    "has_nsfw_concepts": [ false ],
+    "prompt": "A young, fair-skinned Caucasian ..."
+  }
