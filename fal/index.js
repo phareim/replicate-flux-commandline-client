@@ -143,7 +143,7 @@ const run = async (prompt, modelEndpoint, format, loraUrl) => {
         safety_tolerance: "6",
         "enable_safety_checker": false
     };
-    if (modelEndpoint === 'fal-ai/flux-lora') {
+    if (loraUrl) {
         input.loras = [{
             path: loraUrl,
         }];
