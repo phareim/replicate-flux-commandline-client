@@ -3,3 +3,4 @@ output/*
 DS_Store
 midjourney-UUIDs.log
 fal/prompts.txt
+fal/backup.txt
