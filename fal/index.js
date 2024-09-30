@@ -14,7 +14,8 @@ const image_size = {
     'portrait':'portrait_4_3', 
     'tall':'portrait_16_9', 
     'normal':'landscape_4_3', 
-    'landscape':'landscape_16_9'
+    'landscape':'landscape_16_9',
+    'wide':'landscape_16_9'
 };
 const modelEndpoints = {
     'pro': 'fal-ai/flux-pro',
@@ -26,6 +27,10 @@ const modelEndpoints = {
     'SD3': 'fal-ai/stable-diffusion-v3-medium',
     'anime': 'fal-ai/stable-cascade/sote-diffusion'
 };
+const loraNames = { 
+    'incase': 'https://civitai.com/api/download/models/857267?type=Model&format=SafeTensor',
+    'eldritch': 'https://civitai.com/api/download/models/792184?type=Model&format=SafeTensor'
+};  
 
 // Function to parse command-line arguments
 const parseArgs = () => {
@@ -33,6 +38,7 @@ const parseArgs = () => {
     let userPrompt = null;
     let modelKey = null;
     let formatKey = null;
+    let loraKey = null;
 
     for (let i = 0; i < args.length; i++) {
         if (args[i] === '--prompt' && i + 1 < args.length) {
@@ -44,10 +50,13 @@ const parseArgs = () => {
         }else if (args[i] === '--format' && i + 1 < args.length) {
             formatKey = args[i + 1];
             i++;
+        }else if (args[i] === '--lora' && i + 1 < args.length) {
+            loraKey = args[i + 1];
+            i++;
         }
     }
 
-    return { userPrompt, modelKey, formatKey };
+    return { userPrompt, modelKey, formatKey, loraKey };
 };
 
 const getFalPath = () => {
@@ -121,22 +130,28 @@ const fetchImages = async (imageUrls) => {
     }
 };
 
-const run = async (prompt, modelEndpoint, format) => {
-    const filePath = path.resolve(__dirname, 'prompts.txt');
+const run = async (prompt, modelEndpoint, format, loraUrl) => {
     let count = 0;
     
     let result;
+    const input = { 
+        prompt,
+        image_size: format,
+        num_inference_steps: 50,
+        guidance_scale: 3.5,
+        num_images: 1,
+        safety_tolerance: "6",
+        "enable_safety_checker": false
+    };
+    if (modelEndpoint === 'fal-ai/flux-lora') {
+        input.loras = [{
+            path: loraUrl,
+        }];
+    }
     try {
         result = await fal.subscribe(modelEndpoint,
             {
-                input: { 
-                    prompt,
-                    image_size: format,
-                    num_inference_steps: 50,
-                    guidance_scale: 3.5,
-                    num_images: 1,
-                    safety_tolerance: "6"
-                },
+                input,
                 logs: false,
                 onQueueUpdate: (update) => {
                     process.stdout.write(`\r${update.status} ${count++}`);
@@ -159,11 +174,12 @@ const run = async (prompt, modelEndpoint, format) => {
     }
 };
 
-const { userPrompt, modelKey, formatKey } = parseArgs();
+const { userPrompt, modelKey, formatKey,loraKey } = parseArgs();
 
 // Get the model endpoint from the dictionary
-const modelEndpoint = modelEndpoints[modelKey] || 'fal-ai/flux-pro'; // Default model
-const pictureFormat = image_size[formatKey] || "portrait_4_3";
-const prompt = userPrompt || await getRandomPrompt(__dirname  + '/prompts.txt');
+const pictureFormat = image_size[formatKey] || "square_hd";
+const prompt = userPrompt || await getRandomPrompt(path.resolve(__dirname, 'prompts.txt'));
+const loraUrl = loraNames[loraKey] || null;
+const modelEndpoint = modelEndpoints[modelKey] || (loraKey?'fal-ai/flux-lora':'fal-ai/flux-pro'); // Default model
 
-run(prompt, modelEndpoint, pictureFormat);
+run(prompt, modelEndpoint, pictureFormat, loraUrl);
