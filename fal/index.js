@@ -37,7 +37,11 @@ const loraNames = {
     'incase': 'https://civitai.com/api/download/models/857267?type=Model&format=SafeTensor',
     'eldritch': 'https://civitai.com/api/download/models/792184?type=Model&format=SafeTensor',
     'details': 'https://civitai.com/api/download/models/839689?type=Model&format=SafeTensor',
-    'realistic_skin': 'https://civitai.com/api/download/models/876368?type=Model&format=SafeTensor'
+    'details_strong':'https://civitai.com/api/download/models/839637?type=Model&format=SafeTensor',
+    'realistic_skin': 'https://civitai.com/api/download/models/876368?type=Model&format=SafeTensor',
+    'mj':'https://civitai.com/api/download/models/827351?type=Model&format=SafeTensor',
+    'fantasy':'https://civitai.com/api/download/models/880134?type=Model&format=SafeTensor',
+    'poly':'https://civitai.com/api/download/models/812320?type=Model&format=SafeTensor'
 };  
 let DEBUG = false;
 
@@ -48,6 +52,9 @@ const parseArgs = () => {
     let modelKey = null;
     let formatKey = null;
     let loraKey = null;
+    let allPrompts = false;
+    let seed = null;
+    let index = null;
     
     for (let i = 0; i < args.length; i++) {
         if (args[i] === '--prompt' && i + 1 < args.length) {
@@ -62,13 +69,20 @@ const parseArgs = () => {
         }else if (args[i] === '--lora' && i + 1 < args.length) {
             loraKey = args[i + 1];
             i++;
-        }else if (args[i] === '--debug' && i + 1 < args.length) {
-            DEBUG = true;
+        }else if (args[i] === '--seed' && i + 1 < args.length) {
+            seed = args[i + 1];
             i++;
+        }else if (args[i] === '--index' && i + 1 < args.length) {
+            index = (args[i + 1]);
+            i++;
+        }else if (args[i] === '--debug') {
+            DEBUG = true;
+        }else if (args[i] === '--all-prompts') {
+            allPrompts = true;
         }
     }
     
-    return { userPrompt, modelKey, formatKey, loraKey };
+    return { userPrompt, modelKey, formatKey, loraKey, allPrompts, seed, index };
 };
 
 const getFalPath = () => {
@@ -82,13 +96,24 @@ const getFileNameFromUrl = (url) => {
     return fileName;
 };
 
-// Function to get random prompt from prompts.txt file
-const getRandomPrompt = async (filePath) => {
+const getPromtFromFile = async (filePath, index = null) => {
     try {
         const data = await fs.readFile(filePath, 'utf-8');
         const lines = data.split('\n').filter(Boolean);
-        const randomLine = lines[Math.floor(Math.random() * lines.length)];
+        const randomIndex = Math.floor(Math.random() * lines.length);
+        const randomLine = lines[index || randomIndex];
         return randomLine.trim();
+    } catch (error) {
+        console.error(`Error reading file ${filePath}:`, error);
+        throw error;
+    }
+};
+
+const getAllPrompts = async (filePath) => {
+    try {
+        const data = await fs.readFile(filePath, 'utf-8');
+        const lines = data.split('\n').map(line => line.trim()).filter(Boolean);
+        return lines;
     } catch (error) {
         console.error(`Error reading file ${filePath}:`, error);
         throw error;
@@ -132,15 +157,15 @@ const fetchImages = async (imageUrls) => {
     }
 };
 
-const run = async (prompt, modelEndpoint, format, loraUrl) => {
+const run = async (prompt, modelEndpoint, format, loraUrl, seed) => {
     let count = 0;
     
     let result;
     const input = { 
         prompt,
         image_size: format,
-        num_inference_steps: 50,
-        guidance_scale: 3.5,
+        num_inference_steps: 25,
+        guidance_scale: 3,
         num_images: 1,
         safety_tolerance: "6",
         "enable_safety_checker": false
@@ -149,6 +174,9 @@ const run = async (prompt, modelEndpoint, format, loraUrl) => {
         input.loras = [{
             path: loraUrl,
         }];
+    }
+    if (seed){
+        input.seed = seed;
     }
     try {
         result = await fal.subscribe(modelEndpoint,
@@ -171,7 +199,6 @@ const run = async (prompt, modelEndpoint, format, loraUrl) => {
         return;
     }
     
-    // Assuming result.images contains the URLs
     if (result && Array.isArray(result.images) && result.images.length > 0) {
         const imageUrls = result.images;
         await fetchImages(imageUrls);
@@ -180,12 +207,12 @@ const run = async (prompt, modelEndpoint, format, loraUrl) => {
     }
 };
 
-const { userPrompt, modelKey, formatKey,loraKey } = parseArgs();
+const { userPrompt, modelKey, formatKey,loraKey, seed, index } = parseArgs();
 
 // Get the model endpoint from the dictionary
-const pictureFormat = image_size[formatKey] || "square_hd";
-const prompt = userPrompt || await getRandomPrompt(path.resolve(__dirname, 'prompts.txt'));
+const pictureFormat = image_size[formatKey] || "square";
+const prompt = userPrompt || await getPromtFromFile(path.resolve(__dirname, 'prompts.txt'), index);
 const loraUrl = loraNames[loraKey] || null;
-const modelEndpoint = modelEndpoints[modelKey] || (loraKey?'fal-ai/flux-lora':'fal-ai/flux-pro'); // Default model
+const modelEndpoint = modelEndpoints[modelKey] || (loraUrl?'fal-ai/flux-lora':'fal-ai/flux-pro'); 
 
-run(prompt, modelEndpoint, pictureFormat, loraUrl);
+run(prompt, modelEndpoint, pictureFormat, loraUrl, seed);
