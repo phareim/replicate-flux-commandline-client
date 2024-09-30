@@ -29,7 +29,9 @@ const modelEndpoints = {
 };
 const loraNames = { 
     'incase': 'https://civitai.com/api/download/models/857267?type=Model&format=SafeTensor',
-    'eldritch': 'https://civitai.com/api/download/models/792184?type=Model&format=SafeTensor'
+    'eldritch': 'https://civitai.com/api/download/models/792184?type=Model&format=SafeTensor',
+    'details': 'https://civitai.com/api/download/models/839689?type=Model&format=SafeTensor',
+    'realistic_skin': 'https://civitai.com/api/download/models/876368?type=Model&format=SafeTensor'
 };  
 
 // Function to parse command-line arguments
