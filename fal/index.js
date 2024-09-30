@@ -79,18 +79,19 @@ const fetchImages = async (imageUrls) => {
     }
 };
 
-const run = async () => {
+const run = async (user_prompt) => {
     const filePath = path.resolve(__dirname, 'prompts.txt');
     let count = 0;
     
     // Get random prompt from file
-    const prompt = await getRandomPrompt(filePath);
+    const prompt = user_prompt || await getRandomPrompt(filePath);
     // console.log(`Using prompt: "${prompt}"`);
     
     // Use the random prompt with fal-ai client
     let result;
     try {
-        result = await fal.subscribe("fal-ai/flux-pro", {
+        result = await fal.subscribe("fal-ai/flux-pro",
+            {
             input: { prompt,
                 image_size: "portrait_4_3",
                 num_inference_steps: 50,
@@ -98,7 +99,7 @@ const run = async () => {
                 num_images: 1,
                 safety_tolerance: "6"
              },
-            logs: true,
+            logs: false,
             onQueueUpdate: (update) => {
                 process.stdout.write(`\r${update.status} ${count++}`);
             },
