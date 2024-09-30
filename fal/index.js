@@ -1,12 +1,54 @@
 import * as fal from "@fal-ai/serverless-client";
 import { promises as fs } from 'fs';
-import path from 'path';
+import path, { format } from 'path';
 // For Node.js versions below 18
 import fetch from 'node-fetch';
 
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const image_size = {
+    'small':'square', 
+    'square':'square_hd', 
+    'portrait':'portrait_4_3', 
+    'tall':'portrait_16_9', 
+    'normal':'landscape_4_3', 
+    'landscape':'landscape_16_9'
+};
+const modelEndpoints = {
+    'pro': 'fal-ai/flux-pro',
+    'dev': 'fal-ai/flux-dev',
+    'lora': 'fal-ai/flux-lora',
+    'schnell':'fal-ai/flux/schnell',
+    'realism': 'fal-ai/flux-realism',
+    'diff': 'fal-ai/flux-differential-diffusion',
+    'SD3': 'fal-ai/stable-diffusion-v3-medium',
+    'anime': 'fal-ai/stable-cascade/sote-diffusion'
+};
+
+// Function to parse command-line arguments
+const parseArgs = () => {
+    const args = process.argv.slice(2);
+    let userPrompt = null;
+    let modelKey = null;
+    let formatKey = null;
+
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === '--prompt' && i + 1 < args.length) {
+            userPrompt = args[i + 1];
+            i++;
+        } else if (args[i] === '--model' && i + 1 < args.length) {
+            modelKey = args[i + 1];
+            i++;
+        }else if (args[i] === '--format' && i + 1 < args.length) {
+            formatKey = args[i + 1];
+            i++;
+        }
+    }
+
+    return { userPrompt, modelKey, formatKey };
+};
 
 const getFalPath = () => {
     const falPath = process.env.FAL_PATH || path.resolve(__dirname, 'images');
@@ -79,31 +121,29 @@ const fetchImages = async (imageUrls) => {
     }
 };
 
-const run = async (user_prompt) => {
+const run = async (prompt, modelEndpoint, format) => {
     const filePath = path.resolve(__dirname, 'prompts.txt');
     let count = 0;
     
-    // Get random prompt from file
-    const prompt = user_prompt || await getRandomPrompt(filePath);
-    // console.log(`Using prompt: "${prompt}"`);
-    
-    // Use the random prompt with fal-ai client
     let result;
     try {
-        result = await fal.subscribe("fal-ai/flux-pro",
+        result = await fal.subscribe(modelEndpoint,
             {
-            input: { prompt,
-                image_size: "portrait_4_3",
-                num_inference_steps: 50,
-                guidance_scale: 3.5,
-                num_images: 1,
-                safety_tolerance: "6"
-             },
-            logs: false,
-            onQueueUpdate: (update) => {
-                process.stdout.write(`\r${update.status} ${count++}`);
-            },
-        });
+                input: { 
+                    prompt,
+                    image_size: format,
+                    num_inference_steps: 50,
+                    guidance_scale: 3.5,
+                    num_images: 1,
+                    safety_tolerance: "6"
+                },
+                logs: false,
+                onQueueUpdate: (update) => {
+                    process.stdout.write(`\r${update.status} ${count++}`);
+                },
+            }
+        );
+        console.log(result);
 
     } catch (error) {
         console.error("Error during API call:", error);
@@ -119,4 +159,11 @@ const run = async (user_prompt) => {
     }
 };
 
-run();
+const { userPrompt, modelKey, formatKey } = parseArgs();
+
+// Get the model endpoint from the dictionary
+const modelEndpoint = modelEndpoints[modelKey] || 'fal-ai/flux-pro'; // Default model
+const pictureFormat = image_size[formatKey] || "portrait_4_3";
+const prompt = userPrompt || await getRandomPrompt(filePath);
+
+run(prompt, modelEndpoint, pictureFormat);
