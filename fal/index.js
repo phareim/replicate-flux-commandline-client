@@ -164,6 +164,6 @@ const { userPrompt, modelKey, formatKey } = parseArgs();
 // Get the model endpoint from the dictionary
 const modelEndpoint = modelEndpoints[modelKey] || 'fal-ai/flux-pro'; // Default model
 const pictureFormat = image_size[formatKey] || "portrait_4_3";
-const prompt = userPrompt || await getRandomPrompt(filePath);
+const prompt = userPrompt || await getRandomPrompt(__dirname  + '/prompts.txt');
 
 run(prompt, modelEndpoint, pictureFormat);
