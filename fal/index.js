@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as fal from "@fal-ai/serverless-client";
 import { promises as fs } from 'fs';
 import path, { format } from 'path';
@@ -7,6 +9,10 @@ import fetch from 'node-fetch';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+fal.config({
+    credentials: process.env.FAL_KEY,
+  });
 
 const image_size = {
     'small':'square', 
@@ -33,6 +39,7 @@ const loraNames = {
     'details': 'https://civitai.com/api/download/models/839689?type=Model&format=SafeTensor',
     'realistic_skin': 'https://civitai.com/api/download/models/876368?type=Model&format=SafeTensor'
 };  
+let DEBUG = false;
 
 // Function to parse command-line arguments
 const parseArgs = () => {
@@ -41,7 +48,7 @@ const parseArgs = () => {
     let modelKey = null;
     let formatKey = null;
     let loraKey = null;
-
+    
     for (let i = 0; i < args.length; i++) {
         if (args[i] === '--prompt' && i + 1 < args.length) {
             userPrompt = args[i + 1];
@@ -55,9 +62,12 @@ const parseArgs = () => {
         }else if (args[i] === '--lora' && i + 1 < args.length) {
             loraKey = args[i + 1];
             i++;
+        }else if (args[i] === '--debug' && i + 1 < args.length) {
+            DEBUG = true;
+            i++;
         }
     }
-
+    
     return { userPrompt, modelKey, formatKey, loraKey };
 };
 
@@ -95,7 +105,7 @@ const saveImage = async (buffer, fileName) => {
     
     try {
         await fs.writeFile(filePath, buffer);
-        console.log(`Image saved successfully to ${filePath}`);
+        console.log(`Image saved: ${filePath}`);
     } catch (error) {
         console.error(`Failed to save image to ${filePath}:`, error);
     }
@@ -103,15 +113,6 @@ const saveImage = async (buffer, fileName) => {
 
 // Fetch images from URLs and save them
 const fetchImages = async (imageUrls) => {
-    console.log(imageUrls);
-    /*
-    {
-    url: 'https://fal.media/files/koala/MukELGM-TP46m_F5CzL-e_55435d277d064ff284c0d35629c22a8f.png',
-    width: 1024,
-    height: 768,
-    content_type: 'image/png'
-    }
-    */
     try {
         const imageFetches = imageUrls.map(async (urlObj, index) => {
             const url = urlObj.url;
@@ -126,7 +127,6 @@ const fetchImages = async (imageUrls) => {
         });
         
         await Promise.all(imageFetches);
-        console.log("All images fetched and saved successfully.");
     } catch (error) {
         console.error("Error fetching and saving images:", error);
     }
@@ -155,13 +155,17 @@ const run = async (prompt, modelEndpoint, format, loraUrl) => {
             {
                 input,
                 logs: false,
+                options: {},
                 onQueueUpdate: (update) => {
-                    process.stdout.write(`\r${update.status} ${count++}`);
-                },
+                    process.stdout.write(`\r${update.status}: ${count++} sec.`);
+                    if (update.status === "COMPLETED") {
+                        process.stdout.write("                               \r\n");
+                    }
+                }
             }
         );
-        console.log(result);
-
+        if (DEBUG)
+            console.log(result);
     } catch (error) {
         console.error("Error during API call:", error);
         return;

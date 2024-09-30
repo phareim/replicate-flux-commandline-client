@@ -1,7 +1,7 @@
 {
   "name": "flux-client",
   "version": "0.0.1",
-  "description": "A client for the flux image-generation model available at replicate.com",
+  "description": "A client for the flux image-generation models from replicate.ai and fel.ai",
   "main": "index.js",
   "type": "module",
   "scripts": {
