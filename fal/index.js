@@ -34,14 +34,16 @@ const modelEndpoints = {
     'anime': 'fal-ai/stable-cascade/sote-diffusion'
 };
 const loraNames = { 
-    'incase': 'https://civitai.com/api/download/models/857267?type=Model&format=SafeTensor',
-    'eldritch': 'https://civitai.com/api/download/models/792184?type=Model&format=SafeTensor',
-    'details': 'https://civitai.com/api/download/models/839689?type=Model&format=SafeTensor',
-    'details_strong':'https://civitai.com/api/download/models/839637?type=Model&format=SafeTensor',
-    'realistic_skin': 'https://civitai.com/api/download/models/876368?type=Model&format=SafeTensor',
-    'mj':'https://civitai.com/api/download/models/827351?type=Model&format=SafeTensor',
-    'fantasy':'https://civitai.com/api/download/models/880134?type=Model&format=SafeTensor',
-    'poly':'https://civitai.com/api/download/models/812320?type=Model&format=SafeTensor'
+    'incase':           {url:'https://civitai.com/api/download/models/857267?type=Model&format=SafeTensor', keyword:'Incase art'},
+    'eldritch':         {url:'https://civitai.com/api/download/models/792184?type=Model&format=SafeTensor', keyword:'Eldritch Comic'},
+    'details':          {url:'https://civitai.com/api/download/models/839689?type=Model&format=SafeTensor', keyword:''},
+    'details_strong':   {url:'https://civitai.com/api/download/models/839637?type=Model&format=SafeTensor', keyword:''},
+    'realistic_skin':   {url:'https://civitai.com/api/download/models/876368?type=Model&format=SafeTensor', keyword:''},
+    'mj':               {url:'https://civitai.com/api/download/models/827351?type=Model&format=SafeTensor', keyword:'aidmaMJ6.1'},
+    'fantasy':          {url:'https://civitai.com/api/download/models/880134?type=Model&format=SafeTensor', keyword:''},
+    'poly':             {url:'https://civitai.com/api/download/models/812320?type=Model&format=SafeTensor', keyword:''},
+    'cinematic':        {url:'https://civitai.com/api/download/models/857668?type=Model&format=SafeTensor', keyword:'cinematic, cinematic still image'},
+    'anime':            {url:'https://civitai.com/api/download/models/838667?type=Model&format=SafeTensor', keyword:'Flat colour anime style image showing'},
 };  
 let DEBUG = false;
 
@@ -157,7 +159,7 @@ const fetchImages = async (imageUrls) => {
     }
 };
 
-const run = async (prompt, modelEndpoint, format, loraUrl, seed) => {
+const run = async (prompt, modelEndpoint, format, loraObject, seed) => {
     let count = 0;
     
     let result;
@@ -165,15 +167,16 @@ const run = async (prompt, modelEndpoint, format, loraUrl, seed) => {
         prompt,
         image_size: format,
         num_inference_steps: 24,
-        guidance_scale: 3,
+        guidance_scale: 4,
         num_images: 1,
         safety_tolerance: "6",
         "enable_safety_checker": false
     };
-    if (loraUrl) {
+    if (loraObject) {
         input.loras = [{
-            path: loraUrl,
+            path: loraObject.url,
         }];
+        input.prompt = loraObject.keyword + '. ' + input.prompt;
     }
     if (seed){
         input.seed = seed;
@@ -212,7 +215,7 @@ const { userPrompt, modelKey, formatKey,loraKey, seed, index } = parseArgs();
 // Get the model endpoint from the dictionary
 const pictureFormat = image_size[formatKey] || "square";
 const prompt = userPrompt || await getPromtFromFile(path.resolve(__dirname, 'prompts.txt'), index);
-const loraUrl = loraNames[loraKey] || null;
-const modelEndpoint = modelEndpoints[modelKey] || (loraUrl?'fal-ai/flux-lora':'fal-ai/flux-pro'); 
+const loraObject = loraNames[loraKey] || null;
+const modelEndpoint = modelEndpoints[modelKey] || (loraObject?'fal-ai/flux-lora':'fal-ai/flux-pro'); 
 
-run(prompt, modelEndpoint, pictureFormat, loraUrl, seed);
+run(prompt, modelEndpoint, pictureFormat, loraObject, seed);
