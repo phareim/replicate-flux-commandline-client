@@ -164,7 +164,7 @@ const run = async (prompt, modelEndpoint, format, loraUrl, seed) => {
     const input = { 
         prompt,
         image_size: format,
-        num_inference_steps: 25,
+        num_inference_steps: 24,
         guidance_scale: 3,
         num_images: 1,
         safety_tolerance: "6",
