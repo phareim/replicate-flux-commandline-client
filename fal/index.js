@@ -34,6 +34,7 @@ const modelEndpoints = {
     'anime': 'fal-ai/stable-cascade/sote-diffusion'
 };
 const loraNames = { 
+    'retrowave':        {url:'https://civitai.com/api/download/models/913440?type=Model&format=SafeTensor', keyword:'ck-rw, in the style of ck-rw,'},
     'incase':           {url:'https://civitai.com/api/download/models/857267?type=Model&format=SafeTensor', keyword:'Incase art'},
     'eldritch':         {url:'https://civitai.com/api/download/models/792184?type=Model&format=SafeTensor', keyword:'Eldritch Comic'},
     'details':          {url:'https://civitai.com/api/download/models/839689?type=Model&format=SafeTensor', keyword:''},
