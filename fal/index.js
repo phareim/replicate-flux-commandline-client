@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 
 fal.config({
     credentials: process.env.FAL_KEY,
-  });
+});
 
 const image_size = {
     'small':'square', 
@@ -50,7 +50,6 @@ const loraNames = {
 };  
 let DEBUG = false;
 
-// Function to parse command-line arguments
 const parseArgs = () => {
     const args = process.argv.slice(2);
     let userPrompt = null;
@@ -125,12 +124,9 @@ const getAllPrompts = async (filePath) => {
     }
 };
 
-// Function to save buffer as file
 const saveImage = async (buffer, fileName) => {
     const falPath = getFalPath();
     const filePath = path.join(falPath, fileName);
-    
-    // Ensure the directory exists
     await fs.mkdir(falPath, { recursive: true });
     
     try {
@@ -141,7 +137,6 @@ const saveImage = async (buffer, fileName) => {
     }
 };
 
-// Fetch images from URLs and save them
 const fetchImages = async (imageUrls) => {
     try {
         const imageFetches = imageUrls.map(async (urlObj, index) => {
@@ -169,8 +164,8 @@ const run = async (prompt, modelEndpoint, format, loraObject, seed) => {
     const input = { 
         prompt,
         image_size: format,
-        num_inference_steps: 40,
-        guidance_scale: 3,
+        num_inference_steps: 30,
+        guidance_scale: 3.4,
         num_images: 1,
         safety_tolerance: "6",
         "enable_safety_checker": false
@@ -191,9 +186,12 @@ const run = async (prompt, modelEndpoint, format, loraObject, seed) => {
                 logs: false,
                 options: {},
                 onQueueUpdate: (update) => {
-                    process.stdout.write(`\r${update.status}: ${count++} sec.`);
-                    if (update.status === "COMPLETED") {
-                        process.stdout.write("                               \r\n");
+                    if(update.status === "IN_QUEUE"){
+                        process.stdout.write(`\r${update.status}: position ${update.queue_position}.`);
+                    }else if(update.status === "IN_PROGRESS"){
+                        process.stdout.write(`\r${update.status}: ${count++} sec.           `);
+                    } else if (update.status === "COMPLETED") {
+                        process.stdout.write("\rDONE ✔                                    \n");
                     }
                 }
             }
