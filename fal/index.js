@@ -25,7 +25,8 @@ const image_size = {
 };
 const modelEndpoints = {
     'pro': 'fal-ai/flux-pro',
-    'dev': 'fal-ai/flux-dev',
+    'pro11': 'fal-ai/flux-pro/v1.1',
+    'dev': 'fal-ai/flux/dev',
     'lora': 'fal-ai/flux-lora',
     'schnell':'fal-ai/flux/schnell',
     'realism': 'fal-ai/flux-realism',
