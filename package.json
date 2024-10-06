@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "A client for the flux image-generation models from replicate.ai and fel.ai",
   "main": "index.js",
+  "bin": {
+    "repflux": "./replicate/index.js",
+    "falflux": "./fal/index.js"
+  },
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,6 +14,7 @@
   "keywords": [
     "flux",
     "replicate",
+    "fal",
     "ai"
   ],
   "author": "phareim@gmail.com",
