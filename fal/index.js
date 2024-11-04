@@ -64,7 +64,7 @@ const parseArgs = () => {
     let userPrompt = null;
     let modelKey = null;
     let formatKey = null;
-    let loraKey = null;
+    let loraKeys = [];
     let allPrompts = false;
     let seed = null;
     let index = null;
@@ -81,7 +81,8 @@ const parseArgs = () => {
             formatKey = args[i + 1];
             i++;
         } else if (args[i] === '--lora' && i + 1 < args.length) {
-            loraKey = args[i + 1];
+            const loras = args[i + 1].split(',').map(s => s.trim());
+            loraKeys.push(...loras);
             i++;
         } else if (args[i] === '--seed' && i + 1 < args.length) {
             seed = args[i + 1];
@@ -100,7 +101,7 @@ const parseArgs = () => {
 
     if (showHelp) {
         console.log(`
-Usage: node script.js [options]
+Usage: falflux [options]
 
 Options:
   --prompt <text>         Specify the text prompt for image generation.
@@ -115,19 +116,26 @@ Options:
                             - realism   : fal-ai/flux-realism
                             - diff      : fal-ai/flux-differential-diffusion
                             - SD3       : fal-ai/stable-diffusion-v3-medium
+                            - SD35      : fal-ai/stable-diffusion-v35-large
                             - anime     : fal-ai/stable-cascade/sote-diffusion
+                            - red-panda : fal-ai/recraft-v3
+                            - omnigen   : fal-ai/omnigen-v1
                           Default is 'fal-ai/flux-pro/new' or 'fal-ai/flux-lora' if --lora is specified.
 
   --format <formatKey>    Specify image size/format. Available formats:
-                            - small, square, portrait, tall,
+                            - square, square_hd, portrait, tall,
                               normal, landscape, wide
-                          Default is 'square'.
+                          Default is 'square_hd'.
 
-  --lora <loraKey>        Apply a LoRA (Low-Rank Adaptation) model. Available LoRAs:
+  --lora <loraKeys>       Apply one or more LoRAs (Low-Rank Adaptation models).
+                          Specify multiple LoRAs separated by commas or by using
+                          --lora multiple times. Available LoRAs:
                             - disney, lucid, retrowave, incase,
-                              eldritch, details, details_strong,
-                              realistic_skin, mj, fantasy,
-                              poly, cinematic, anime
+                              eldritch, details, details_alt,
+                              details_strong, realistic_skin, mj,
+                              fantasy, poly, cinematic, anime,
+                              anime-flat, anime-portrait, niji,
+                              fantasy-core
 
   --seed <number>         Set a seed for randomization to reproduce results.
 
@@ -147,16 +155,18 @@ Description:
 Examples:
   falflux --prompt "A futuristic cityscape at dusk" --model pro --format wide
   falflux --lora disney --index 5 --seed 12345
+  falflux --lora disney,lucid --prompt "An enchanted forest"
+  falflux --lora retrowave --lora incase --prompt "A cyberpunk skyline"
   falflux --all-prompts --model anime
 
 Notes:
-  - If 'prompts.txt' is used, ensure it exists in the same directory as where you run the script.
+  - If 'prompts.txt' is used, ensure it exists in the directory where you run the script.
   - The 'FAL_KEY' environment variable must be set with your FAL AI API key.
   - Images are saved to the directory specified by 'FAL_PATH' or './images' by default.
         `);
         process.exit(0);
     }
-    return { userPrompt, modelKey, formatKey, loraKey, allPrompts, seed, index };
+    return { userPrompt, modelKey, formatKey, loraKeys, allPrompts, seed, index };
 };
 
 const getFalPath = () => {
@@ -170,13 +180,14 @@ const getFileNameFromUrl = (url) => {
     return fileName;
 };
 
-const getPromtFromFile = async (filePath, index = null) => {
+const getPromptFromFile = async (filePath, index = null) => {
     try {
         const data = await fs.readFile(filePath, 'utf-8');
         const lines = data.split('\n').filter(Boolean);
         const randomIndex = Math.floor(Math.random() * lines.length);
-        const randomLine = lines[index || randomIndex];
-        return randomLine.trim();
+        const selectedIndex = index !== null ? parseInt(index) - 1 : randomIndex;
+        const selectedLine = lines[selectedIndex];
+        return selectedLine.trim();
     } catch (error) {
         console.error(`Error reading file ${filePath}:`, error);
         throw error;
@@ -227,7 +238,7 @@ const fetchImages = async (imageUrls) => {
     }
 };
 
-const run = async (prompt, modelEndpoint, format, loraObject, seed) => {
+const run = async (prompt, modelEndpoint, format, loraObjects, seed) => {
     let count = 0;
 
     let result;
@@ -240,12 +251,15 @@ const run = async (prompt, modelEndpoint, format, loraObject, seed) => {
         safety_tolerance: "6",
         "enable_safety_checker": false
     };
-    if (loraObject) {
-        input.loras = [{
-            path: loraObject.url,
-            scale: loraObject.scale
-        }];
-        input.prompt = loraObject.keyword + '. ' + input.prompt;
+    if (loraObjects && loraObjects.length > 0) {
+        input.loras = loraObjects.map(loraObj => ({
+            path: loraObj.url,
+            scale: loraObj.scale
+        }));
+        const loraKeywords = loraObjects.map(loraObj => loraObj.keyword).filter(Boolean).join('. ');
+        if (loraKeywords) {
+            input.prompt = loraKeywords + '. ' + input.prompt;
+        }
     }
     if (seed) {
         input.seed = seed;
@@ -282,12 +296,31 @@ const run = async (prompt, modelEndpoint, format, loraObject, seed) => {
     }
 };
 
-const { userPrompt, modelKey, formatKey, loraKey, seed, index } = parseArgs();
+const { userPrompt, modelKey, formatKey, loraKeys, seed, index, allPrompts } = parseArgs();
 
 // Get the model endpoint from the dictionary
 const pictureFormat = image_size[formatKey] || "square_hd";
-const prompt = userPrompt || await getPromtFromFile(path.resolve(process.cwd(), 'prompts.txt'), index);
-const loraObject = loraNames[loraKey] || null;
-const modelEndpoint = modelEndpoints[modelKey] || (loraObject ? 'fal-ai/flux-lora' : 'fal-ai/flux-pro');
 
-run(prompt, modelEndpoint, pictureFormat, loraObject, seed);
+const loraObjects = loraKeys.map(key => loraNames[key]).filter(Boolean);
+const modelEndpoint = modelEndpoints[modelKey] || (loraObjects.length > 0 ? 'fal-ai/flux-lora' : 'fal-ai/flux-pro/new');
+
+if (allPrompts) {
+    // Handle the --all-prompts option
+    const promptsFilePath = path.resolve(process.cwd(), 'prompts.txt');
+    getAllPrompts(promptsFilePath).then(prompts => {
+        prompts.forEach(async (promptText, idx) => {
+            console.log(`Generating image for prompt ${idx + 1}: "${promptText}"`);
+            await run(promptText, modelEndpoint, pictureFormat, loraObjects, seed);
+        });
+    }).catch(error => {
+        console.error("Failed to read prompts:", error);
+    });
+} else {
+    const promptPromise = userPrompt ? Promise.resolve(userPrompt) : getPromptFromFile(path.resolve(process.cwd(), 'prompts.txt'), index);
+
+    promptPromise.then(promptText => {
+        run(promptText, modelEndpoint, pictureFormat, loraObjects, seed);
+    }).catch(error => {
+        console.error("Failed to get prompt:", error);
+    });
+}
