@@ -60,97 +60,97 @@ const parseArgs = () => {
     let allPrompts = false;
     let seed = null;
     let index = null;
+    let showHelp = false;
     
-    if (args.includes('-h') || args.includes('--help') || args.length === 0) {
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === '--prompt' && i + 1 < args.length) {
+            userPrompt = args[i + 1];
+            i++;
+        } else if (args[i] === '--model' && i + 1 < args.length) {
+            modelKey = args[i + 1];
+            i++;
+        } else if (args[i] === '--format' && i + 1 < args.length) {
+            formatKey = args[i + 1];
+            i++;
+        } else if (args[i] === '--lora' && i + 1 < args.length) {
+            loraKey = args[i + 1];
+            i++;
+        } else if (args[i] === '--seed' && i + 1 < args.length) {
+            seed = args[i + 1];
+            i++;
+        } else if (args[i] === '--index' && i + 1 < args.length) {
+            index = args[i + 1];
+            i++;
+        } else if (args[i] === '--debug') {
+            DEBUG = true;
+        } else if (args[i] === '--all-prompts') {
+            allPrompts = true;
+        } else if (args[i] === '-h' || args[i] === '--help') {
+            showHelp = true;
+        }
+    }
+    
+    if (showHelp) {
         console.log(`
-        Usage: falflux [OPTIONS]
-                
-        This script generates and saves AI-generated images based on user-specified prompts, model, format, and other options. 
-                
-        Options:
-          --prompt <text>           The text prompt for generating images. 
-                                    (Required if no 'prompts.txt' file is present)
-                
-          --model <model_key>       Specify the model to use:
-                                    Available options:
-                                    - pro: Standard model (default)
-                                    - pro11: Updated model v1.1
-                                    - dev: Development model
-                                    - lora: LORA-enhanced model
-                                    - schnell: High-speed model
-                                    - realism: Realistic rendering
-                                    - diff: Differential diffusion
-                                    - SD3: Stable Diffusion v3
-                                    - anime: Anime-style model
-                
-          --format <format_key>     Image format options:
-                                    - small: Small square
-                                    - square: High-definition square
-                                    - portrait: 4:3 portrait
-                                    - tall: 16:9 portrait
-                                    - normal: 4:3 landscape
-                                    - landscape: 16:9 landscape (default)
-                
-          --lora <lora_key>         Add LORA effect for specific styles:
-                                    - disney, lucid, retrowave, incase, eldritch, 
-                                      details, realistic_skin, mj, fantasy, poly, 
-                                      cinematic, anime
-                
-          --seed <number>           Set a seed for consistent image generation.
-                
-          --index <number>          Select a specific line from 'prompts.txt' as the prompt.
-                
-          --all-prompts             Display all prompts from 'prompts.txt' instead of generating an image.
-                
-          --debug                   Enable debug mode to show detailed API responses and logs.
-                
-          -h, --help                Show this help message and exit.
-                
-        Examples:
-          Generate an image with a prompt:
-            node script.js --prompt "sunset over mountains" --model pro --format landscape
-                
-          Use a pre-defined prompt from file:
-            node script.js --index 2 --model realism --format portrait
-                
-          Enable debug mode:
-            node script.js --prompt "city skyline" --debug
-                
-        Note:
-          Environment variable FAL_KEY must be set with your FAL API key.
-          Use --debug to troubleshoot issues with API responses.
+Usage: node script.js [options]
+            
+Options:
+  --prompt <text>         Specify the text prompt for image generation.
+                          If omitted, a random prompt from 'prompts.txt' is used.
+            
+  --model <modelKey>      Choose the AI model to use. Available models:
+                            - pro       : fal-ai/flux-pro
+                            - pro11     : fal-ai/flux-pro/v1.1
+                            - dev       : fal-ai/flux/dev
+                            - lora      : fal-ai/flux-lora
+                            - schnell   : fal-ai/flux-schnell
+                            - realism   : fal-ai/flux-realism
+                            - diff      : fal-ai/flux-differential-diffusion
+                            - SD3       : fal-ai/stable-diffusion-v3-medium
+                            - anime     : fal-ai/stable-cascade/sote-diffusion
+                          Default is 'fal-ai/flux-pro' or 'fal-ai/flux-lora' if --lora is specified.
+            
+  --format <formatKey>    Specify image size/format. Available formats:
+                            - small, square, portrait, tall,
+                              normal, landscape, wide
+                          Default is 'square'.
+            
+  --lora <loraKey>        Apply a LoRA (Low-Rank Adaptation) model. Available LoRAs:
+                            - disney, lucid, retrowave, incase,
+                              eldritch, details, details_strong,
+                              realistic_skin, mj, fantasy,
+                              poly, cinematic, anime
+            
+  --seed <number>         Set a seed for randomization to reproduce results.
+            
+  --index <number>        Use a specific prompt from 'prompts.txt' by line number.
+            
+  --debug                 Enable debug mode to display additional logs.
+            
+  --all-prompts           Generate images for all prompts in 'prompts.txt'.
+            
+  -h, --help              Display this help message.
+            
+Description:
+  This script generates images using the FAL AI serverless client.
+  You can provide custom prompts, select models, and adjust settings
+  to customize the image generation process.
+            
+Examples:
+  falflux --prompt "A futuristic cityscape at dusk" --model pro --format wide
+  falflux --lora disney --index 5 --seed 12345
+  falflux --all-prompts --model anime
+            
+Notes:
+  - If 'prompts.txt' is used, ensure it exists in the same directory as the script.
+  - The 'FAL_KEY' environment variable must be set with your FAL AI API key.
+  - Images are saved to the directory specified by 'FAL_PATH' or './images' by default.
         `);
             process.exit(0);
         }
-        
-        for (let i = 0; i < args.length; i++) {
-            if (args[i] === '--prompt' && i + 1 < args.length) {
-                userPrompt = args[i + 1];
-                i++;
-            } else if (args[i] === '--model' && i + 1 < args.length) {
-                modelKey = args[i + 1];
-                i++;
-            }else if (args[i] === '--format' && i + 1 < args.length) {
-                formatKey = args[i + 1];
-                i++;
-            }else if (args[i] === '--lora' && i + 1 < args.length) {
-                loraKey = args[i + 1];
-                i++;
-            }else if (args[i] === '--seed' && i + 1 < args.length) {
-                seed = args[i + 1];
-                i++;
-            }else if (args[i] === '--index' && i + 1 < args.length) {
-                index = (args[i + 1]);
-                i++;
-            }else if (args[i] === '--debug') {
-                DEBUG = true;
-            }else if (args[i] === '--all-prompts') {
-                allPrompts = true;
-            }
-        }
-        
         return { userPrompt, modelKey, formatKey, loraKey, allPrompts, seed, index };
     };
+    
     
     const getFalPath = () => {
         const falPath = process.env.FAL_PATH || path.resolve(__dirname, 'images');
