@@ -61,163 +61,226 @@ const parseArgs = () => {
     let seed = null;
     let index = null;
     
-    for (let i = 0; i < args.length; i++) {
-        if (args[i] === '--prompt' && i + 1 < args.length) {
-            userPrompt = args[i + 1];
-            i++;
-        } else if (args[i] === '--model' && i + 1 < args.length) {
-            modelKey = args[i + 1];
-            i++;
-        }else if (args[i] === '--format' && i + 1 < args.length) {
-            formatKey = args[i + 1];
-            i++;
-        }else if (args[i] === '--lora' && i + 1 < args.length) {
-            loraKey = args[i + 1];
-            i++;
-        }else if (args[i] === '--seed' && i + 1 < args.length) {
-            seed = args[i + 1];
-            i++;
-        }else if (args[i] === '--index' && i + 1 < args.length) {
-            index = (args[i + 1]);
-            i++;
-        }else if (args[i] === '--debug') {
-            DEBUG = true;
-        }else if (args[i] === '--all-prompts') {
-            allPrompts = true;
+    if (args.includes('-h') || args.includes('--help') || args.length === 0) {
+        console.log(`
+        Usage: falflux [OPTIONS]
+                
+        This script generates and saves AI-generated images based on user-specified prompts, model, format, and other options. 
+                
+        Options:
+          --prompt <text>           The text prompt for generating images. 
+                                    (Required if no 'prompts.txt' file is present)
+                
+          --model <model_key>       Specify the model to use:
+                                    Available options:
+                                    - pro: Standard model (default)
+                                    - pro11: Updated model v1.1
+                                    - dev: Development model
+                                    - lora: LORA-enhanced model
+                                    - schnell: High-speed model
+                                    - realism: Realistic rendering
+                                    - diff: Differential diffusion
+                                    - SD3: Stable Diffusion v3
+                                    - anime: Anime-style model
+                
+          --format <format_key>     Image format options:
+                                    - small: Small square
+                                    - square: High-definition square
+                                    - portrait: 4:3 portrait
+                                    - tall: 16:9 portrait
+                                    - normal: 4:3 landscape
+                                    - landscape: 16:9 landscape (default)
+                
+          --lora <lora_key>         Add LORA effect for specific styles:
+                                    - disney, lucid, retrowave, incase, eldritch, 
+                                      details, realistic_skin, mj, fantasy, poly, 
+                                      cinematic, anime
+                
+          --seed <number>           Set a seed for consistent image generation.
+                
+          --index <number>          Select a specific line from 'prompts.txt' as the prompt.
+                
+          --all-prompts             Display all prompts from 'prompts.txt' instead of generating an image.
+                
+          --debug                   Enable debug mode to show detailed API responses and logs.
+                
+          -h, --help                Show this help message and exit.
+                
+        Examples:
+          Generate an image with a prompt:
+            node script.js --prompt "sunset over mountains" --model pro --format landscape
+                
+          Use a pre-defined prompt from file:
+            node script.js --index 2 --model realism --format portrait
+                
+          Enable debug mode:
+            node script.js --prompt "city skyline" --debug
+                
+        Note:
+          Environment variable FAL_KEY must be set with your FAL API key.
+          Use --debug to troubleshoot issues with API responses.
+        `);
+            process.exit(0);
         }
-    }
-    
-    return { userPrompt, modelKey, formatKey, loraKey, allPrompts, seed, index };
-};
-
-const getFalPath = () => {
-    const falPath = process.env.FAL_PATH || path.resolve(__dirname, 'images');
-    return falPath;
-};
-
-const getFileNameFromUrl = (url) => {
-    const parsedUrl = new URL(url);
-    const fileName = parsedUrl.pathname.split('/').pop();
-    return fileName;
-};
-
-const getPromtFromFile = async (filePath, index = null) => {
-    try {
-        const data = await fs.readFile(filePath, 'utf-8');
-        const lines = data.split('\n').filter(Boolean);
-        const randomIndex = Math.floor(Math.random() * lines.length);
-        const randomLine = lines[index || randomIndex];
-        return randomLine.trim();
-    } catch (error) {
-        console.error(`Error reading file ${filePath}:`, error);
-        throw error;
-    }
-};
-
-const getAllPrompts = async (filePath) => {
-    try {
-        const data = await fs.readFile(filePath, 'utf-8');
-        const lines = data.split('\n').map(line => line.trim()).filter(Boolean);
-        return lines;
-    } catch (error) {
-        console.error(`Error reading file ${filePath}:`, error);
-        throw error;
-    }
-};
-
-const saveImage = async (buffer, fileName) => {
-    const falPath = getFalPath();
-    const filePath = path.join(falPath, fileName);
-    await fs.mkdir(falPath, { recursive: true });
-    
-    try {
-        await fs.writeFile(filePath, buffer);
-        console.log(`Image saved: ${filePath}`);
-    } catch (error) {
-        console.error(`Failed to save image to ${filePath}:`, error);
-    }
-};
-
-const fetchImages = async (imageUrls) => {
-    try {
-        const imageFetches = imageUrls.map(async (urlObj, index) => {
-            const url = urlObj.url;
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch image from ${url}`);
-            }
-            const arrayBuffer = await response.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-            const fileName = getFileNameFromUrl(url);
-            await saveImage(buffer, fileName);
-        });
         
-        await Promise.all(imageFetches);
-    } catch (error) {
-        console.error("Error fetching and saving images:", error);
-    }
-};
-
-const run = async (prompt, modelEndpoint, format, loraObject, seed) => {
-    let count = 0;
-    
-    let result;
-    const input = { 
-        prompt,
-        image_size: format,
-        num_inference_steps: 30,
-        guidance_scale: 3.4,
-        num_images: 1,
-        safety_tolerance: "6",
-        "enable_safety_checker": false
+        for (let i = 0; i < args.length; i++) {
+            if (args[i] === '--prompt' && i + 1 < args.length) {
+                userPrompt = args[i + 1];
+                i++;
+            } else if (args[i] === '--model' && i + 1 < args.length) {
+                modelKey = args[i + 1];
+                i++;
+            }else if (args[i] === '--format' && i + 1 < args.length) {
+                formatKey = args[i + 1];
+                i++;
+            }else if (args[i] === '--lora' && i + 1 < args.length) {
+                loraKey = args[i + 1];
+                i++;
+            }else if (args[i] === '--seed' && i + 1 < args.length) {
+                seed = args[i + 1];
+                i++;
+            }else if (args[i] === '--index' && i + 1 < args.length) {
+                index = (args[i + 1]);
+                i++;
+            }else if (args[i] === '--debug') {
+                DEBUG = true;
+            }else if (args[i] === '--all-prompts') {
+                allPrompts = true;
+            }
+        }
+        
+        return { userPrompt, modelKey, formatKey, loraKey, allPrompts, seed, index };
     };
-    if (loraObject) {
-        input.loras = [{
-            path: loraObject.url,
-        }];
-        input.prompt = loraObject.keyword + '. ' + input.prompt;
-    }
-    if (seed){
-        input.seed = seed;
-    }
-    try {
-        result = await fal.subscribe(modelEndpoint,
-            {
-                input,
-                logs: false,
-                options: {},
-                onQueueUpdate: (update) => {
-                    if(update.status === "IN_QUEUE"){
-                        process.stdout.write(`\r${update.status}: position ${update.queue_position}.`);
-                    }else if(update.status === "IN_PROGRESS"){
-                        process.stdout.write(`\r${update.status}: ${count++} sec.           `);
-                    } else if (update.status === "COMPLETED") {
-                        process.stdout.write("\rDONE ✔                                    \n");
+    
+    const getFalPath = () => {
+        const falPath = process.env.FAL_PATH || path.resolve(__dirname, 'images');
+        return falPath;
+    };
+    
+    const getFileNameFromUrl = (url) => {
+        const parsedUrl = new URL(url);
+        const fileName = parsedUrl.pathname.split('/').pop();
+        return fileName;
+    };
+    
+    const getPromtFromFile = async (filePath, index = null) => {
+        try {
+            const data = await fs.readFile(filePath, 'utf-8');
+            const lines = data.split('\n').filter(Boolean);
+            const randomIndex = Math.floor(Math.random() * lines.length);
+            const randomLine = lines[index || randomIndex];
+            return randomLine.trim();
+        } catch (error) {
+            console.error(`Error reading file ${filePath}:`, error);
+            throw error;
+        }
+    };
+    
+    const getAllPrompts = async (filePath) => {
+        try {
+            const data = await fs.readFile(filePath, 'utf-8');
+            const lines = data.split('\n').map(line => line.trim()).filter(Boolean);
+            return lines;
+        } catch (error) {
+            console.error(`Error reading file ${filePath}:`, error);
+            throw error;
+        }
+    };
+    
+    const saveImage = async (buffer, fileName) => {
+        const falPath = getFalPath();
+        const filePath = path.join(falPath, fileName);
+        await fs.mkdir(falPath, { recursive: true });
+        
+        try {
+            await fs.writeFile(filePath, buffer);
+            console.log(`Image saved: ${filePath}`);
+        } catch (error) {
+            console.error(`Failed to save image to ${filePath}:`, error);
+        }
+    };
+    
+    const fetchImages = async (imageUrls) => {
+        try {
+            const imageFetches = imageUrls.map(async (urlObj, index) => {
+                const url = urlObj.url;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch image from ${url}`);
+                }
+                const arrayBuffer = await response.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
+                const fileName = getFileNameFromUrl(url);
+                await saveImage(buffer, fileName);
+            });
+            
+            await Promise.all(imageFetches);
+        } catch (error) {
+            console.error("Error fetching and saving images:", error);
+        }
+    };
+    
+    const run = async (prompt, modelEndpoint, format, loraObject, seed) => {
+        let count = 0;
+        
+        let result;
+        const input = { 
+            prompt,
+            image_size: format,
+            num_inference_steps: 30,
+            guidance_scale: 3.4,
+            num_images: 1,
+            safety_tolerance: "6",
+            "enable_safety_checker": false
+        };
+        if (loraObject) {
+            input.loras = [{
+                path: loraObject.url,
+            }];
+            input.prompt = loraObject.keyword + '. ' + input.prompt;
+        }
+        if (seed){
+            input.seed = seed;
+        }
+        try {
+            result = await fal.subscribe(modelEndpoint,
+                {
+                    input,
+                    logs: false,
+                    options: {},
+                    onQueueUpdate: (update) => {
+                        if(update.status === "IN_QUEUE"){
+                            process.stdout.write(`\r${update.status}: position ${update.queue_position}.`);
+                        }else if(update.status === "IN_PROGRESS"){
+                            process.stdout.write(`\r${update.status}: ${count++} sec.           `);
+                        } else if (update.status === "COMPLETED") {
+                            process.stdout.write("\rDONE ✔                                    \n");
+                        }
                     }
                 }
-            }
-        );
-        if (DEBUG)
-            console.log(result);
-    } catch (error) {
-        console.error("Error during API call:", error);
-        return;
-    }
+            );
+            if (DEBUG)
+                console.log(result);
+        } catch (error) {
+            console.error("Error during API call:", error);
+            return;
+        }
+        
+        if (result && Array.isArray(result.images) && result.images.length > 0) {
+            const imageUrls = result.images;
+            await fetchImages(imageUrls);
+        } else {
+            console.error("No images returned from the API.");
+        }
+    };
     
-    if (result && Array.isArray(result.images) && result.images.length > 0) {
-        const imageUrls = result.images;
-        await fetchImages(imageUrls);
-    } else {
-        console.error("No images returned from the API.");
-    }
-};
-
-const { userPrompt, modelKey, formatKey,loraKey, seed, index } = parseArgs();
-
-// Get the model endpoint from the dictionary
-const pictureFormat = image_size[formatKey] || "square";
-const prompt = userPrompt || await getPromtFromFile(path.resolve(__dirname, 'prompts.txt'), index);
-const loraObject = loraNames[loraKey] || null;
-const modelEndpoint = modelEndpoints[modelKey] || (loraObject?'fal-ai/flux-lora':'fal-ai/flux-pro'); 
-
-run(prompt, modelEndpoint, pictureFormat, loraObject, seed);
+    const { userPrompt, modelKey, formatKey,loraKey, seed, index } = parseArgs();
+    
+    // Get the model endpoint from the dictionary
+    const pictureFormat = image_size[formatKey] || "square";
+    const prompt = userPrompt || await getPromtFromFile(path.resolve(__dirname, 'prompts.txt'), index);
+    const loraObject = loraNames[loraKey] || null;
+    const modelEndpoint = modelEndpoints[modelKey] || (loraObject?'fal-ai/flux-lora':'fal-ai/flux-pro'); 
+    
+    run(prompt, modelEndpoint, pictureFormat, loraObject, seed);
+    
