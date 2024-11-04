@@ -32,8 +32,10 @@ const modelEndpoints = {
     'realism': 'fal-ai/flux-realism',
     'diff': 'fal-ai/flux-differential-diffusion',
     'SD3': 'fal-ai/stable-diffusion-v3-medium',
+    'SD35': 'fal-ai/stable-diffusion-v35-large',
     'anime': 'fal-ai/stable-cascade/sote-diffusion',
-    'red-panda': 'fal-ai/recraft-v3'
+    'red-panda': 'fal-ai/recraft-v3',
+    'omnigen': 'fal-ai/omnigen-v1',
 };
 const loraNames = {
     'disney':           { url: 'https://civitai.com/api/download/models/825954?type=Model&format=SafeTensor', scale: '1', keyword: 'DisneyRenstyle' },
