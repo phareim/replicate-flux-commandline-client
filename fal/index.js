@@ -15,8 +15,8 @@ fal.config({
 });
 
 const image_size = {
-    'small': 'square',
-    'square': 'square_hd',
+    'square': 'square',
+    'square_hd': 'square_hd',
     'portrait': 'portrait_4_3',
     'tall': 'portrait_16_9',
     'normal': 'landscape_4_3',
@@ -24,7 +24,7 @@ const image_size = {
     'wide': 'landscape_16_9'
 };
 const modelEndpoints = {
-    'pro': 'fal-ai/flux-pro',
+    'pro': 'fal-ai/flux-pro/new',
     'pro11': 'fal-ai/flux-pro/v1.1',
     'dev': 'fal-ai/flux/dev',
     'lora': 'fal-ai/flux-lora',
@@ -32,25 +32,28 @@ const modelEndpoints = {
     'realism': 'fal-ai/flux-realism',
     'diff': 'fal-ai/flux-differential-diffusion',
     'SD3': 'fal-ai/stable-diffusion-v3-medium',
-    'anime': 'fal-ai/stable-cascade/sote-diffusion'
+    'anime': 'fal-ai/stable-cascade/sote-diffusion',
+    'red-panda': 'fal-ai/recraft-v3'
 };
 const loraNames = {
-    'disney':           { url: 'https://civitai.com/api/download/models/825954?type=Model&format=SafeTensor', keyword: 'DisneyRenstyle' },
-    'lucid':            { url: 'https://civitai.com/api/download/models/857586?type=Model&format=SafeTensor', keyword: 'Lucid Dream' },
-    'retrowave':        { url: 'https://civitai.com/api/download/models/913440?type=Model&format=SafeTensor', keyword: 'ck-rw, in the style of ck-rw,' },
-    'incase':           { url: 'https://civitai.com/api/download/models/857267?type=Model&format=SafeTensor', keyword: 'Incase art' },
-    'eldritch':         { url: 'https://civitai.com/api/download/models/792184?type=Model&format=SafeTensor', keyword: 'Eldritch Comic' },
-    'details_alt':      { url: 'https://civitai.com/api/download/models/839689?type=Model&format=SafeTensor', keyword: '' },
-    'details':          { url: 'https://civitai.com/api/download/models/955535?type=Model&format=SafeTensor', keyword: 'aidmafluxpro1.1' },
-    'details_strong':   { url: 'https://civitai.com/api/download/models/839637?type=Model&format=SafeTensor', keyword: '' },
-    'realistic_skin':   { url: 'https://civitai.com/api/download/models/876368?type=Model&format=SafeTensor', keyword: '' },
-    'mj':               { url: 'https://civitai.com/api/download/models/827351?type=Model&format=SafeTensor', keyword: 'aidmaMJ6.1' },
-    'fantasy':          { url: 'https://civitai.com/api/download/models/880134?type=Model&format=SafeTensor', keyword: '' },
-    'poly':             { url: 'https://civitai.com/api/download/models/812320?type=Model&format=SafeTensor', keyword: '' },
-    'cinematic':        { url: 'https://civitai.com/api/download/models/857668?type=Model&format=SafeTensor', keyword: 'cinematic, cinematic still image' },
-    'anime-flat':       { url: 'https://civitai.com/api/download/models/838667?type=Model&format=SafeTensor', keyword: 'Flat colour anime style image showing' },
-    'anime':            { url: 'https://civitai.com/api/download/models/753053?type=Model&format=SafeTensor', keyword: 'MythAn1m3' },
-    'anime-portrait':   { url: 'https://civitai.com/api/download/models/753053?type=Model&format=SafeTensor', keyword: 'MythP0rt' },
+    'disney':           { url: 'https://civitai.com/api/download/models/825954?type=Model&format=SafeTensor', scale: '1', keyword: 'DisneyRenstyle' },
+    'lucid':            { url: 'https://civitai.com/api/download/models/857586?type=Model&format=SafeTensor', scale: '1', keyword: 'Lucid Dream' },
+    'retrowave':        { url: 'https://civitai.com/api/download/models/913440?type=Model&format=SafeTensor', scale: '1', keyword: 'ck-rw, in the style of ck-rw,' },
+    'incase':           { url: 'https://civitai.com/api/download/models/857267?type=Model&format=SafeTensor', scale: '1', keyword: 'Incase art' },
+    'eldritch':         { url: 'https://civitai.com/api/download/models/792184?type=Model&format=SafeTensor', scale: '1', keyword: 'Eldritch Comic' },
+    'details_alt':      { url: 'https://civitai.com/api/download/models/839689?type=Model&format=SafeTensor', scale: '1', keyword: '' },
+    'details':          { url: 'https://civitai.com/api/download/models/955535?type=Model&format=SafeTensor', scale: '1', keyword: 'aidmafluxpro1.1' },
+    'details_strong':   { url: 'https://civitai.com/api/download/models/839637?type=Model&format=SafeTensor', scale: '1', keyword: '' },
+    'realistic_skin':   { url: 'https://civitai.com/api/download/models/876368?type=Model&format=SafeTensor', scale: '1', keyword: '' },
+    'mj':               { url: 'https://civitai.com/api/download/models/827351?type=Model&format=SafeTensor', scale: '1', keyword: 'aidmaMJ6.1' },
+    'fantasy':          { url: 'https://civitai.com/api/download/models/880134?type=Model&format=SafeTensor', scale: '1', keyword: '' },
+    'poly':             { url: 'https://civitai.com/api/download/models/812320?type=Model&format=SafeTensor', scale: '1', keyword: '' },
+    'cinematic':        { url: 'https://civitai.com/api/download/models/857668?type=Model&format=SafeTensor', scale: '1', keyword: 'cinematic, cinematic still image' },
+    'anime-flat':       { url: 'https://civitai.com/api/download/models/838667?type=Model&format=SafeTensor', scale: '1', keyword: 'Flat colour anime style image showing' },
+    'anime':            { url: 'https://civitai.com/api/download/models/753053?type=Model&format=SafeTensor', scale: '1', keyword: 'MythAn1m3' },
+    'anime-portrait':   { url: 'https://civitai.com/api/download/models/753053?type=Model&format=SafeTensor', scale: '1', keyword: 'MythP0rt' },
+    'niji':             { url: 'https://civitai.com/api/download/models/855516?type=Model&format=SafeTensor', scale: '1', keyword: 'aidmanijiv6' },
+    'fantasy-core':     { url: 'https://civitai.com/api/download/models/905789?type=Model&format=SafeTensor', scale: '1', keyword: 'This is a highly detailed, CGI-rendered digital artwork depicting a' },
 };
 let DEBUG = false;
 
@@ -102,7 +105,7 @@ Options:
                           If omitted, a random prompt from 'prompts.txt' is used.
 
   --model <modelKey>      Choose the AI model to use. Available models:
-                            - pro       : fal-ai/flux-pro
+                            - pro       : fal-ai/flux-pro/new
                             - pro11     : fal-ai/flux-pro/v1.1
                             - dev       : fal-ai/flux/dev
                             - lora      : fal-ai/flux-lora
@@ -111,7 +114,7 @@ Options:
                             - diff      : fal-ai/flux-differential-diffusion
                             - SD3       : fal-ai/stable-diffusion-v3-medium
                             - anime     : fal-ai/stable-cascade/sote-diffusion
-                          Default is 'fal-ai/flux-pro' or 'fal-ai/flux-lora' if --lora is specified.
+                          Default is 'fal-ai/flux-pro/new' or 'fal-ai/flux-lora' if --lora is specified.
 
   --format <formatKey>    Specify image size/format. Available formats:
                             - small, square, portrait, tall,
@@ -238,6 +241,7 @@ const run = async (prompt, modelEndpoint, format, loraObject, seed) => {
     if (loraObject) {
         input.loras = [{
             path: loraObject.url,
+            scale: loraObject.scale
         }];
         input.prompt = loraObject.keyword + '. ' + input.prompt;
     }
@@ -279,7 +283,7 @@ const run = async (prompt, modelEndpoint, format, loraObject, seed) => {
 const { userPrompt, modelKey, formatKey, loraKey, seed, index } = parseArgs();
 
 // Get the model endpoint from the dictionary
-const pictureFormat = image_size[formatKey] || "square";
+const pictureFormat = image_size[formatKey] || "square_hd";
 const prompt = userPrompt || await getPromtFromFile(path.resolve(process.cwd(), 'prompts.txt'), index);
 const loraObject = loraNames[loraKey] || null;
 const modelEndpoint = modelEndpoints[modelKey] || (loraObject ? 'fal-ai/flux-lora' : 'fal-ai/flux-pro');
