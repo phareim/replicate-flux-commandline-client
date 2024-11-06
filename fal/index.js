@@ -89,7 +89,6 @@ const parseArgs = () => {
             i++;
         } else if (args[i] === '--out') {
             local_output_override = true;
-            i++;
         } else if (args[i] === '--index' && i + 1 < args.length) {
             index = args[i + 1];
             i++;
