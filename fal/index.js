@@ -143,7 +143,9 @@ Options:
   --debug                 Enable debug mode to display additional logs.
             
   --all-prompts           Generate images for all prompts in 'prompts.txt'.
-            
+  
+  --out                   Save images to the current directory instead of the default.
+
   -h, --help              Display this help message.
             
 Description:
