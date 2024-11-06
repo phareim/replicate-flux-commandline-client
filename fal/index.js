@@ -3,12 +3,8 @@
 import * as fal from "@fal-ai/serverless-client";
 import { promises as fs } from 'fs';
 import path from 'path';
-// For Node.js versions below 18
-import fetch from 'node-fetch';
 
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let local_output_override = false;
 
 fal.config({
     credentials: process.env.FAL_KEY,
@@ -18,10 +14,14 @@ const image_size = {
     'square': 'square',
     'square_hd': 'square_hd',
     'portrait': 'portrait_4_3',
+    'portrait_4_3': 'portrait_4_3',
     'tall': 'portrait_16_9',
+    'portrait_16_9': 'portrait_16_9',
     'normal': 'landscape_4_3',
+    'landscape_4_3': 'landscape_4_3',
     'landscape': 'landscape_16_9',
-    'wide': 'landscape_16_9'
+    'wide': 'landscape_16_9',
+    'landscape_16_9': 'landscape_16_9'
 };
 const modelEndpoints = {
     'pro': 'fal-ai/flux-pro/new',
@@ -69,7 +69,7 @@ const parseArgs = () => {
     let seed = null;
     let index = null;
     let showHelp = false;
-
+    
     for (let i = 0; i < args.length; i++) {
         if (args[i] === '--prompt' && i + 1 < args.length) {
             userPrompt = args[i + 1];
@@ -87,6 +87,9 @@ const parseArgs = () => {
         } else if (args[i] === '--seed' && i + 1 < args.length) {
             seed = args[i + 1];
             i++;
+        } else if (args[i] === '--out') {
+            local_output_override = true;
+            i++;
         } else if (args[i] === '--index' && i + 1 < args.length) {
             index = args[i + 1];
             i++;
@@ -98,229 +101,228 @@ const parseArgs = () => {
             showHelp = true;
         }
     }
-
+    
     if (showHelp) {
+        // Generate the list of available models
+        const availableModels = Object.keys(modelEndpoints)
+        .map(key => `  - ${key.padEnd(10)}: ${modelEndpoints[key]}`)
+        .join('\n');
+        
+        // Generate the list of available LoRAs
+        const availableLoras = Object.keys(loraNames)
+        .map(key => key)
+        .join(', ');
+        
+        // Generate the list of available formats
+        const availableFormats = Object.keys(image_size).join(', ');
+        
         console.log(`
-Usage: falflux [options]
-
+Usage: node your_script_name.js [options]
+            
 Options:
   --prompt <text>         Specify the text prompt for image generation.
                           If omitted, a random prompt from 'prompts.txt' is used.
-
+            
   --model <modelKey>      Choose the AI model to use. Available models:
-                            - pro       : fal-ai/flux-pro/new
-                            - pro11     : fal-ai/flux-pro/v1.1
-                            - dev       : fal-ai/flux/dev
-                            - lora      : fal-ai/flux-lora
-                            - schnell   : fal-ai/flux-schnell
-                            - realism   : fal-ai/flux-realism
-                            - diff      : fal-ai/flux-differential-diffusion
-                            - SD3       : fal-ai/stable-diffusion-v3-medium
-                            - SD35      : fal-ai/stable-diffusion-v35-large
-                            - anime     : fal-ai/stable-cascade/sote-diffusion
-                            - red-panda : fal-ai/recraft-v3
-                            - omnigen   : fal-ai/omnigen-v1
+                          ${availableModels}
                           Default is 'fal-ai/flux-pro/new' or 'fal-ai/flux-lora' if --lora is specified.
-
+            
   --format <formatKey>    Specify image size/format. Available formats:
-                            - square, square_hd, portrait, tall,
-                              normal, landscape, wide
+                          ${availableFormats}
                           Default is 'square_hd'.
-
+            
   --lora <loraKeys>       Apply one or more LoRAs (Low-Rank Adaptation models).
                           Specify multiple LoRAs separated by commas or by using
                           --lora multiple times. Available LoRAs:
-                            - disney, lucid, retrowave, incase,
-                              eldritch, details, details_alt,
-                              details_strong, realistic_skin, mj,
-                              fantasy, poly, cinematic, anime,
-                              anime-flat, anime-portrait, niji,
-                              fantasy-core
-
+                          ${availableLoras}
+            
   --seed <number>         Set a seed for randomization to reproduce results.
-
+            
   --index <number>        Use a specific prompt from 'prompts.txt' by line number.
-
+            
   --debug                 Enable debug mode to display additional logs.
-
+            
   --all-prompts           Generate images for all prompts in 'prompts.txt'.
-
+            
   -h, --help              Display this help message.
-
+            
 Description:
   This script generates images using the FAL AI serverless client.
   You can provide custom prompts, select models, and adjust settings
   to customize the image generation process.
-
+            
 Examples:
-  falflux --prompt "A futuristic cityscape at dusk" --model pro --format wide
-  falflux --lora disney --index 5 --seed 12345
-  falflux --lora disney,lucid --prompt "An enchanted forest"
-  falflux --lora retrowave --lora incase --prompt "A cyberpunk skyline"
-  falflux --all-prompts --model anime
-
+  node your_script_name.js --prompt "A futuristic cityscape at dusk" --model pro --format wide
+  node your_script_name.js --lora disney --index 5 --seed 12345
+  node your_script_name.js --lora disney,lucid --prompt "An enchanted forest"
+  node your_script_name.js --lora retrowave --lora incase --prompt "A cyberpunk skyline"
+  node your_script_name.js --all-prompts --model anime
+            
 Notes:
   - If 'prompts.txt' is used, ensure it exists in the directory where you run the script.
   - The 'FAL_KEY' environment variable must be set with your FAL AI API key.
   - Images are saved to the directory specified by 'FAL_PATH' or './images' by default.
         `);
-        process.exit(0);
-    }
-    return { userPrompt, modelKey, formatKey, loraKeys, allPrompts, seed, index };
-};
-
-const getFalPath = () => {
-    const falPath = process.env.FAL_PATH || path.resolve(__dirname, 'images');
-    return falPath;
-};
-
-const getFileNameFromUrl = (url) => {
-    const parsedUrl = new URL(url);
-    const fileName = parsedUrl.pathname.split('/').pop();
-    return fileName;
-};
-
-const getPromptFromFile = async (filePath, index = null) => {
-    try {
-        const data = await fs.readFile(filePath, 'utf-8');
-        const lines = data.split('\n').filter(Boolean);
-        const randomIndex = Math.floor(Math.random() * lines.length);
-        const selectedIndex = index !== null ? parseInt(index) - 1 : randomIndex;
-        const selectedLine = lines[selectedIndex];
-        return selectedLine.trim();
-    } catch (error) {
-        console.error(`Error reading file ${filePath}:`, error);
-        throw error;
-    }
-};
-
-const getAllPrompts = async (filePath) => {
-    try {
-        const data = await fs.readFile(filePath, 'utf-8');
-        const lines = data.split('\n').map(line => line.trim()).filter(Boolean);
-        return lines;
-    } catch (error) {
-        console.error(`Error reading file ${filePath}:`, error);
-        throw error;
-    }
-};
-
-const saveImage = async (buffer, fileName) => {
-    const falPath = getFalPath();
-    const filePath = path.join(falPath, fileName);
-    await fs.mkdir(falPath, { recursive: true });
-
-    try {
-        await fs.writeFile(filePath, buffer);
-        console.log(`Image saved: ${filePath}`);
-    } catch (error) {
-        console.error(`Failed to save image to ${filePath}:`, error);
-    }
-};
-
-const fetchImages = async (imageUrls) => {
-    try {
-        const imageFetches = imageUrls.map(async (urlObj, index) => {
-            const url = urlObj.url;
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch image from ${url}`);
-            }
-            const arrayBuffer = await response.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-            const fileName = getFileNameFromUrl(url);
-            await saveImage(buffer, fileName);
-        });
-
-        await Promise.all(imageFetches);
-    } catch (error) {
-        console.error("Error fetching and saving images:", error);
-    }
-};
-
-const run = async (prompt, modelEndpoint, format, loraObjects, seed) => {
-    let count = 0;
-
-    let result;
-    const input = {
-        prompt,
-        image_size: format,
-        num_inference_steps: 30,
-        guidance_scale: 3.4,
-        num_images: 1,
-        safety_tolerance: "6",
-        "enable_safety_checker": false
-    };
-    if (loraObjects && loraObjects.length > 0) {
-        input.loras = loraObjects.map(loraObj => ({
-            path: loraObj.url,
-            scale: loraObj.scale
-        }));
-        const loraKeywords = loraObjects.map(loraObj => loraObj.keyword).filter(Boolean).join('. ');
-        if (loraKeywords) {
-            input.prompt = loraKeywords + '. ' + input.prompt;
+            process.exit(0);
         }
-    }
-    if (seed) {
-        input.seed = seed;
-    }
-    try {
-        result = await fal.subscribe(modelEndpoint,
-            {
-                input,
-                logs: false,
-                options: {},
-                onQueueUpdate: (update) => {
-                    if (update.status === "IN_QUEUE") {
-                        process.stdout.write(`\r${update.status}: position ${update.queue_position}.`);
-                    } else if (update.status === "IN_PROGRESS") {
-                        process.stdout.write(`\r${update.status}: ${count++} sec.           `);
-                    } else if (update.status === "COMPLETED") {
-                        process.stdout.write("\rDONE ✔                                    \n");
+        
+        return { userPrompt, modelKey, formatKey, loraKeys, allPrompts, seed, index };
+    };
+    
+    const getFalPath = () => {
+        let falPath = process.env.FAL_PATH || path.resolve(process.cwd(), 'images');
+        falPath = local_output_override ? path.resolve(process.cwd()) : falPath;
+        return falPath;
+    };
+    
+    const getFileNameFromUrl = (url) => {
+        const parsedUrl = new URL(url);
+        const fileName = parsedUrl.pathname.split('/').pop();
+        return fileName;
+    };
+    
+    const getPromptFromFile = async (filePath, index = null) => {
+        try {
+            const data = await fs.readFile(filePath, 'utf-8');
+            const lines = data.split('\n').filter(Boolean);
+            const randomIndex = Math.floor(Math.random() * lines.length);
+            const selectedIndex = index !== null ? parseInt(index) - 1 : randomIndex;
+            const selectedLine = lines[selectedIndex];
+            return selectedLine.trim();
+        } catch (error) {
+            console.error(`Error reading file ${filePath}:`, error);
+            throw error;
+        }
+    };
+    
+    const getAllPrompts = async (filePath) => {
+        try {
+            const data = await fs.readFile(filePath, 'utf-8');
+            const lines = data.split('\n').map(line => line.trim()).filter(Boolean);
+            return lines;
+        } catch (error) {
+            console.error(`Error reading file ${filePath}:`, error);
+            throw error;
+        }
+    };
+    
+    const saveImage = async (buffer, fileName) => {
+        const falPath = getFalPath();
+        const filePath = path.join(falPath, fileName);
+        await fs.mkdir(falPath, { recursive: true });
+        
+        try {
+            await fs.writeFile(filePath, buffer);
+            console.log(`Image saved: ${filePath}`);
+        } catch (error) {
+            console.error(`Failed to save image to ${filePath}:`, error);
+        }
+    };
+    
+    const fetchImages = async (imageUrls) => {
+        try {
+            const imageFetches = imageUrls.map(async (urlObj, index) => {
+                const url = urlObj.url;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch image from ${url}`);
+                }
+                const arrayBuffer = await response.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
+                const fileName = getFileNameFromUrl(url);
+                await saveImage(buffer, fileName);
+            });
+            
+            await Promise.all(imageFetches);
+        } catch (error) {
+            console.error("Error fetching and saving images:", error);
+        }
+    };
+    
+    const run = async (prompt, modelEndpoint, format, loraObjects, seed) => {
+        let count = 0;
+        
+        let result;
+        const input = {
+            prompt,
+            image_size: format,
+            num_inference_steps: 30,
+            guidance_scale: 3.4,
+            num_images: 1,
+            safety_tolerance: "6",
+            "enable_safety_checker": false
+        };
+        if (loraObjects && loraObjects.length > 0) {
+            input.loras = loraObjects.map(loraObj => ({
+                path: loraObj.url,
+                scale: loraObj.scale
+            }));
+            const loraKeywords = loraObjects.map(loraObj => loraObj.keyword).filter(Boolean).join('. ');
+            if (loraKeywords) {
+                input.prompt = loraKeywords + '. ' + input.prompt;
+            }
+        }
+        if (seed) {
+            input.seed = seed;
+        }
+        try {
+            result = await fal.subscribe(modelEndpoint,
+                {
+                    input,
+                    logs: false,
+                    options: {},
+                    onQueueUpdate: (update) => {
+                        if (update.status === "IN_QUEUE") {
+                            process.stdout.write(`\r${update.status}: position ${update.queue_position}.`);
+                        } else if (update.status === "IN_PROGRESS") {
+                            process.stdout.write(`\r${update.status}: ${count++} sec.           `);
+                        } else if (update.status === "COMPLETED") {
+                            process.stdout.write("\rDONE ✔                                    \n");
+                        }
                     }
                 }
+            );
+            if (DEBUG)
+                console.log(result);
+        } catch (error) {
+            console.error("Error during API call:", error);
+            return;
+        }
+        
+        if (result && Array.isArray(result.images) && result.images.length > 0) {
+            const imageUrls = result.images;
+            await fetchImages(imageUrls);
+        } else {
+            console.error("No images returned from the API.");
+        }
+    };
+    
+    const { userPrompt, modelKey, formatKey, loraKeys, allPrompts, seed, index } = parseArgs();
+    
+    // Get the model endpoint from the dictionary
+    const pictureFormat = image_size[formatKey] || "square_hd";
+    
+    const loraObjects = loraKeys.map(key => loraNames[key]).filter(Boolean);
+    const modelEndpoint = modelEndpoints[modelKey] || (loraObjects.length > 0 ? 'fal-ai/flux-lora' : 'fal-ai/flux-pro/new');
+    
+    if (allPrompts) {
+        // Handle the --all-prompts option
+        const promptsFilePath = path.resolve(process.cwd(), 'prompts.txt');
+        getAllPrompts(promptsFilePath).then(async prompts => {
+            for (const [idx, promptText] of prompts.entries()) {
+                console.log(`Generating image for prompt ${idx + 1}: "${promptText}"`);
+                await run(promptText, modelEndpoint, pictureFormat, loraObjects, seed);
             }
-        );
-        if (DEBUG)
-            console.log(result);
-    } catch (error) {
-        console.error("Error during API call:", error);
-        return;
-    }
-
-    if (result && Array.isArray(result.images) && result.images.length > 0) {
-        const imageUrls = result.images;
-        await fetchImages(imageUrls);
-    } else {
-        console.error("No images returned from the API.");
-    }
-};
-
-const { userPrompt, modelKey, formatKey, loraKeys, seed, index, allPrompts } = parseArgs();
-
-// Get the model endpoint from the dictionary
-const pictureFormat = image_size[formatKey] || "square_hd";
-
-const loraObjects = loraKeys.map(key => loraNames[key]).filter(Boolean);
-const modelEndpoint = modelEndpoints[modelKey] || (loraObjects.length > 0 ? 'fal-ai/flux-lora' : 'fal-ai/flux-pro/new');
-
-if (allPrompts) {
-    // Handle the --all-prompts option
-    const promptsFilePath = path.resolve(process.cwd(), 'prompts.txt');
-    getAllPrompts(promptsFilePath).then(prompts => {
-        prompts.forEach(async (promptText, idx) => {
-            console.log(`Generating image for prompt ${idx + 1}: "${promptText}"`);
-            await run(promptText, modelEndpoint, pictureFormat, loraObjects, seed);
+        }).catch(error => {
+            console.error("Failed to read prompts:", error);
         });
-    }).catch(error => {
-        console.error("Failed to read prompts:", error);
-    });
-} else {
-    const promptPromise = userPrompt ? Promise.resolve(userPrompt) : getPromptFromFile(path.resolve(process.cwd(), 'prompts.txt'), index);
-
-    promptPromise.then(promptText => {
-        run(promptText, modelEndpoint, pictureFormat, loraObjects, seed);
-    }).catch(error => {
-        console.error("Failed to get prompt:", error);
-    });
-}
+    } else {
+        const promptPromise = userPrompt ? Promise.resolve(userPrompt) : getPromptFromFile(path.resolve(process.cwd(), 'prompts.txt'), index);
+        
+        promptPromise.then(promptText => {
+            run(promptText, modelEndpoint, pictureFormat, loraObjects, seed);
+        }).catch(error => {
+            console.error("Failed to get prompt:", error);
+        });
+    }
+    
