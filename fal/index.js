@@ -172,7 +172,7 @@ Notes:
     
     const getFalPath = () => {
         let falPath = process.env.FAL_PATH || path.resolve(process.cwd(), 'images');
-        falPath = local_output_override ? path.resolve(process.cwd()) : falPath;
+        falPath = local_output_override ? path.resolve(process.cwd(), 'images') : falPath;
         return falPath;
     };
     
