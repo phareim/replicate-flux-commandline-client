@@ -56,6 +56,9 @@ const loraNames = {
     'anime-portrait':   { url: 'https://civitai.com/api/download/models/753053?type=Model&format=SafeTensor', scale: '1', keyword: 'MythP0rt' },
     'niji':             { url: 'https://civitai.com/api/download/models/855516?type=Model&format=SafeTensor', scale: '1', keyword: 'aidmanijiv6' },
     'fantasy-core':     { url: 'https://civitai.com/api/download/models/905789?type=Model&format=SafeTensor', scale: '1', keyword: 'This is a highly detailed, CGI-rendered digital artwork depicting a' },
+    'goofy':            { url: 'https://civitai.com/api/download/models/830009?type=Model&format=SafeTensor', scale: '1', keyword: '3d render ' },
+    'psychedelic':      { url: 'https://civitai.com/api/download/models/983116?type=Model&format=SafeTensor', scale: '1', keyword: 'ArsMovieStill, movie still from a 60s psychedelic movie' },
+    'Neurocore':      { url: 'https://civitai.com/api/download/models/1010560?type=Model&format=SafeTensor', scale: '1', keyword: 'A digital artwork in the style of cknc,' },
 };
 let DEBUG = false;
 
