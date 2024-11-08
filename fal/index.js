@@ -57,8 +57,10 @@ const loraNames = {
     'niji':             { url: 'https://civitai.com/api/download/models/855516?type=Model&format=SafeTensor', scale: '1', keyword: 'aidmanijiv6' },
     'fantasy-core':     { url: 'https://civitai.com/api/download/models/905789?type=Model&format=SafeTensor', scale: '1', keyword: 'This is a highly detailed, CGI-rendered digital artwork depicting a' },
     'goofy':            { url: 'https://civitai.com/api/download/models/830009?type=Model&format=SafeTensor', scale: '1', keyword: '3d render ' },
-    'psychedelic':      { url: 'https://civitai.com/api/download/models/983116?type=Model&format=SafeTensor', scale: '1', keyword: 'ArsMovieStill, movie still from a 60s psychedelic movie' },
-    'Neurocore':      { url: 'https://civitai.com/api/download/models/1010560?type=Model&format=SafeTensor', scale: '1', keyword: 'A digital artwork in the style of cknc,' },
+    'psychedelic':      { url: 'https://civitai.com/api/download/models/983116?type=Model&format=SafeTensor', scale: '0.6', keyword: 'ArsMovieStill, movie still from a 60s psychedelic movie' },
+    'neurocore':        { url: 'https://civitai.com/api/download/models/1010560?type=Model&format=SafeTensor', scale: '1', keyword: 'A digital artwork in the style of cknc,' },
+    'anime-realistic':  { url: 'https://civitai.com/api/download/models/1023735?type=Model&format=SafeTensor', scale: '1', keyword: 'Realistic anime style,' },
+    'booty':            { url: 'https://civitai.com/api/download/models/979680?type=Model&format=SafeTensor', scale: '0.4', keyword: '' },
 };
 let DEBUG = false;
 
@@ -72,6 +74,7 @@ const parseArgs = () => {
     let seed = null;
     let index = null;
     let showHelp = false;
+    let scale = null;
     
     for (let i = 0; i < args.length; i++) {
         if (args[i] === '--prompt' && i + 1 < args.length) {
@@ -89,6 +92,9 @@ const parseArgs = () => {
             i++;
         } else if (args[i] === '--seed' && i + 1 < args.length) {
             seed = args[i + 1];
+            i++;
+        } else if (args[i] === '--scale' && i + 1 < args.length) {
+            scale = args[i + 1];
             i++;
         } else if (args[i] === '--out') {
             local_output_override = true;
@@ -170,7 +176,7 @@ Notes:
             process.exit(0);
         }
         
-        return { userPrompt, modelKey, formatKey, loraKeys, allPrompts, seed, index };
+        return { userPrompt, modelKey, formatKey, loraKeys, allPrompts, seed, index, scale };
     };
     
     const getFalPath = () => {
@@ -243,7 +249,7 @@ Notes:
         }
     };
     
-    const run = async (prompt, modelEndpoint, format, loraObjects, seed) => {
+    const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale) => {
         let count = 0;
         
         let result;
@@ -259,7 +265,7 @@ Notes:
         if (loraObjects && loraObjects.length > 0) {
             input.loras = loraObjects.map(loraObj => ({
                 path: loraObj.url,
-                scale: loraObj.scale
+                scale: scale || loraObj.scale
             }));
             const loraKeywords = loraObjects.map(loraObj => loraObj.keyword).filter(Boolean).join('. ');
             if (loraKeywords) {
@@ -301,7 +307,7 @@ Notes:
         }
     };
     
-    const { userPrompt, modelKey, formatKey, loraKeys, allPrompts, seed, index } = parseArgs();
+    const { userPrompt, modelKey, formatKey, loraKeys, allPrompts, seed, index, scale } = parseArgs();
     
     // Get the model endpoint from the dictionary
     const pictureFormat = image_size[formatKey] || "square_hd";
@@ -324,7 +330,7 @@ Notes:
         const promptPromise = userPrompt ? Promise.resolve(userPrompt) : getPromptFromFile(path.resolve(process.cwd(), 'prompts.txt'), index);
         
         promptPromise.then(promptText => {
-            run(promptText, modelEndpoint, pictureFormat, loraObjects, seed);
+            run(promptText, modelEndpoint, pictureFormat, loraObjects, seed, scale);
         }).catch(error => {
             console.error("Failed to get prompt:", error);
         });
