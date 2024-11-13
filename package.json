@@ -23,6 +23,7 @@
     "@fal-ai/serverless-client": "^0.14.3",
     "axios": "^1.7.3",
     "chromedriver": "^127.0.2",
+    "commander": "^12.1.0",
     "node-fetch": "^3.3.2",
     "puppeteer": "^23.0.2",
     "replicate": "^0.32.0",
