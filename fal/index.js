@@ -187,6 +187,7 @@ program
     'Specify the text prompt for image generation. If omitted, a random prompt from "prompts.txt" is used.'
   )
   .option("--model <modelKey>", "Choose the AI model to use.")
+  .option("--raw", "Generate less processed, more natural-looking images.")
   .option("--format <formatKey>", "Specify image size/format.")
   .option(
     "--lora <loraKeys>",
