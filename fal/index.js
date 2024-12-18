@@ -61,6 +61,7 @@ const modelEndpoints = {
   omnigen: "fal-ai/omnigen-v1",
   ultra: "fal-ai/flux-pro/v1.1-ultra",
   "ultra-redux": "fal-ai/flux-pro/v1.1-ultra/redux",
+  "video-to-video": "fal-ai/minimax/video-01-live/image-to-video",
 };
 
 const loraNames = {
@@ -212,6 +213,10 @@ program
   )
   .option("--debug", "Enable debug mode to display additional logs.")
   .option("--all-prompts", 'Generate images for all prompts in "prompts.txt".')
+  .option(
+    "--image-url <url>", 
+    "Specify an image URL for video-to-video model."
+  )
   .helpOption("-h, --help", "Display this help message.")
   .on("--help", () => {
     // Generate the list of available models
@@ -247,6 +252,7 @@ Examples:
   node your_script_name.js --lora disney,lucid --prompt "An enchanted forest"
   node your_script_name.js --lora retrowave --lora incase --prompt "A cyberpunk skyline"
   node your_script_name.js --all-prompts --model anime
+  node your_script_name.js --model video-to-video --prompt "A stylish woman walks down a Tokyo street" --image-url "https://example.com/image.jpg"
 
 Notes:
   - If 'prompts.txt' is used, ensure it exists in the directory where you run the script.
@@ -337,7 +343,7 @@ const fetchImages = async (imageUrls) => {
   }
 };
 
-const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale) => {
+const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imageUrl) => {
   let count = 0;
 
   let result;
@@ -350,22 +356,33 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale) => {
     safety_tolerance: "6",
     enable_safety_checker: false,
   };
-  if (loraObjects && loraObjects.length > 0) {
-    input.loras = loraObjects.map((loraObj) => ({
-      path: loraObj.url,
-      scale: scale || loraObj.scale,
-    }));
-    const loraKeywords = loraObjects
-      .map((loraObj) => loraObj.keyword)
-      .filter(Boolean)
-      .join(". ");
-    if (loraKeywords) {
-      input.prompt = loraKeywords + ". " + input.prompt;
+
+  // Special handling for video-to-video model
+  if (modelEndpoint === "fal-ai/minimax/video-01-live/image-to-video") {
+    input.image_url = imageUrl;
+    input.prompt_optimizer = true;
+    delete input.image_size;
+    delete input.num_images;
+  } else {
+    if (loraObjects && loraObjects.length > 0) {
+      input.loras = loraObjects.map((loraObj) => ({
+        path: loraObj.url,
+        scale: scale || loraObj.scale,
+      }));
+      const loraKeywords = loraObjects
+        .map((loraObj) => loraObj.keyword)
+        .filter(Boolean)
+        .join(". ");
+      if (loraKeywords) {
+        input.prompt = loraKeywords + ". " + input.prompt;
+      }
     }
   }
+
   if (seed) {
     input.seed = seed;
   }
+
   try {
     result = await fal.subscribe(modelEndpoint, {
       input,
@@ -387,17 +404,54 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale) => {
         }
       },
     });
+    
+    // Check for error responses
+    if (result && result.status === 400) {
+      console.error(`API Error (400): ${result.detail || 'Unknown error'}`);
+      return;
+    }
+
     if (DEBUG) console.log(result);
   } catch (error) {
-    console.error("Error during API call:", error);
+    // Handle network or API errors
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error('API Error:', error.response.status);
+      console.error('Error Details:', error.response.data);
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received from the API');
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error('Error setting up the API request:', error.message);
+    }
     return;
   }
 
-  if (result && Array.isArray(result.images) && result.images.length > 0) {
-    const imageUrls = result.images;
-    await fetchImages(imageUrls);
+  // Handle video output for video-to-video model
+  if (modelEndpoint === "fal-ai/minimax/video-01-live/image-to-video") {
+    if (result && result.video && result.video.url) {
+      const videoUrl = result.video.url;
+      const fileName = getFileNameFromUrl(videoUrl);
+      const response = await fetch(videoUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch video from ${videoUrl}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      await saveImage(buffer, fileName);
+    } else {
+      console.error("No video returned from the API.");
+    }
   } else {
-    console.error("No images returned from the API.");
+    // Existing image handling logic
+    if (result && Array.isArray(result.images) && result.images.length > 0) {
+      const imageUrls = result.images;
+      await fetchImages(imageUrls);
+    } else {
+      console.error("No images returned from the API.");
+    }
   }
 };
 
@@ -410,6 +464,7 @@ const main = async () => {
   const seed = options.seed || null;
   const index = options.index || null;
   const scale = options.scale || null;
+  const imageUrl = options.imageUrl || null;
 
   // Get the model endpoint from the dictionary
   const pictureFormat = image_size[formatKey] || "square_hd";
@@ -434,7 +489,8 @@ const main = async () => {
             pictureFormat,
             loraObjects,
             seed,
-            scale
+            scale,
+            imageUrl
           );
         }
       })
@@ -449,7 +505,7 @@ const main = async () => {
     promptPromise
       .then((promptText) => {
         console.log(`Generating image for prompt: "${promptText}"`);
-        run(promptText, modelEndpoint, pictureFormat, loraObjects, seed, scale);
+        run(promptText, modelEndpoint, pictureFormat, loraObjects, seed, scale, imageUrl);
       })
       .catch((error) => {
         console.error("Failed to get prompt:", error);
