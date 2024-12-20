@@ -259,6 +259,9 @@ Notes:
   - The 'FAL_KEY' environment variable must be set with your FAL AI API key.
   - Images are saved to the directory specified by 'FAL_PATH' or './images' by default.
         `);
+    
+    // Exit the process after displaying help
+    process.exit(0);
   });
 
 program.parse(process.argv);
