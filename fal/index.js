@@ -214,7 +214,7 @@ program
   .option("--debug", "Enable debug mode to display additional logs.")
   .option("--all-prompts", 'Generate images for all prompts in "prompts.txt".')
   .option(
-    "--image-url <url>", 
+    "--image-url <url>",
     "Specify an image URL for video-to-video model."
   )
   .helpOption("-h, --help", "Display this help message.")
@@ -231,7 +231,7 @@ program
 
     // Generate the list of available formats
     let availableFormats = null;
-    if (model.indexOf("ultra") > -1) {
+    if (model && model.indexOf("ultra") > -1) {
       availableFormats = Object.keys(image_size_new).join(", ");
     } else {
       availableFormats = Object.keys(image_size).join(", ");
@@ -259,7 +259,7 @@ Notes:
   - The 'FAL_KEY' environment variable must be set with your FAL AI API key.
   - Images are saved to the directory specified by 'FAL_PATH' or './images' by default.
         `);
-    
+
     // Exit the process after displaying help
     process.exit(0);
   });
@@ -407,7 +407,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
         }
       },
     });
-    
+
     // Check for error responses
     if (result && result.status === 400) {
       console.error(`API Error (400): ${result.detail || 'Unknown error'}`);
