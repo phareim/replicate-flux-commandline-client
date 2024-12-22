@@ -19,14 +19,14 @@ const image_size = {
   square: "square",
   square_hd: "square_hd",
   portrait: "portrait_4_3",
-  portrait_4_3: "portrait_4_3",
+  "4:3": "portrait_4_3",
   tall: "portrait_16_9",
-  portrait_16_9: "portrait_16_9",
+  "16:9": "portrait_16_9",
   normal: "landscape_4_3",
-  landscape_4_3: "landscape_4_3",
+  "4:3": "landscape_4_3",
   landscape: "landscape_16_9",
   wide: "landscape_16_9",
-  landscape_16_9: "landscape_16_9",
+  "16:9": "landscape_16_9",
 };
 
 const image_size_new = {
@@ -187,7 +187,7 @@ program
     "--prompt <text>",
     'Specify the text prompt for image generation. If omitted, a random prompt from "prompts.txt" is used.'
   )
-  .option("--model <modelKey>", "Choose the AI model to use.")
+  .option("--model <modelKey>", "Choose the AI model to use.", "pro")
   .option("--raw", "Generate less processed, more natural-looking images.")
   .option("--format <formatKey>", "Specify image size/format.")
   .option(
@@ -229,13 +229,9 @@ program
       .map((key) => key)
       .join(", ");
 
-    // Generate the list of available formats
-    let availableFormats = null;
-    if (model && model.indexOf("ultra") > -1) {
-      availableFormats = Object.keys(image_size_new).join(", ");
-    } else {
-      availableFormats = Object.keys(image_size).join(", ");
-    }
+
+    const availableFormats = Object.keys(image_size).join(", ");
+
     console.log(`
 Available Models:
 ${availableModels}
@@ -354,7 +350,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     prompt,
     image_size: format,
     num_inference_steps: 30,
-    guidance_scale: 3.4,
+    guidance_scale: 1,
     num_images: 1,
     safety_tolerance: "6",
     enable_safety_checker: false,
