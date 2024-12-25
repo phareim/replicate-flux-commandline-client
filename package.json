@@ -1,11 +1,13 @@
 {
   "name": "flux-client",
   "version": "0.0.1",
-  "description": "A client for the flux image-generation models from replicate.ai and fel.ai",
+  "description": "A client for the flux image-generation models from venice.ai, replicate.ai and fel.ai",
   "main": "index.js",
   "bin": {
     "repflux": "./replicate/index.js",
-    "falflux": "./fal/index.js"
+    "falflux": "./fal/index.js",
+    "venice": "./venice/index.js",
+    "venice-models": "./venice/get-models.js"
   },
   "type": "module",
   "scripts": {
@@ -15,6 +17,7 @@
     "flux",
     "replicate",
     "fal",
+    "venice",
     "ai"
   ],
   "author": "phareim@gmail.com",
@@ -24,6 +27,7 @@
     "axios": "^1.7.3",
     "chromedriver": "^127.0.2",
     "commander": "^12.1.0",
+    "g": "^2.0.1",
     "node-fetch": "^3.3.2",
     "puppeteer": "^23.0.2",
     "replicate": "^0.32.0",
