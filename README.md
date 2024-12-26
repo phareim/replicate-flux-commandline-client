@@ -1,5 +1,7 @@
 # replicate-flux-commandline-client
 
+installs three commands on the command-line when installed globally through npm i -g.
+
 In lines of code, in strokes of paint,
 In whispered dreams, both bold and faint,
 Art emerges, wild and free,
