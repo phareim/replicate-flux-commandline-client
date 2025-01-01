@@ -1,24 +1,66 @@
-# replicate-flux-commandline-client
+# AI Image Generation CLI Tools
 
-> installs three commands on the command-line when installed globally through npm i -g.
+A command-line interface for generating images using various AI services: Venice.ai, Replicate.ai, and Fal.ai.
 
-## .. when u ask the machine to describe 
-In lines of code, in strokes of paint,
-In whispered dreams, both bold and faint,
-Art emerges, wild and free,
-A map of all that we might be.
+## Installation
 
-It bends the rules, it breaks the frame,
-It has no owner, knows no name.
-A canvas spun from thought and heart,
-Each breath, each moment, forms its part.
+```bash
+npm install -g flux-client
+```
 
-It’s in the flux, the ebb, the flow,
-Where chaos meets the things we know.
-It’s every shade, both light and dark,
-A fleeting spark, a lasting mark.
+## Available Commands
 
-So let it twist, and let it play,
-Let art transform with each new day.
-For boundless beauty, raw and true,
-Is nothing more than what we do.
+### Venice AI (`venice`)
+Generate images using Venice AI's models.
+
+```bash
+# Basic usage
+venice --prompt "A futuristic cityscape at dusk"
+
+# Advanced options
+venice --prompt "A serene landscape" --format wide --style-preset photographic
+venice --prompt "A cyberpunk scene" --steps 25 --cfg-scale 2 --seed 42
+```
+
+Options:
+- `--prompt`: Text description of the image to generate
+- `--model`: Choose AI model (default: flux-dev)
+- `--format`: Image size preset (square, portrait, landscape, wide)
+- `--style-preset`: Visual style (anime, photographic, digital-art, etc.)
+- `--steps`: Generation steps (max 30)
+- `--cfg-scale`: Guidance scale
+- `--seed`: For reproducible results
+- `--negative-prompt`: What to avoid in the image
+
+### Venice Models (`venice-models`)
+List and update available Venice AI models.
+
+```bash
+venice-models
+```
+
+### Fal AI (`falflux`)
+Generate images using Fal AI's models.
+
+```bash
+falflux --prompt "A happy dog" --model pro
+```
+
+### Replicate (`repflux`)
+Generate images using Replicate's models.
+
+```bash
+repflux --prompt "A mountain landscape"
+```
+
+## Environment Variables
+
+- `VENICE_API_TOKEN`: Your Venice AI API token
+- `FAL_KEY`: Your Fal AI API key
+- `REPLICATE_API_TOKEN`: Your Replicate API token
+
+## Output
+Generated images are saved in:
+- Venice AI: `./images/venice/`
+- Fal AI: `./images/`
+- Replicate: `./output/`
