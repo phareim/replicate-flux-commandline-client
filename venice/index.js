@@ -37,12 +37,17 @@ const run = async (options) => {
         process.exit(1);
     }
 
+    let _width = Math.min(parseInt(options.width) || DEFAULT_WIDTH, 1280);
+    let _height = Math.min(parseInt(options.height) || DEFAULT_HEIGHT, 1280);
+    // ensure width and height are divisible by 8
+    _width = Math.floor(_width / 8) * 8;
+    _height = Math.floor(_height / 8) * 8;
     // Prepare input parameters
     const input = {
         model: getModelEndpoint(options.model),
         prompt: options.prompt,
-        width: parseInt(options.width) || DEFAULT_WIDTH,
-        height: parseInt(options.height) || DEFAULT_HEIGHT,
+        width: _width, 
+        height: _height,
         steps: Math.min(parseInt(options.steps) || DEFAULT_STEPS, 30),
         cfg_scale: parseFloat(options.cfgScale) || DEFAULT_CFG_SCALE,
         hide_watermark: options.hideWatermark || DEFAULT_HIDE_WATERMARK,
