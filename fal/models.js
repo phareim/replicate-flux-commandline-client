@@ -12,8 +12,8 @@ export const modelEndpoints = {
     "red-panda": "fal-ai/recraft-v3",
     omnigen: "fal-ai/omnigen-v1",
     ultra: "fal-ai/flux-pro/v1.1-ultra",
-    "ultra-redux": "fal-ai/flux-pro/v1.1-ultra/redux",
-    "video-to-video": "fal-ai/minimax/video-01-live/image-to-video",
+    "ultra_fine": "fal-ai/flux-pro/v1.1-ultra-finetuned",
+    "image_to_video": "fal-ai/minimax/video-01-live/image-to-video",
 };
 
 export const loraNames = {
@@ -133,7 +133,7 @@ export const loraNames = {
 
 export function getModelEndpoint(modelKey, loraObjects) {
     return modelEndpoints[modelKey] ||
-        (loraObjects.length > 0 ? "fal-ai/flux-lora" : "fal-ai/flux-pro/new");
+        (loraObjects.length > 0 ? "fal-ai/flux-lora" : "fal-ai/flux-pro/v1.1-ultra");
 }
 
 export function prepareLoras(loraObjects, scale) {
