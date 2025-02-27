@@ -74,7 +74,8 @@ Examples:
   node your_script_name.js --lora disney,lucid --prompt "An enchanted forest"
   node your_script_name.js --lora retrowave --lora incase --prompt "A cyberpunk skyline"
   node your_script_name.js --all-prompts --model anime
-  node your_script_name.js --model video-to-video --prompt "A stylish woman walks down a Tokyo street" --image-url "https://example.com/image.jpg"
+  node your_script_name.js --model image_to_video --prompt "A stylish woman walks down a Tokyo street" --image-url "https://example.com/image.jpg"
+  node your_script_name.js --model hunyuan --prompt "A stylish woman walks down a Tokyo street filled with warm glowing neon and animated city signage"
 
 Notes:
   - If 'prompts.txt' is used, ensure it exists in the directory where you run the script.

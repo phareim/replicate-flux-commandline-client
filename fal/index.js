@@ -46,12 +46,20 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     enable_safety_checker: false,
   };
 
-  // Special handling for video-to-video model
+  // Special handling for different model types
   if (modelEndpoint === "fal-ai/minimax/video-01-live/image-to-video") {
     input.image_url = imageUrl;
     input.prompt_optimizer = true;
     delete input.image_size;
     delete input.num_images;
+  } else if (modelEndpoint === "fal-ai/hunyuan-video") {
+    // Hunyuan video only needs prompt, remove other parameters
+    delete input.image_size;
+    delete input.num_inference_steps;
+    delete input.guidance_scale;
+    delete input.num_images;
+    delete input.safety_tolerance;
+    delete input.enable_safety_checker;
   } else {
     const loraData = prepareLoras(loraObjects, scale);
     if (loraData) {
@@ -122,6 +130,22 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
       await saveImage(buffer, fileName, local_output_override);
     } else {
       console.error("No video returned from the API.");
+    }
+  } else if (modelEndpoint === "fal-ai/hunyuan-video") {
+    // Handle Hunyuan video output
+    if (result && result.data && result.data.video_url) {
+      const videoUrl = result.data.video_url;
+      const fileName = getFileNameFromUrl(videoUrl);
+      const response = await fetch(videoUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch video from ${videoUrl}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      await saveImage(buffer, fileName, local_output_override);
+      console.log(`Request ID: ${result.requestId || 'N/A'}`);
+    } else {
+      console.error("No video returned from the Hunyuan API.");
     }
   } else {
     // Existing image handling logic
