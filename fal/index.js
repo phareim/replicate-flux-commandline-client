@@ -44,6 +44,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     num_images: 1,
     safety_tolerance: DEFAULT_SAFETY_TOLERANCE,
     enable_safety_checker: false,
+    inference_steps: 50
   };
 
   // Special handling for different model types
@@ -54,6 +55,15 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     delete input.num_images;
   } else if (modelEndpoint === "fal-ai/hunyuan-video") {
     // Hunyuan video only needs prompt, remove other parameters
+    delete input.image_size;
+    delete input.num_inference_steps;
+    delete input.guidance_scale;
+    delete input.num_images;
+    delete input.safety_tolerance;
+    delete input.enable_safety_checker;
+  } else if (modelEndpoint === "fal-ai/wan-i2v") {
+    // Wan-i2v needs prompt and image_url
+    input.image_url = imageUrl;
     delete input.image_size;
     delete input.num_inference_steps;
     delete input.guidance_scale;
@@ -74,10 +84,13 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     input.seed = seed;
   }
 
+  // Check if this is a model that should show logs (video models)
+  const showLogs = modelEndpoint === "fal-ai/hunyuan-video" || modelEndpoint === "fal-ai/wan-i2v";
+
   try {
     result = await fal.subscribe(modelEndpoint, {
       input,
-      logs: false,
+      logs: showLogs,
       options: {},
       onQueueUpdate: (update) => {
         if (update.status === "IN_QUEUE") {
@@ -88,6 +101,13 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
           process.stdout.write(
             `\r${update.status}: ${count++} sec.           `
           );
+          
+          // Display logs for supported models
+          if (showLogs && update.logs && update.logs.length > 0) {
+            console.log("\n--- Generation Logs ---");
+            update.logs.map(log => log.message).forEach(console.log);
+            console.log("----------------------");
+          }
         } else if (update.status === "COMPLETED") {
           process.stdout.write(
             "\rDONE ✔                                    \n"
@@ -144,8 +164,26 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
       const buffer = Buffer.from(arrayBuffer);
       await saveImage(buffer, fileName, local_output_override);
       console.log(`Request ID: ${result.requestId || 'N/A'}`);
+      console.log(`Generation Data:`, result.data);
     } else {
       console.error("No video returned from the Hunyuan API.");
+    }
+  } else if (modelEndpoint === "fal-ai/wan-i2v") {
+    // Handle Wan-i2v video output
+    if (result && result.data && result.data.video_url) {
+      const videoUrl = result.data.video_url;
+      const fileName = getFileNameFromUrl(videoUrl);
+      const response = await fetch(videoUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch video from ${videoUrl}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      await saveImage(buffer, fileName, local_output_override);
+      console.log(`Request ID: ${result.requestId || 'N/A'}`);
+      console.log(`Generation Data:`, result.data);
+    } else {
+      console.error("No video returned from the Wan-i2v API.");
     }
   } else {
     // Existing image handling logic

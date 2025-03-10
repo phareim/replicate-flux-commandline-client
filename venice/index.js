@@ -2,6 +2,7 @@
 
 import fetch from "node-fetch";
 import path from "path";
+import { promises as fs } from "fs";
 
 import { setupCLI } from "./cli.js";
 import {
@@ -24,6 +25,19 @@ import {
 
 let DEBUG = false;
 
+// Function to read prompt from file
+const readPromptFromFile = async (filePath) => {
+    try {
+        const prompt = await fs.readFile(filePath, 'utf8');
+        return prompt.trim();
+    } catch (error) {
+        if (DEBUG) {
+            console.error(`Failed to read prompt from ${filePath}:`, error);
+        }
+        return null;
+    }
+};
+
 const run = async (options) => {
     // Validate API token
     if (!process.env.VENICE_API_TOKEN) {
@@ -31,10 +45,16 @@ const run = async (options) => {
         process.exit(1);
     }
 
-    // Validate required parameters
+    // If no prompt provided via CLI, try to read from ./prompt.txt
     if (!options.prompt) {
-        console.error("Error: --prompt is required");
-        process.exit(1);
+        const promptFromFile = await readPromptFromFile('./prompt.txt');
+        if (promptFromFile) {
+            options.prompt = promptFromFile;
+            console.log(`Using prompt from ./prompt.txt.`);
+        } else {
+            console.error("Error: No prompt provided. Please use --prompt or create a ./prompt.txt file.");
+            process.exit(1);
+        }
     }
 
     let _width = Math.min(parseInt(options.width) || DEFAULT_WIDTH, 1280);

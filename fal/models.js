@@ -15,6 +15,7 @@ export const modelEndpoints = {
     "ultra_fine": "fal-ai/flux-pro/v1.1-ultra-finetuned",
     "image_to_video": "fal-ai/minimax/video-01-live/image-to-video",
     "hunyuan": "fal-ai/hunyuan-video",
+    "wan-i2v": "fal-ai/wan-i2v",
 };
 
 export const loraNames = {
