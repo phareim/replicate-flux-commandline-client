@@ -111,7 +111,7 @@ ${availableStylePresets}
 Examples:
   venice --prompt "A futuristic cityscape at dusk" --model stable-diffusion-xl-v1-0
   venice --prompt "A serene landscape" --format wide --style-preset photographic
-  venice --prompt "A cyberpunk scene" --steps 50 --cfg-scale 9 --seed 42
+  venice --prompt "A cyberpunk scene" --steps 30 --cfg-scale 9 --seed 42
 
 Notes:
   - The 'VENICE_API_TOKEN' environment variable must be set with your Venice AI API key.
