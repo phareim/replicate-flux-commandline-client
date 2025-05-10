@@ -225,7 +225,7 @@ const main = async () => {
       .then(async (prompts) => {
         for (const [idx, promptText] of prompts.entries()) {
           console.log(
-            `Generating image for prompt ${idx + 1}: "${promptText}"`
+            `Generating image for prompt ${idx + 1}`
           );
           await run(
             promptText,
