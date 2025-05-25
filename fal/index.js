@@ -248,7 +248,7 @@ const main = async () => {
 
     promptPromise
       .then((promptText) => {
-        console.log(`Generating image for prompt: "${promptText}"`);
+        console.log(`Generating image...`);
         run(
           promptText, 
           modelEndpoint, 
