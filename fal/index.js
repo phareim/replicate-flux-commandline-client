@@ -53,23 +53,20 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     input.prompt_optimizer = true;
     delete input.image_size;
     delete input.num_images;
+  } else if (modelEndpoint === "fal-ai/flux-pro/kontext") {
+    // Kontext model needs prompt and image_url
+    input.image_url = imageUrl;
+    input.safety_tolerance = 5;
+    delete input.image_size;
+  } else if (modelEndpoint === "fal-ai/flux-pro/kontext/max/text-to-image") {
+    input.guidance_scale = 1.5;
+    input.safety_tolerance = 5;
+    // Kontext text-to-image model only needs prompt
   } else if (modelEndpoint === "fal-ai/hunyuan-video") {
     // Hunyuan video only needs prompt, remove other parameters
-    delete input.image_size;
-    delete input.num_inference_steps;
-    delete input.guidance_scale;
-    delete input.num_images;
-    delete input.safety_tolerance;
-    delete input.enable_safety_checker;
   } else if (modelEndpoint === "fal-ai/wan-i2v") {
     // Wan-i2v needs prompt and image_url
     input.image_url = imageUrl;
-    delete input.image_size;
-    delete input.num_inference_steps;
-    delete input.guidance_scale;
-    delete input.num_images;
-    delete input.safety_tolerance;
-    delete input.enable_safety_checker;
   } else {
     const loraData = prepareLoras(loraObjects, scale);
     if (loraData) {
@@ -184,6 +181,25 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
       console.log(`Generation Data:`, result.data);
     } else {
       console.error("No video returned from the Wan-i2v API.");
+    }
+  } else if (modelEndpoint === "fal-ai/flux-pro/kontext") {
+    // Handle Kontext model output
+    if (result && result.data) {
+      console.log(`Request ID: ${result.requestId || 'N/A'}`);
+      console.log(`Generation Data:`, result.data);
+      if (result.data.image_url) {
+        const imageUrl = result.data.image_url;
+        const fileName = getFileNameFromUrl(imageUrl);
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image from ${imageUrl}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        await saveImage(buffer, fileName, local_output_override);
+      }
+    } else {
+      console.error("No data returned from the Kontext API.");
     }
   } else {
     // Existing image handling logic

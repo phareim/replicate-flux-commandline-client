@@ -31,4 +31,4 @@ export const DEFAULT_MODEL = "pro";
 export const DEFAULT_FORMAT = "square_hd";
 export const DEFAULT_GUIDANCE_SCALE = 1;
 export const DEFAULT_INFERENCE_STEPS = 30;
-export const DEFAULT_SAFETY_TOLERANCE = "6";
+export const DEFAULT_SAFETY_TOLERANCE = "5";

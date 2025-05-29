@@ -16,6 +16,8 @@ export const modelEndpoints = {
     "image_to_video": "fal-ai/minimax/video-01-live/image-to-video",
     "hunyuan": "fal-ai/hunyuan-video",
     "wan-i2v": "fal-ai/wan-i2v",
+    kontext: "fal-ai/flux-pro/kontext",
+    "kontext-text": "fal-ai/flux-pro/kontext/max/text-to-image",
 };
 
 export const loraNames = {
