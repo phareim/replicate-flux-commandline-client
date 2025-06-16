@@ -35,15 +35,16 @@ export function setupCLI() {
       "Save images to the current directory instead of the default."
     )
     .option(
-      "--index <number>",
-      'Use a specific prompt from "prompts.txt" by line number.'
+      "-i, --index <index>",
+      "The line index from prompts.txt to use (1-based)"
     )
     .option("--debug", "Enable debug mode to display additional logs.")
     .option("--all-prompts", 'Generate images for all prompts in "prompts.txt".')
     .option(
-      "--image-url <url>",
-      "Specify an image URL for video-to-video model."
+      "--image-url <imageUrl>",
+      "URL of the input image for image-to-video models"
     )
+    .option("--duration <duration>", "The duration of the video (5 or 10 seconds)", "5")
     .helpOption("-h, --help", "Display this help message.")
     .on("--help", () => {
       // Generate the list of available models

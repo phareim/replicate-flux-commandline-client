@@ -32,7 +32,7 @@ fal.config({
   credentials: process.env.FAL_KEY,
 });
 
-const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imageUrl) => {
+const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imageUrl, duration) => {
   let count = 0;
 
   let result;
@@ -64,9 +64,14 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     // Kontext text-to-image model only needs prompt
   } else if (modelEndpoint === "fal-ai/hunyuan-video") {
     // Hunyuan video only needs prompt, remove other parameters
+    delete input.image_size;
   } else if (modelEndpoint === "fal-ai/wan-i2v") {
     // Wan-i2v needs prompt and image_url
     input.image_url = imageUrl;
+  } else if (modelEndpoint === "fal-ai/kling-video/v2.1/standard/image-to-video") {
+    // Kling image-to-video model needs prompt and image_url
+    input.image_url = imageUrl;
+    input.duration = parseInt(duration, 10);
   } else {
     const loraData = prepareLoras(loraObjects, scale);
     if (loraData) {
@@ -82,7 +87,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
   }
 
   // Check if this is a model that should show logs (video models)
-  const showLogs = modelEndpoint === "fal-ai/hunyuan-video" || modelEndpoint === "fal-ai/wan-i2v";
+  const showLogs = modelEndpoint === "fal-ai/hunyuan-video" || modelEndpoint === "fal-ai/wan-i2v" || modelEndpoint === "fal-ai/kling-video/v2.1/standard/image-to-video";
 
   try {
     result = await fal.subscribe(modelEndpoint, {
@@ -182,6 +187,23 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     } else {
       console.error("No video returned from the Wan-i2v API.");
     }
+  } else if (modelEndpoint === "fal-ai/kling-video/v2.1/standard/image-to-video") {
+    // Handle Kling video output
+    if (result && result.data && result.data.video_url) {
+      const videoUrl = result.data.video_url;
+      const fileName = getFileNameFromUrl(videoUrl);
+      const response = await fetch(videoUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch video from ${videoUrl}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      await saveImage(buffer, fileName, local_output_override);
+      console.log(`Request ID: ${result.requestId || 'N/A'}`);
+      console.log(`Generation Data:`, result.data);
+    } else {
+      console.error("No video returned from the Kling API.");
+    }
   } else if (modelEndpoint === "fal-ai/flux-pro/kontext") {
     // Handle Kontext model output
     if (result && result.data) {
@@ -227,6 +249,7 @@ const main = async () => {
   const index = options.index || null;
   const scale = options.scale || null;
   const imageUrl = options.imageUrl || null;
+  const duration = options.duration || 5;
 
   // Get the model endpoint from the dictionary
   const pictureFormat = image_size[formatKey] || DEFAULT_FORMAT;
@@ -250,7 +273,8 @@ const main = async () => {
             loraObjects,
             seed,
             scale,
-            imageUrl
+            imageUrl,
+            duration
           );
         }
       })
@@ -272,7 +296,8 @@ const main = async () => {
           loraObjects, 
           seed, 
           scale, 
-          imageUrl
+          imageUrl,
+          duration
         );
       })
       .catch((error) => {
