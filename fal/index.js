@@ -3,6 +3,9 @@
 import * as fal from "@fal-ai/serverless-client";
 import path from "path";
 import fetch from "node-fetch";
+import fs from "fs";
+import { fileFromSync } from "fetch-blob/from.js";
+import { fal as falUpload } from "@fal-ai/client";
 
 import { setupCLI } from "./cli.js";
 import { 
@@ -31,6 +34,37 @@ let local_output_override = false;
 fal.config({
   credentials: process.env.FAL_KEY,
 });
+
+falUpload.config({
+  credentials: process.env.FAL_KEY,
+});
+
+const isWebUrl = (str) => /^https?:\/\//i.test(str);
+
+const processImageInput = async (inputPathOrUrl) => {
+  if (!inputPathOrUrl) return null;
+  // If it looks like a web URL, return as-is
+  if (isWebUrl(inputPathOrUrl)) {
+    return inputPathOrUrl;
+  }
+
+  // Otherwise treat as local file path (relative or absolute)
+  const resolvedPath = path.resolve(process.cwd(), inputPathOrUrl);
+  if (!fs.existsSync(resolvedPath)) {
+    console.error(`File not found: ${resolvedPath}`);
+    return null;
+  }
+
+  try {
+    const file = fileFromSync(resolvedPath);
+    const uploadedUrl = await falUpload.storage.upload(file);
+    console.log(`Uploaded local file to FAL storage: ${uploadedUrl}`);
+    return uploadedUrl;
+  } catch (error) {
+    console.error("Failed to upload file to FAL storage:", error);
+    return null;
+  }
+};
 
 const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imageUrl, duration) => {
   let count = 0;
@@ -248,7 +282,11 @@ const main = async () => {
   const seed = options.seed || null;
   const index = options.index || null;
   const scale = options.scale || null;
-  const imageUrl = options.imageUrl || null;
+  // Replace direct assignment with processed upload logic
+  let imageUrl = null;
+  if (options.imageUrl) {
+    imageUrl = await processImageInput(options.imageUrl);
+  }
   const duration = options.duration || 5;
 
   // Get the model endpoint from the dictionary

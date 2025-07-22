@@ -31,6 +31,8 @@
     "node-fetch": "^3.3.2",
     "puppeteer": "^23.0.2",
     "replicate": "^0.32.0",
-    "selenium-webdriver": "^4.23.0"
+    "selenium-webdriver": "^4.23.0",
+    "@fal-ai/client": "^0.4.0",
+    "fetch-blob": "^3.2.0"
   }
 }

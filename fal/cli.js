@@ -42,7 +42,7 @@ export function setupCLI() {
     .option("--all-prompts", 'Generate images for all prompts in "prompts.txt".')
     .option(
       "--image-url <imageUrl>",
-      "URL of the input image for image-to-video models"
+      "URL or local file path of the input image for image-to-video models"
     )
     .option("--duration <duration>", "The duration of the video (5 or 10 seconds)", "5")
     .helpOption("-h, --help", "Display this help message.")
@@ -78,6 +78,7 @@ Examples:
   node your_script_name.js --model image_to_video --prompt "A stylish woman walks down a Tokyo street" --image-url "https://example.com/image.jpg"
   node your_script_name.js --model hunyuan --prompt "A stylish woman walks down a Tokyo street filled with warm glowing neon and animated city signage"
   node your_script_name.js --model wan-i2v --prompt "A stylish woman walks down a Tokyo street" --image-url "https://fal.media/files/elephant/8kkhB12hEZI2kkbU8pZPA_test.jpeg"
+  node your_script_name.js --model image_to_video --prompt "A stylish woman walks down a Tokyo street" --image-url "./local/assets/input.jpg"
 
 Notes:
   - If 'prompts.txt' is used, ensure it exists in the directory where you run the script.
