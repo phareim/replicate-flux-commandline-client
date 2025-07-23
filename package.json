@@ -24,7 +24,7 @@
   "license": "ISC",
   "dependencies": {
     "@fal-ai/serverless-client": "^0.14.3",
-    "axios": "^1.10.0",
+    "axios": "^1.11.0",
     "chromedriver": "^127.0.2",
     "commander": "^12.1.0",
     "g": "^2.0.1",
