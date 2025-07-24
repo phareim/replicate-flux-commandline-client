@@ -114,6 +114,10 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     }
   }
 
+  if (scale !== null && scale !== undefined) {
+    input.guidance_scale = parseFloat(scale);
+  }
+
   if (seed) {
     input.seed = seed;
   }
@@ -259,7 +263,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     // Existing image handling logic
     if (result && Array.isArray(result.images) && result.images.length > 0) {
       const imageUrls = result.images;
-      await fetchImages(imageUrls);
+      await fetchImages(imageUrls, local_output_override);
     } else {
       console.error("No images returned from the API.");
     }

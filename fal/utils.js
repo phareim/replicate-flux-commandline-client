@@ -54,7 +54,7 @@ export const saveImage = async (buffer, fileName, localOutputOverride = false) =
   }
 };
 
-export const fetchImages = async (imageUrls) => {
+export const fetchImages = async (imageUrls, localOutputOverride = false) => {
   try {
     const imageFetches = imageUrls.map(async (urlObj) => {
       const url = urlObj.url;
@@ -65,7 +65,7 @@ export const fetchImages = async (imageUrls) => {
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       const fileName = getFileNameFromUrl(url);
-      await saveImage(buffer, fileName);
+      await saveImage(buffer, fileName, localOutputOverride);
     });
 
     await Promise.all(imageFetches);
