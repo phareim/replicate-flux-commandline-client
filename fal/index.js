@@ -105,7 +105,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     input.image_url = imageUrl;
     input.duration = parseInt(duration, 10);
   } else {
-    const loraData = prepareLoras(loraObjects, scale);
+    const loraData = prepareLoras(loraObjects, 1);
     if (loraData) {
       input.loras = loraData.loras;
       input.prompt = loraData.loraKeywords ? 

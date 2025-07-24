@@ -62,11 +62,6 @@ export const loraNames = {
         scale: "1",
         keyword: "",
     },
-    realistic_skin: {
-        url: "https://civitai.com/api/download/models/876368?type=Model&format=SafeTensor",
-        scale: "1",
-        keyword: "",
-    },
     mj: {
         url: "https://civitai.com/api/download/models/827351?type=Model&format=SafeTensor",
         scale: "1",
@@ -89,7 +84,7 @@ export const loraNames = {
     },
     "anime-flat": {
         url: "https://civitai.com/api/download/models/838667?type=Model&format=SafeTensor",
-        scale: "1",
+        scale: "2",
         keyword: "Flat colour anime style image showing",
     },
     anime: {
@@ -104,7 +99,7 @@ export const loraNames = {
     },
     niji: {
         url: "https://civitai.com/api/download/models/855516?type=Model&format=SafeTensor",
-        scale: "1",
+        scale: "0.9",
         keyword: "aidmanijiv6",
     },
     "fantasy-core": {
@@ -146,7 +141,7 @@ export function prepareLoras(loraObjects, scale) {
 
     const loras = loraObjects.map((loraObj) => ({
         path: loraObj.url,
-        scale: scale || loraObj.scale,
+        scale: loraObj.scale || scale,
     }));
 
     const loraKeywords = loraObjects
