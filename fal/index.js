@@ -9,11 +9,10 @@ import { fal as falUpload } from "@fal-ai/client";
 
 import { setupCLI } from "./cli.js";
 import { 
-  getPromptFromFile, 
-  getAllPrompts, 
-  saveImage, 
-  fetchImages, 
-  getFileNameFromUrl 
+  getPromptFromFile,
+  saveImage,
+  fetchImages,
+  getFileNameFromUrl
 } from "./utils.js";
 import { 
   getModelEndpoint, 
@@ -93,7 +92,6 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     input.safety_tolerance = 5;
     delete input.image_size;
   } else if (modelEndpoint === "fal-ai/flux-pro/kontext/max/text-to-image") {
-    input.guidance_scale = 1.5;
     input.safety_tolerance = 5;
     // Kontext text-to-image model only needs prompt
   } else if (modelEndpoint === "fal-ai/hunyuan-video") {
@@ -280,7 +278,6 @@ const main = async () => {
   const loraKeys = options.lora || [];
   const allPrompts = options.allPrompts || false;
   const seed = options.seed || null;
-  const index = options.index || null;
   const scale = options.scale || null;
   // Replace direct assignment with processed upload logic
   let imageUrl = null;
@@ -296,33 +293,30 @@ const main = async () => {
   const modelEndpoint = getModelEndpoint(modelKey, loraObjects);
 
   if (allPrompts) {
-    // Handle the --all-prompts option
-    const promptsFilePath = path.resolve(process.cwd(), "prompts.txt");
-    getAllPrompts(promptsFilePath)
-      .then(async (prompts) => {
-        for (const [idx, promptText] of prompts.entries()) {
-          console.log(
-            `Generating image for prompt ${idx + 1}`
-          );
-          await run(
-            promptText,
-            modelEndpoint,
-            pictureFormat,
-            loraObjects,
-            seed,
-            scale,
-            imageUrl,
-            duration
-          );
-        }
+    // With the new single-prompt file approach, --all-prompts simply triggers
+    // a single generation using the entire content of "prompt.txt".
+    const promptFilePath = path.resolve(process.cwd(), "prompt.txt");
+    getPromptFromFile(promptFilePath)
+      .then(async (promptText) => {
+        console.log("Generating image for prompt.txt");
+        await run(
+          promptText,
+          modelEndpoint,
+          pictureFormat,
+          loraObjects,
+          seed,
+          scale,
+          imageUrl,
+          duration
+        );
       })
       .catch((error) => {
-        console.error("Failed to read prompts:", error);
+        console.error("Failed to read prompt:", error);
       });
   } else {
     const promptPromise = userPrompt
       ? Promise.resolve(userPrompt)
-      : getPromptFromFile(path.resolve(process.cwd(), "prompts.txt"), index);
+      : getPromptFromFile(path.resolve(process.cwd(), "prompt.txt"));
 
     promptPromise
       .then((promptText) => {

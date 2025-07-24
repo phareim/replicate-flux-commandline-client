@@ -72,6 +72,7 @@ const run = async (options) => {
         cfg_scale: parseFloat(options.cfgScale) || DEFAULT_CFG_SCALE,
         hide_watermark: options.hideWatermark || DEFAULT_HIDE_WATERMARK,
         return_binary: options.returnBinary || DEFAULT_RETURN_BINARY,
+        safe_mode: false
     };
 
     // Warn if steps was capped

@@ -12,7 +12,7 @@ export function setupCLI() {
     )
     .option(
       "--prompt <text>",
-      'Specify the text prompt for image generation. If omitted, a random prompt from "prompts.txt" is used.'
+      'Specify the text prompt for image generation. If omitted, the content of "prompt.txt" is used.'
     )
     .option("--model <modelKey>", "Choose the AI model to use.", DEFAULT_MODEL)
     .option("--raw", "Generate less processed, more natural-looking images.")
@@ -34,12 +34,13 @@ export function setupCLI() {
       "--out",
       "Save images to the current directory instead of the default."
     )
+    // The index option is deprecated but kept for backward compatibility
     .option(
       "-i, --index <index>",
-      "The line index from prompts.txt to use (1-based)"
+      "(Deprecated) Not used: prompt.txt is treated as a single prompt."
     )
     .option("--debug", "Enable debug mode to display additional logs.")
-    .option("--all-prompts", 'Generate images for all prompts in "prompts.txt".')
+    .option("--all-prompts", 'Generate image using the content of "prompt.txt".')
     .option(
       "--image-url <imageUrl>",
       "URL or local file path of the input image for image-to-video models"
@@ -81,7 +82,7 @@ Examples:
   node your_script_name.js --model image_to_video --prompt "A stylish woman walks down a Tokyo street" --image-url "./local/assets/input.jpg"
 
 Notes:
-  - If 'prompts.txt' is used, ensure it exists in the directory where you run the script.
+  - Ensure that 'prompt.txt' exists in the directory where you run the script.
   - The 'FAL_KEY' environment variable must be set with your FAL AI API key.
   - Images are saved to the directory specified by 'FAL_PATH' or './images' by default.
         `);
@@ -93,4 +94,4 @@ Notes:
   program.parse(process.argv);
 
   return program.opts();
-} 
+}

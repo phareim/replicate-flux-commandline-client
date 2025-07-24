@@ -19,11 +19,8 @@ export const getFileNameFromUrl = (url) => {
 export const getPromptFromFile = async (filePath, index = null) => {
   try {
     const data = await fs.readFile(filePath, "utf-8");
-    const lines = data.split("\n").filter(Boolean);
-    const randomIndex = Math.floor(Math.random() * lines.length);
-    const selectedIndex = index !== null ? parseInt(index) - 1 : randomIndex;
-    const selectedLine = lines[selectedIndex];
-    return selectedLine.trim();
+    // Use the entire file content as a single prompt (trim to remove trailing newlines/whitespace)
+    return data.trim();
   } catch (error) {
     console.error(`Error reading file ${filePath}:`, error);
     throw error;

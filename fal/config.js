@@ -29,6 +29,6 @@ export const image_size_new = {
 
 export const DEFAULT_MODEL = "pro";
 export const DEFAULT_FORMAT = "square_hd";
-export const DEFAULT_GUIDANCE_SCALE = 1;
+export const DEFAULT_GUIDANCE_SCALE = 2.5;
 export const DEFAULT_INFERENCE_STEPS = 30;
 export const DEFAULT_SAFETY_TOLERANCE = "5";
