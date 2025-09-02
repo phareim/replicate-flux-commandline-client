@@ -30,6 +30,7 @@ export function setupCLI() {
       "Set a seed for randomization to reproduce results."
     )
     .option("--scale <number>", "Set the scale for guidance.")
+    .option("--strength <number>", "Set the strength for image-to-image models (0.01-1.0).")
     .option(
       "--out",
       "Save images to the current directory instead of the default."

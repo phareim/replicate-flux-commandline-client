@@ -65,7 +65,7 @@ const processImageInput = async (inputPathOrUrl) => {
   }
 };
 
-const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imageUrl, duration) => {
+const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imageUrl, duration, strength) => {
   let count = 0;
 
   let result;
@@ -105,8 +105,19 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     input.image_url = imageUrl;
     input.duration = parseInt(duration, 10);
   } else if (modelEndpoint === "fal-ai/flux/krea/image-to-image") {
-    // Krea image-to-image model needs prompt and image_url
+    // Krea image-to-image model has specific parameters
     input.image_url = imageUrl;
+    input.strength = 0.9;
+    input.num_inference_steps = 40;
+    input.guidance_scale = 4.5;
+    input.num_images = 1;
+    input.enable_safety_checker = false;
+    input.output_format = "jpeg";
+    input.acceleration = "none";
+    // Remove default parameters that don't apply to Krea i2i
+    delete input.image_size;
+    delete input.safety_tolerance;
+    delete input.inference_steps; // Use num_inference_steps instead
   } else {
     const loraData = prepareLoras(loraObjects, 1);
     if (loraData) {
@@ -119,6 +130,10 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
 
   if (scale !== null && scale !== undefined) {
     input.guidance_scale = parseFloat(scale);
+  }
+
+  if (strength !== null && strength !== undefined) {
+    input.strength = parseFloat(strength);
   }
 
   if (seed) {
@@ -286,6 +301,7 @@ const main = async () => {
   const allPrompts = options.allPrompts || false;
   const seed = options.seed || null;
   const scale = options.scale || null;
+  const strength = options.strength || null;
   // Replace direct assignment with processed upload logic
   let imageUrl = null;
   if (options.imageUrl) {
@@ -314,7 +330,8 @@ const main = async () => {
           seed,
           scale,
           imageUrl,
-          duration
+          duration,
+          strength
         );
       })
       .catch((error) => {
@@ -336,7 +353,8 @@ const main = async () => {
           seed, 
           scale, 
           imageUrl,
-          duration
+          duration,
+          strength
         );
       })
       .catch((error) => {
