@@ -6,11 +6,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let modelData = {
-  modelEndpoints: {
-    "flux-dev": "flux-dev",
-    "flux-dev-uncensored": "flux-dev-uncensored",
-    "pony-realism": "pony-realism"
-  },
   defaultModel: "flux-dev"
 };
 

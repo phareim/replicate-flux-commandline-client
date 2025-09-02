@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import fetch from "node-fetch";
-import path from "path";
 import { promises as fs } from "fs";
 
 import { setupCLI } from "./cli.js";
@@ -10,7 +9,6 @@ import {
     DEFAULT_HEIGHT,
     DEFAULT_STEPS,
     DEFAULT_CFG_SCALE,
-    DEFAULT_SEED,
     DEFAULT_HIDE_WATERMARK,
     DEFAULT_RETURN_BINARY,
     image_size
@@ -19,9 +17,7 @@ import {
     getModelEndpoint
 } from "./models.js";
 import {
-    saveImage,
-    getFileNameFromUrl
-} from "./utils.js";
+    saveImage} from "./utils.js";
 
 let DEBUG = false;
 

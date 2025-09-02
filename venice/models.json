@@ -3,7 +3,8 @@
     "fluently-xl": "fluently-xl",
     "flux-dev": "flux-dev",
     "flux-dev-uncensored": "flux-dev-uncensored",
-    "pony-realism": "pony-realism"
+    "pony-realism": "pony-realism",
+    "wai": "wai-Illustrious"
   },
   "defaultModel": "flux-dev"
 }

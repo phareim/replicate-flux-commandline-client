@@ -1,8 +1,6 @@
 import { Command } from "commander";
 import { 
-  modelEndpoints, 
-  getModelEndpoint 
-} from "./models.js";
+  modelEndpoints} from "./models.js";
 import { 
   DEFAULT_MODEL, 
   DEFAULT_WIDTH, 
