@@ -19,6 +19,7 @@ export const modelEndpoints = {
     kontext: "fal-ai/flux-pro/kontext",
     "kontext-text": "fal-ai/flux-pro/kontext/max/text-to-image",
     "kling-i2v": "fal-ai/kling-video/v2.1/standard/image-to-video",
+    krea: "fal-ai/flux/krea",
 };
 
 export const loraNames = {

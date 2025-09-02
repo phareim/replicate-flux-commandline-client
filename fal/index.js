@@ -122,8 +122,8 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     input.seed = seed;
   }
 
-  // Check if this is a model that should show logs (video models)
-  const showLogs = modelEndpoint === "fal-ai/hunyuan-video" || modelEndpoint === "fal-ai/wan-i2v" || modelEndpoint === "fal-ai/kling-video/v2.1/standard/image-to-video";
+  // Check if this is a model that should show logs (video models and Krea)
+  const showLogs = modelEndpoint === "fal-ai/hunyuan-video" || modelEndpoint === "fal-ai/wan-i2v" || modelEndpoint === "fal-ai/kling-video/v2.1/standard/image-to-video" || modelEndpoint === "fal-ai/flux/krea";
 
   try {
     result = await fal.subscribe(modelEndpoint, {
