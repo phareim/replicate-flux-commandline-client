@@ -104,6 +104,9 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     // Kling image-to-video model needs prompt and image_url
     input.image_url = imageUrl;
     input.duration = parseInt(duration, 10);
+  } else if (modelEndpoint === "fal-ai/flux/krea/image-to-image") {
+    // Krea image-to-image model needs prompt and image_url
+    input.image_url = imageUrl;
   } else {
     const loraData = prepareLoras(loraObjects, 1);
     if (loraData) {
@@ -123,7 +126,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
   }
 
   // Check if this is a model that should show logs (video models and Krea)
-  const showLogs = modelEndpoint === "fal-ai/hunyuan-video" || modelEndpoint === "fal-ai/wan-i2v" || modelEndpoint === "fal-ai/kling-video/v2.1/standard/image-to-video" || modelEndpoint === "fal-ai/flux/krea";
+  const showLogs = modelEndpoint === "fal-ai/hunyuan-video" || modelEndpoint === "fal-ai/wan-i2v" || modelEndpoint === "fal-ai/kling-video/v2.1/standard/image-to-video" || modelEndpoint === "fal-ai/flux/krea" || modelEndpoint === "fal-ai/flux/krea/image-to-image";
 
   try {
     result = await fal.subscribe(modelEndpoint, {
