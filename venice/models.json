@@ -6,5 +6,5 @@
     "pony-realism": "pony-realism",
     "wai": "wai-Illustrious"
   },
-  "defaultModel": "flux-dev"
+  "defaultModel": "wai-Illustrious"
 }

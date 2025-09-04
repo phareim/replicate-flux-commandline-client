@@ -2,7 +2,6 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { Builder, By } from 'selenium-webdriver';
 import chrome from 'selenium-webdriver/chrome.js';
-import fetch from 'node-fetch';
 
 const URL_TEMPLATE = 'https://cdn.midjourney.com/${uuid}/0_${index}.png';
 const outputDir = process.env.MIDJOURNEY_OUTPUT_DIR || join(process.cwd(), 'mj_output');

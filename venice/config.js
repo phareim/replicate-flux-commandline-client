@@ -12,6 +12,7 @@ export const image_size = {
   portrait: { width: 768, height: 1024 },
   landscape: { width: 1024, height: 768 },
   wide: { width: 1536, height: 864 },
+  huge: { width: 1536, height: 1536 },
 };
 
 export const stylePresets = [
