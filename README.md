@@ -11,7 +11,7 @@ npm install -g flux-client
 ## Available Commands
 
 ### Venice AI (`venice`)
-Generate images using Venice AI's models.
+Generate images using Venice AI's models. defaults to anime. 
 
 ```bash
 # Basic usage
