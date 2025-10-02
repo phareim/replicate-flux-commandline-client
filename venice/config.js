@@ -8,11 +8,11 @@ export const DEFAULT_HIDE_WATERMARK = true;
 export const DEFAULT_RETURN_BINARY = true;
 
 export const image_size = {
-  square: { width: 1024, height: 1024 },
-  portrait: { width: 768, height: 1024 },
-  landscape: { width: 1024, height: 768 },
-  wide: { width: 1536, height: 864 },
-  huge: { width: 1536, height: 1536 },
+  square: { width: 1280, height: 1280 },
+  portrait: { width: 768, height: 1280 },
+  landscape: { width: 1280, height: 768 },
+  wide: { width: 1280, height: 864 },
+  tall: { width: 864, height: 1280 },
 };
 
 export const stylePresets = [

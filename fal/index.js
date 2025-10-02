@@ -80,45 +80,29 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     inference_steps: 50
   };
 
-  // Special handling for different model types
+  // Add model-specific parameters (fal ignores unused ones)
+  
+  // Video models that need image_url
+  if (["fal-ai/minimax/video-01-live/image-to-video", "fal-ai/flux-pro/kontext", 
+       "fal-ai/wan-i2v", "fal-ai/kling-video/v2.1/standard/image-to-video", 
+       "fal-ai/flux/krea/image-to-image"].includes(modelEndpoint)) {
+    input.image_url = imageUrl;
+  }
+  
+  // Model-specific overrides
   if (modelEndpoint === "fal-ai/minimax/video-01-live/image-to-video") {
-    input.image_url = imageUrl;
     input.prompt_optimizer = true;
-    delete input.image_size;
-    delete input.num_images;
-  } else if (modelEndpoint === "fal-ai/flux-pro/kontext") {
-    // Kontext model needs prompt and image_url
-    input.image_url = imageUrl;
-    input.safety_tolerance = 5;
-    delete input.image_size;
-  } else if (modelEndpoint === "fal-ai/flux-pro/kontext/max/text-to-image") {
-    input.safety_tolerance = 5;
-    // Kontext text-to-image model only needs prompt
-  } else if (modelEndpoint === "fal-ai/hunyuan-video") {
-    // Hunyuan video only needs prompt, remove other parameters
-    delete input.image_size;
-  } else if (modelEndpoint === "fal-ai/wan-i2v") {
-    // Wan-i2v needs prompt and image_url
-    input.image_url = imageUrl;
   } else if (modelEndpoint === "fal-ai/kling-video/v2.1/standard/image-to-video") {
-    // Kling image-to-video model needs prompt and image_url
-    input.image_url = imageUrl;
     input.duration = parseInt(duration, 10);
   } else if (modelEndpoint === "fal-ai/flux/krea/image-to-image") {
-    // Krea image-to-image model has specific parameters
-    input.image_url = imageUrl;
+    // Krea has very specific parameter preferences
     input.strength = 0.9;
     input.num_inference_steps = 40;
     input.guidance_scale = 4.5;
-    input.num_images = 1;
-    input.enable_safety_checker = false;
     input.output_format = "jpeg";
     input.acceleration = "none";
-    // Remove default parameters that don't apply to Krea i2i
-    delete input.image_size;
-    delete input.safety_tolerance;
-    delete input.inference_steps; // Use num_inference_steps instead
   } else {
+    // Standard flux models with LoRA support
     const loraData = prepareLoras(loraObjects, 1);
     if (loraData) {
       input.loras = loraData.loras;
@@ -140,10 +124,10 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     input.seed = seed;
   }
 
-  // Check if this is a model that should show logs (video models and Krea)
-  const showLogs = modelEndpoint === "fal-ai/hunyuan-video" || modelEndpoint === "fal-ai/wan-i2v" || modelEndpoint === "fal-ai/kling-video/v2.1/standard/image-to-video" || modelEndpoint === "fal-ai/flux/krea" || modelEndpoint === "fal-ai/flux/krea/image-to-image";
+  const showLogs = true;
 
   try {
+    console.log("## Model Endpoint ##\n",modelEndpoint);
     result = await fal.subscribe(modelEndpoint, {
       input,
       logs: showLogs,
@@ -171,7 +155,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
         }
       },
     });
-    
+    console.log("## RESULT ##\n",result);
     // Check for error responses
     if (result && result.status === 400) {
       console.error(`API Error (400): ${result.detail || 'Unknown error'}`);

@@ -55,10 +55,10 @@ const run = async (options) => {
 
     let _width = Math.min(parseInt(options.width) || DEFAULT_WIDTH, 1280);
     let _height = Math.min(parseInt(options.height) || DEFAULT_HEIGHT, 1280);
-    // ensure width and height are divisible by 8
-    _width = Math.floor(_width / 8) * 8;
-    _height = Math.floor(_height / 8) * 8;
-    // Prepare input parameters
+    
+    _width = Math.floor(_width / 16) * 16;
+    _height = Math.floor(_height / 16) * 16;
+    
     const input = {
         model: getModelEndpoint(options.model),
         prompt: options.prompt,
