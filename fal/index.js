@@ -8,24 +8,24 @@ import { fileFromSync } from "fetch-blob/from.js";
 import { fal as falUpload } from "@fal-ai/client";
 
 import { setupCLI } from "./cli.js";
-import { 
+import {
   getPromptFromFile,
   saveImage,
   fetchImages,
   getFileNameFromUrl
 } from "./utils.js";
-import { 
-  getModelEndpoint, 
-  prepareLoras, 
-  loraNames 
+import {
+  getModelEndpoint,
+  getModelInfo,
+  prepareLoras,
+  loraNames
 } from "./models.js";
-import { 
-  image_size, 
-  DEFAULT_FORMAT, 
-  DEFAULT_GUIDANCE_SCALE, 
-  DEFAULT_INFERENCE_STEPS, 
-  DEFAULT_SAFETY_TOLERANCE 
+import {
+  image_size,
+  DEFAULT_FORMAT
 } from "./config.js";
+import { buildParameters, getRequiredParams } from "./parameter-builders.js";
+import { applyModelOverrides, supportsLoras } from "./model-overrides.js";
 
 let DEBUG = false;
 let local_output_override = false;
@@ -68,57 +68,34 @@ const processImageInput = async (inputPathOrUrl) => {
 const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imageUrl, duration, strength) => {
   let count = 0;
 
-  let result;
-  const input = {
+  // Get model metadata
+  const modelInfo = getModelInfo(modelEndpoint);
+  const category = modelInfo?.metadata?.category || 'text-to-image';
+
+  if (DEBUG) {
+    console.log(`Model: ${modelEndpoint}`);
+    console.log(`Category: ${category}`);
+  }
+
+  // Build base parameters using category-based strategy
+  const options = {
     prompt,
-    image_size: format,
-    num_inference_steps: DEFAULT_INFERENCE_STEPS,
-    guidance_scale: DEFAULT_GUIDANCE_SCALE,
-    num_images: 1,
-    safety_tolerance: DEFAULT_SAFETY_TOLERANCE,
-    enable_safety_checker: false
+    format,
+    seed,
+    scale,
+    strength,
+    imageUrl,
+    duration,
+    steps: null, // Can be added to CLI if needed
   };
 
-  // Add model-specific parameters (fal ignores unused ones)
-  
-  // Video models that need image_url
-  if (["fal-ai/minimax/video-01-live/image-to-video", "fal-ai/flux-pro/kontext", 
-       "fal-ai/wan-i2v", "fal-ai/kling-video/v2.1/standard/image-to-video", 
-       "fal-ai/flux/krea/image-to-image"].includes(modelEndpoint)) {
-    input.image_url = imageUrl;
-  }
-  
-  // Model-specific overrides
-  if (modelEndpoint === "fal-ai/minimax/video-01-live/image-to-video") {
-    input.prompt_optimizer = true;
-  } else if (modelEndpoint === "fal-ai/kling-video/v2.1/standard/image-to-video") {
-    input.duration = parseInt(duration, 10);
-  } else if (modelEndpoint === "fal-ai/flux/krea/image-to-image") {
-    // Krea has very specific parameter preferences
-    input.strength = 0.9;
-    input.num_inference_steps = 40;
-    input.guidance_scale = 4.5;
-    input.output_format = "jpeg";
-    input.acceleration = "none";
-  } else if (modelEndpoint === "fal-ai/flux/krea") {
-    // Regular Krea text-to-image model - no LoRA support
-    input.output_format = "jpeg";
-    input.acceleration = "none";
-  } else if (modelEndpoint === "fal-ai/flux-krea-lora") {
-    // Krea with LoRA support
-    input.num_inference_steps = 28;
-    input.guidance_scale = 3.5;
-    input.output_format = "jpeg";
+  let input = buildParameters(category, options);
 
-    const loraData = prepareLoras(loraObjects, 1);
-    if (loraData) {
-      input.loras = loraData.loras;
-      input.prompt = loraData.loraKeywords ?
-        `${loraData.loraKeywords}. ${input.prompt}` :
-        input.prompt;
-    }
-  } else {
-    // Standard flux models with LoRA support
+  // Apply model-specific overrides
+  input = applyModelOverrides(modelEndpoint, input, options);
+
+  // Handle LoRAs if supported
+  if (supportsLoras(modelEndpoint) && loraObjects.length > 0) {
     const loraData = prepareLoras(loraObjects, 1);
     if (loraData) {
       input.loras = loraData.loras;
@@ -128,17 +105,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     }
   }
 
-  if (scale !== null && scale !== undefined) {
-    input.guidance_scale = parseFloat(scale);
-  }
-
-  if (strength !== null && strength !== undefined) {
-    input.strength = parseFloat(strength);
-  }
-
-  if (seed) {
-    input.seed = seed;
-  }
+  let result;
 
   const showLogs = true;
 
@@ -193,7 +160,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
   }
 
   // Handle video output for video-to-video model
-  if (modelEndpoint === "fal-ai/minimax/video-01-live/image-to-video") {
+  if (modelEndpoint === "fal-ai/minimax/video-01/image-to-video") {
     if (result && result.video && result.video.url) {
       const videoUrl = result.video.url;
       const fileName = getFileNameFromUrl(videoUrl);
@@ -315,19 +282,26 @@ const main = async () => {
   const loraObjects = loraKeys.map((key) => loraNames[key]).filter(Boolean);
   const modelEndpoint = getModelEndpoint(modelKey, loraObjects);
 
-  // Validate that models requiring image_url have it provided
-  const modelsRequiringImage = [
-    "fal-ai/minimax/video-01-live/image-to-video",
-    "fal-ai/flux-pro/kontext",
-    "fal-ai/wan-i2v",
-    "fal-ai/kling-video/v2.1/standard/image-to-video",
-    "fal-ai/flux/krea/image-to-image"
-  ];
+  // Validate required parameters based on category
+  const modelInfo = getModelInfo(modelEndpoint);
+  const category = modelInfo?.metadata?.category || 'text-to-image';
+  const requiredParams = getRequiredParams(category);
 
-  if (modelsRequiringImage.includes(modelEndpoint) && !imageUrl) {
-    console.error(`Error: Model '${modelKey}' requires an input image.`);
-    console.error(`Please provide an image using --image-url <url-or-path>`);
-    console.error(`Example: falflux --model ${modelKey} --prompt "your prompt" --image-url ./path/to/image.jpg`);
+  // Check if required parameters are provided
+  const missingParams = [];
+  if (requiredParams.includes('imageUrl') && !imageUrl) {
+    missingParams.push('--image-url');
+  }
+  if (requiredParams.includes('videoUrl') && !imageUrl) {
+    missingParams.push('--video-url (use --image-url)');
+  }
+  if (requiredParams.includes('audioUrl') && !imageUrl) {
+    missingParams.push('--audio-url (use --image-url)');
+  }
+
+  if (missingParams.length > 0) {
+    console.error(`Error: Model '${modelKey}' (category: ${category}) requires: ${missingParams.join(', ')}`);
+    console.error(`Example: falflux --model ${modelKey} --prompt "your prompt" --image-url ./path/to/file`);
     process.exit(1);
   }
 
