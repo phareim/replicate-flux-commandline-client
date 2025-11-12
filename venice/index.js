@@ -14,7 +14,8 @@ import {
     image_size
 } from "./config.js";
 import {
-    getModelEndpoint
+    getModelEndpoint,
+    getModelConstraints
 } from "./models.js";
 import {
     saveImage} from "./utils.js";
@@ -53,18 +54,22 @@ const run = async (options) => {
         }
     }
 
+    // Get model constraints for proper width/height divisor
+    const modelConstraints = getModelConstraints(options.model);
+    const divisor = modelConstraints.widthHeightDivisor;
+
     let _width = Math.min(parseInt(options.width) || DEFAULT_WIDTH, 1280);
     let _height = Math.min(parseInt(options.height) || DEFAULT_HEIGHT, 1280);
-    
-    _width = Math.floor(_width / 16) * 16;
-    _height = Math.floor(_height / 16) * 16;
-    
+
+    _width = Math.floor(_width / divisor) * divisor;
+    _height = Math.floor(_height / divisor) * divisor;
+
     const input = {
         model: getModelEndpoint(options.model),
         prompt: options.prompt,
-        width: _width, 
+        width: _width,
         height: _height,
-        steps: Math.min(parseInt(options.steps) || DEFAULT_STEPS, 30),
+        steps: Math.min(parseInt(options.steps) || DEFAULT_STEPS, modelConstraints.maxSteps),
         cfg_scale: parseFloat(options.cfgScale) || DEFAULT_CFG_SCALE,
         hide_watermark: options.hideWatermark || DEFAULT_HIDE_WATERMARK,
         return_binary: options.returnBinary || DEFAULT_RETURN_BINARY,
@@ -72,14 +77,31 @@ const run = async (options) => {
     };
 
     // Warn if steps was capped
-    if (options.steps && parseInt(options.steps) > 30) {
-        console.warn("\nWarning: Steps value was capped at 30 (maximum allowed value)");
+    if (options.steps && parseInt(options.steps) > modelConstraints.maxSteps) {
+        console.warn(`\nWarning: Steps value was capped at ${modelConstraints.maxSteps} (maximum for this model)`);
     }
 
     // Optional parameters
     if (options.seed !== undefined) input.seed = parseInt(options.seed);
     if (options.stylePreset) input.style_preset = options.stylePreset;
     if (options.negativePrompt) input.negative_prompt = options.negativePrompt;
+    if (options.outputFormat) input.format = options.outputFormat;
+    if (options.loraStrength !== undefined) input.lora_strength = Math.min(Math.max(parseInt(options.loraStrength), 0), 100);
+    if (options.embedExifMetadata) input.embed_exif_metadata = true;
+
+    // Variants handling - only send if > 1 or if return_binary is false
+    if (options.variants !== undefined) {
+        const variantsValue = Math.min(Math.max(parseInt(options.variants), 1), 4);
+
+        // Only include variants parameter if > 1 or return_binary is already false
+        if (variantsValue > 1 || !input.return_binary) {
+            if (variantsValue > 1 && input.return_binary) {
+                console.warn("\nWarning: Variants only work when return_binary is false. Setting return_binary to false.");
+                input.return_binary = false;
+            }
+            input.variants = variantsValue;
+        }
+    }
 
     // Handle format option if provided
     if (options.format) {

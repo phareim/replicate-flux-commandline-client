@@ -1,10 +1,83 @@
 {
   "modelEndpoints": {
-    "fluently-xl": "fluently-xl",
-    "flux-dev": "flux-dev",
-    "flux-dev-uncensored": "flux-dev-uncensored",
-    "pony-realism": "pony-realism",
-    "wai": "wai-Illustrious"
+    "venice-sd35": "venice-sd35",
+    "hidream": "hidream",
+    "lustify-sdxl": "lustify-sdxl",
+    "lustify-v7": "lustify-v7",
+    "qwen-image": "qwen-image",
+    "wai": "wai-Illustrious",
+    "wai-Illustrious": "wai-Illustrious"
   },
+  "modelConstraints": {
+    "venice-sd35": {
+      "widthHeightDivisor": 16,
+      "maxSteps": 30,
+      "defaultSteps": 25,
+      "promptCharacterLimit": 1500
+    },
+    "hidream": {
+      "widthHeightDivisor": 8,
+      "maxSteps": 50,
+      "defaultSteps": 20,
+      "promptCharacterLimit": 1500
+    },
+    "lustify-sdxl": {
+      "widthHeightDivisor": 8,
+      "maxSteps": 50,
+      "defaultSteps": 20,
+      "promptCharacterLimit": 1500
+    },
+    "lustify-v7": {
+      "widthHeightDivisor": 8,
+      "maxSteps": 50,
+      "defaultSteps": 20,
+      "promptCharacterLimit": 1500
+    },
+    "qwen-image": {
+      "widthHeightDivisor": 8,
+      "maxSteps": 8,
+      "defaultSteps": 8,
+      "promptCharacterLimit": 1500
+    },
+    "wai-Illustrious": {
+      "widthHeightDivisor": 16,
+      "maxSteps": 30,
+      "defaultSteps": 25,
+      "promptCharacterLimit": 1500
+    }
+  },
+  "modelInfo": {
+    "venice-sd35": {
+      "name": "Venice SD35",
+      "traits": ["default", "eliza-default"],
+      "modelSource": "https://huggingface.co/stabilityai/stable-diffusion-3.5-large"
+    },
+    "hidream": {
+      "name": "HiDream",
+      "traits": [],
+      "modelSource": "https://huggingface.co/HiDream-ai/HiDream-I1-Dev"
+    },
+    "lustify-sdxl": {
+      "name": "Lustify SDXL",
+      "traits": [],
+      "modelSource": "https://civitai.com/models/573152/lustify-sdxl-nsfw-checkpoint"
+    },
+    "lustify-v7": {
+      "name": "Lustify v7",
+      "traits": [],
+      "modelSource": "https://civitai.com/models/573152/lustify-sdxl-nsfw-checkpoint"
+    },
+    "qwen-image": {
+      "name": "Qwen Image",
+      "traits": ["highest_quality"],
+      "modelSource": "https://huggingface.co/Qwen/Qwen-Image"
+    },
+    "wai-Illustrious": {
+      "name": "Anime (WAI)",
+      "traits": [],
+      "modelSource": "https://civitai.com/models/827184?modelVersionId=1761560"
+    }
+  },
+  "stylePresets": [],
   "defaultModel": "wai-Illustrious"
 }
