@@ -137,7 +137,10 @@ Maximum dimensions: 1280x1280 (enforced via `Math.min`).
 Different Fal models accept different parameters. The `fal/index.js` implementation uses conditional logic based on `modelEndpoint`:
 
 - Video models require `image_url` parameter
-- Krea models have hardcoded optimal parameters (strength=0.9, steps=40, guidance=4.5)
+- **Krea models** have specialized parameter handling:
+  - `krea` (text-to-image): Uses generic defaults, no LoRA support
+  - `krea-i2i` (image-to-image): Requires `image_url`, uses hardcoded parameters (strength=0.9, steps=40, guidance=4.5, format=jpeg)
+  - `krea-lora` (text-to-image with LoRA): Uses steps=28, guidance=3.5, format=jpeg, supports LoRAs
 - Standard Flux models support LoRAs
 - All other parameters are passed through (Fal ignores unsupported ones)
 
@@ -172,6 +175,13 @@ export const modelEndpoints = {
   // ...
 };
 ```
+
+If the model requires special parameter handling (like Krea models or video models), add a conditional block in `fal/index.js` around line 92-129. Models that need special handling include:
+- Models requiring `image_url` input
+- Models with non-standard default parameters
+- Models that need specific parameter combinations
+
+Example: `krea-lora` sets `num_inference_steps: 28`, `guidance_scale: 3.5`, and applies LoRAs.
 
 ### Adding a New LoRA (Fal)
 

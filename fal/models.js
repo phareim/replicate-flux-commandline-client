@@ -21,6 +21,7 @@ export const modelEndpoints = {
     "kling-i2v": "fal-ai/kling-video/v2.1/standard/image-to-video",
     krea: "fal-ai/flux/krea",
     "krea-i2i": "fal-ai/flux/krea/image-to-image",
+    "krea-lora": "fal-ai/flux-krea-lora",
     "srpo": "fal-ai/flux-1/srpo",
     "wan-25": "fal-ai/wan-25-preview/text-to-image",
 };

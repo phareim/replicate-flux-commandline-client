@@ -104,6 +104,19 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     // Regular Krea text-to-image model - no LoRA support
     input.output_format = "jpeg";
     input.acceleration = "none";
+  } else if (modelEndpoint === "fal-ai/flux-krea-lora") {
+    // Krea with LoRA support
+    input.num_inference_steps = 28;
+    input.guidance_scale = 3.5;
+    input.output_format = "jpeg";
+
+    const loraData = prepareLoras(loraObjects, 1);
+    if (loraData) {
+      input.loras = loraData.loras;
+      input.prompt = loraData.loraKeywords ?
+        `${loraData.loraKeywords}. ${input.prompt}` :
+        input.prompt;
+    }
   } else {
     // Standard flux models with LoRA support
     const loraData = prepareLoras(loraObjects, 1);
