@@ -27,7 +27,7 @@ export const image_size_new = {
   wide: "21:9",
 };
 
-export const DEFAULT_MODEL = "pro";
+export const DEFAULT_MODEL = "krea-lora";
 export const DEFAULT_FORMAT = "square_hd";
 export const DEFAULT_GUIDANCE_SCALE = 2.7;
 export const DEFAULT_INFERENCE_STEPS = 30;

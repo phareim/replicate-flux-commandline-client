@@ -55,11 +55,6 @@ export function setupCLI() {
     .option("--list-categories", "List all available model categories")
     .helpOption("-h, --help", "Display this help message.")
     .on("--help", () => {
-      // Generate the list of available models
-      const availableModels = Object.keys(modelEndpoints)
-        .map((key) => `  - ${key.padEnd(10)}: ${modelEndpoints[key]}`)
-        .join("\n");
-
       // Generate the list of available LoRAs
       const availableLoras = Object.keys(loraNames)
         .map((key) => key)
@@ -68,8 +63,20 @@ export function setupCLI() {
       const availableFormats = Object.keys(image_size).join(", ");
 
       console.log(`
-Available Models:
-${availableModels}
+Default Model:
+  ${DEFAULT_MODEL} (${modelEndpoints[DEFAULT_MODEL]})
+  A creative AI model that works well with LoRAs for stylized image generation.
+
+Discovering Models:
+  Due to the large number of available models, use these commands to explore:
+
+  --list-models               List all available models
+  --search <term>             Search models by keyword (e.g., "video", "flux", "anime")
+  --category <category>       Filter models by category (e.g., "text-to-image", "image-to-video")
+  --list-categories           Show all available categories
+  --model-info <modelKey>     Get detailed info about a specific model
+
+  Popular model shortcuts: pro, ultra, dev, krea, krea-i2i, kontext, image_to_video
 
 Available LoRAs:
 ${availableLoras}
@@ -78,16 +85,25 @@ Available Formats:
 ${availableFormats}
 
 Examples:
-  node your_script_name.js --prompt "A futuristic cityscape at dusk" --model pro --format wide
-  node your_script_name.js --lora disney --index 5 --seed 12345
-  node your_script_name.js --lora disney,lucid --prompt "An enchanted forest"
-  node your_script_name.js --lora retrowave --lora incase --prompt "A cyberpunk skyline"
-  node your_script_name.js --all-prompts --model anime
-  node your_script_name.js --model krea-lora --lora cinematic --prompt "A dramatic sunset over mountains"
-  node your_script_name.js --model image_to_video --prompt "A stylish woman walks down a Tokyo street" --image-url "https://example.com/image.jpg"
-  node your_script_name.js --model hunyuan --prompt "A stylish woman walks down a Tokyo street filled with warm glowing neon and animated city signage"
-  node your_script_name.js --model wan-i2v --prompt "A stylish woman walks down a Tokyo street" --image-url "https://fal.media/files/elephant/8kkhB12hEZI2kkbU8pZPA_test.jpeg"
-  node your_script_name.js --model image_to_video --prompt "A stylish woman walks down a Tokyo street" --image-url "./local/assets/input.jpg"
+  # Basic usage (uses default model: ${DEFAULT_MODEL})
+  falflux --prompt "A futuristic cityscape at dusk"
+
+  # With LoRAs (enhances the default model)
+  falflux --lora disney --prompt "An enchanted forest"
+  falflux --lora disney,lucid --prompt "A magical landscape"
+  falflux --lora cinematic --prompt "A dramatic sunset over mountains" --format wide
+
+  # Using different models
+  falflux --model pro --prompt "Photorealistic portrait"
+  falflux --model krea-i2i --image-url "./input.jpg" --prompt "Transform into watercolor style"
+
+  # Video generation
+  falflux --model image_to_video --image-url "./photo.jpg" --prompt "Camera slowly pans right"
+
+  # Discover models
+  falflux --search "anime"
+  falflux --category "image-to-video"
+  falflux --model-info pro
 
 Notes:
   - Ensure that 'prompt.txt' exists in the directory where you run the script.

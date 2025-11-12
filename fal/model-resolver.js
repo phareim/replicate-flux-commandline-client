@@ -110,8 +110,8 @@ export function getModelEndpoint(modelKey, loraObjects = []) {
         return endpoint;
     }
 
-    // Fallback: if LoRAs are provided, use flux-lora, otherwise ultra
-    return loraObjects.length > 0 ? "fal-ai/flux-lora" : "fal-ai/flux-pro/v1.1-ultra";
+    // Fallback: default to krea-lora
+    return "fal-ai/flux-krea-lora";
 }
 
 /**
