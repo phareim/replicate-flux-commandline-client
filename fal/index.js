@@ -76,8 +76,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     guidance_scale: DEFAULT_GUIDANCE_SCALE,
     num_images: 1,
     safety_tolerance: DEFAULT_SAFETY_TOLERANCE,
-    enable_safety_checker: false,
-    inference_steps: 50
+    enable_safety_checker: false
   };
 
   // Add model-specific parameters (fal ignores unused ones)
@@ -101,13 +100,17 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     input.guidance_scale = 4.5;
     input.output_format = "jpeg";
     input.acceleration = "none";
+  } else if (modelEndpoint === "fal-ai/flux/krea") {
+    // Regular Krea text-to-image model - no LoRA support
+    input.output_format = "jpeg";
+    input.acceleration = "none";
   } else {
     // Standard flux models with LoRA support
     const loraData = prepareLoras(loraObjects, 1);
     if (loraData) {
       input.loras = loraData.loras;
-      input.prompt = loraData.loraKeywords ? 
-        `${loraData.loraKeywords}. ${input.prompt}` : 
+      input.prompt = loraData.loraKeywords ?
+        `${loraData.loraKeywords}. ${input.prompt}` :
         input.prompt;
     }
   }
@@ -298,6 +301,22 @@ const main = async () => {
 
   const loraObjects = loraKeys.map((key) => loraNames[key]).filter(Boolean);
   const modelEndpoint = getModelEndpoint(modelKey, loraObjects);
+
+  // Validate that models requiring image_url have it provided
+  const modelsRequiringImage = [
+    "fal-ai/minimax/video-01-live/image-to-video",
+    "fal-ai/flux-pro/kontext",
+    "fal-ai/wan-i2v",
+    "fal-ai/kling-video/v2.1/standard/image-to-video",
+    "fal-ai/flux/krea/image-to-image"
+  ];
+
+  if (modelsRequiringImage.includes(modelEndpoint) && !imageUrl) {
+    console.error(`Error: Model '${modelKey}' requires an input image.`);
+    console.error(`Please provide an image using --image-url <url-or-path>`);
+    console.error(`Example: falflux --model ${modelKey} --prompt "your prompt" --image-url ./path/to/image.jpg`);
+    process.exit(1);
+  }
 
   if (allPrompts) {
     // With the new single-prompt file approach, --all-prompts simply triggers
