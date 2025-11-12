@@ -48,6 +48,11 @@ export function setupCLI() {
       "URL or local file path of the input image for image-to-video models"
     )
     .option("--duration <duration>", "The duration of the video (5 or 10 seconds)", "5")
+    .option("--list-models", "List all available models")
+    .option("--category <category>", "Filter models by category (use with --list-models)")
+    .option("--search <term>", "Search models by keyword")
+    .option("--model-info <modelKey>", "Show detailed information about a specific model")
+    .option("--list-categories", "List all available model categories")
     .helpOption("-h, --help", "Display this help message.")
     .on("--help", () => {
       // Generate the list of available models

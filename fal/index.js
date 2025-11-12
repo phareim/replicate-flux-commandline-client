@@ -12,7 +12,10 @@ import {
   getModelEndpoint,
   getModelInfo,
   prepareLoras,
-  loraNames
+  loraNames,
+  allModels,
+  searchModels,
+  getModelsByCategory
 } from "./models.js";
 import {
   image_size,
@@ -183,6 +186,127 @@ const main = async () => {
 
   DEBUG = options.debug || false;
   local_output_override = options.out || false;
+
+  // Handle model discovery commands
+  if (options.listCategories) {
+    const categories = [...new Set(allModels.map(m => m.metadata.category))].sort();
+    console.log('\n=== Available Model Categories ===\n');
+    categories.forEach(cat => {
+      const count = allModels.filter(m => m.metadata.category === cat).length;
+      console.log(`  ${cat.padEnd(20)} (${count} models)`);
+    });
+    console.log('\nUse --list-models --category <name> to see models in a category\n');
+    process.exit(0);
+  }
+
+  if (options.search) {
+    const results = searchModels(options.search);
+    console.log(`\n=== Search Results for "${options.search}" ===\n`);
+    if (results.length === 0) {
+      console.log('No models found.\n');
+    } else {
+      console.log(`Found ${results.length} model(s):\n`);
+      results.forEach(model => {
+        console.log(`  ${model.metadata.display_name}`);
+        console.log(`    ID: ${model.endpoint_id}`);
+        console.log(`    Category: ${model.metadata.category}`);
+        console.log(`    ${model.metadata.description.substring(0, 100)}...`);
+        console.log();
+      });
+    }
+    process.exit(0);
+  }
+
+  if (options.modelInfo) {
+    const model = getModelInfo(options.modelInfo);
+    if (!model) {
+      console.error(`Model '${options.modelInfo}' not found.`);
+      console.error('Use --list-models or --search to find available models.');
+      process.exit(1);
+    }
+
+    console.log('\n=== Model Information ===\n');
+    console.log(`Name: ${model.metadata.display_name}`);
+    console.log(`ID: ${model.endpoint_id}`);
+    console.log(`Category: ${model.metadata.category}`);
+    console.log(`Status: ${model.metadata.status}`);
+    console.log(`License: ${model.metadata.license_type || 'N/A'}`);
+    console.log(`\nDescription:`);
+    console.log(`  ${model.metadata.description}`);
+
+    if (model.metadata.tags && model.metadata.tags.length > 0) {
+      console.log(`\nTags: ${model.metadata.tags.join(', ')}`);
+    }
+
+    if (model.metadata.duration_estimate) {
+      console.log(`\nEstimated duration: ~${model.metadata.duration_estimate}s`);
+    }
+
+    console.log(`\nModel URL: ${model.metadata.model_url}`);
+
+    // Show required parameters
+    const { getRequiredParams } = await import('./parameter-builders.js');
+    const required = getRequiredParams(model.metadata.category);
+    if (required.length > 0) {
+      console.log(`\nRequired parameters: ${required.map(p => `--${p.replace(/([A-Z])/g, '-$1').toLowerCase()}`).join(', ')}`);
+    }
+
+    console.log('\nExample usage:');
+    if (model.metadata.category === 'image-to-video' || model.metadata.category === 'image-to-image') {
+      console.log(`  falflux --model ${options.modelInfo} --prompt "your prompt" --image-url ./image.jpg\n`);
+    } else {
+      console.log(`  falflux --model ${options.modelInfo} --prompt "your prompt"\n`);
+    }
+
+    process.exit(0);
+  }
+
+  if (options.listModels) {
+    let modelsToShow = allModels;
+
+    if (options.category) {
+      modelsToShow = getModelsByCategory(options.category);
+      console.log(`\n=== Models in category: ${options.category} ===\n`);
+      if (modelsToShow.length === 0) {
+        console.log('No models found in this category.');
+        console.log('Use --list-categories to see available categories.\n');
+        process.exit(1);
+      }
+    } else {
+      console.log('\n=== All Available Models ===\n');
+    }
+
+    console.log(`Total: ${modelsToShow.length} model(s)\n`);
+
+    // Group by category if showing all
+    if (!options.category) {
+      const byCategory = {};
+      modelsToShow.forEach(m => {
+        const cat = m.metadata.category;
+        if (!byCategory[cat]) byCategory[cat] = [];
+        byCategory[cat].push(m);
+      });
+
+      Object.keys(byCategory).sort().forEach(cat => {
+        console.log(`\n${cat.toUpperCase()} (${byCategory[cat].length})`);
+        console.log('─'.repeat(50));
+        byCategory[cat].forEach(m => {
+          console.log(`  ${m.metadata.display_name}`);
+          console.log(`    ${m.endpoint_id}`);
+        });
+      });
+    } else {
+      modelsToShow.forEach(m => {
+        console.log(`  ${m.metadata.display_name}`);
+        console.log(`    ID: ${m.endpoint_id}`);
+        console.log(`    ${m.metadata.description.substring(0, 80)}...`);
+        console.log();
+      });
+    }
+
+    console.log('\nUse --model-info <id> to see detailed information about a model\n');
+    process.exit(0);
+  }
 
   const userPrompt = options.prompt;
   const modelKey = options.model;
