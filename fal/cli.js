@@ -31,6 +31,7 @@ export function setupCLI() {
     )
     .option("--scale <number>", "Set the scale for guidance.")
     .option("--strength <number>", "Set the strength for image-to-image models (0.01-1.0).")
+    .option("--num-images <number>", "Number of images to generate (1-4, default: 1)", "1")
     .option(
       "--out",
       "Save images to the current directory instead of the default."

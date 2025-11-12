@@ -60,7 +60,7 @@ const processImageInput = async (inputPathOrUrl) => {
   }
 };
 
-const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imageUrl, duration, strength) => {
+const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imageUrl, duration, strength, numImages) => {
   let count = 0;
 
   // Get model metadata
@@ -81,6 +81,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     strength,
     imageUrl,
     duration,
+    numImages,
     steps: null, // Can be added to CLI if needed
   };
 
@@ -160,7 +161,21 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
   if (!handled) {
     console.error(`Failed to process response for category '${category}'`);
     console.error('Please check the API response format or report this issue.');
+    return;
   }
+
+  // Display generation metadata
+  console.log('\n--- Generation Summary ---');
+  if (result.seed) {
+    console.log(`Seed: ${result.seed}`);
+  }
+  if (result.timings && result.timings.inference) {
+    console.log(`Inference time: ${result.timings.inference.toFixed(2)}s`);
+  }
+  if (result.has_nsfw_concepts && result.has_nsfw_concepts.some(x => x)) {
+    console.warn('Warning: Some images may contain NSFW content');
+  }
+  console.log('-------------------------\n');
 };
 
 const main = async () => {
@@ -177,6 +192,7 @@ const main = async () => {
   const seed = options.seed || null;
   const scale = options.scale || null;
   const strength = options.strength || null;
+  const numImages = options.numImages || 1;
   // Replace direct assignment with processed upload logic
   let imageUrl = null;
   if (options.imageUrl) {
@@ -229,7 +245,8 @@ const main = async () => {
           scale,
           imageUrl,
           duration,
-          strength
+          strength,
+          numImages
         );
       })
       .catch((error) => {
@@ -244,15 +261,16 @@ const main = async () => {
       .then((promptText) => {
         console.log(`Generating image...`);
         run(
-          promptText, 
-          modelEndpoint, 
-          pictureFormat, 
-          loraObjects, 
-          seed, 
-          scale, 
+          promptText,
+          modelEndpoint,
+          pictureFormat,
+          loraObjects,
+          seed,
+          scale,
           imageUrl,
           duration,
-          strength
+          strength,
+          numImages
         );
       })
       .catch((error) => {

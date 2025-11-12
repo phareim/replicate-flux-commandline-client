@@ -15,7 +15,7 @@ const parameterStrategies = {
     image_size: options.format,
     num_inference_steps: options.steps || DEFAULT_INFERENCE_STEPS,
     guidance_scale: options.scale || DEFAULT_GUIDANCE_SCALE,
-    num_images: 1,
+    num_images: Math.min(Math.max(parseInt(options.numImages || 1, 10), 1), 4), // Clamp between 1-4
     safety_tolerance: DEFAULT_SAFETY_TOLERANCE,
     enable_safety_checker: false,
   }),

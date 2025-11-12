@@ -7,10 +7,43 @@ import { saveImage, fetchImages, getFileNameFromUrl } from "./utils.js";
  */
 
 /**
+ * Format file size in human-readable format
+ */
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+/**
+ * Download a file with progress tracking
+ */
+async function downloadWithProgress(url, fileName, local_output_override, mediaType = 'file') {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${mediaType} from ${url} (${response.status} ${response.statusText})`);
+  }
+
+  const contentLength = response.headers.get('content-length');
+  const totalSize = contentLength ? parseInt(contentLength, 10) : null;
+
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  const actualSize = buffer.length;
+  console.log(`Downloaded ${fileName} (${formatFileSize(actualSize)})`);
+
+  await saveImage(buffer, fileName, local_output_override);
+  return actualSize;
+}
+
+/**
  * Handle standard image responses (most common)
  */
 async function handleImageResponse(result, modelEndpoint, local_output_override) {
   if (result && Array.isArray(result.images) && result.images.length > 0) {
+    console.log(`Downloading ${result.images.length} image(s)...`);
     const imageUrls = result.images;
     await fetchImages(imageUrls, local_output_override);
     return true;
@@ -25,13 +58,17 @@ async function handleVideoResponse(result, modelEndpoint, local_output_override)
   if (result && result.video && result.video.url) {
     const videoUrl = result.video.url;
     const fileName = getFileNameFromUrl(videoUrl);
-    const response = await fetch(videoUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch video from ${videoUrl}`);
+    console.log(`Downloading video...`);
+    await downloadWithProgress(videoUrl, fileName, local_output_override, 'video');
+
+    // Show additional metadata if available
+    if (result.video.duration) {
+      console.log(`Duration: ${result.video.duration}s`);
     }
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    await saveImage(buffer, fileName, local_output_override);
+    if (result.video.width && result.video.height) {
+      console.log(`Resolution: ${result.video.width}x${result.video.height}`);
+    }
+
     return true;
   }
   return false;
@@ -44,20 +81,22 @@ async function handleDataVideoResponse(result, modelEndpoint, local_output_overr
   if (result && result.data && result.data.video_url) {
     const videoUrl = result.data.video_url;
     const fileName = getFileNameFromUrl(videoUrl);
-    const response = await fetch(videoUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch video from ${videoUrl}`);
-    }
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    await saveImage(buffer, fileName, local_output_override);
+
+    console.log(`Downloading video...`);
+    await downloadWithProgress(videoUrl, fileName, local_output_override, 'video');
 
     if (result.requestId) {
       console.log(`Request ID: ${result.requestId}`);
     }
-    if (result.data) {
-      console.log(`Generation Data:`, result.data);
+
+    // Show video metadata if available
+    if (result.data.duration) {
+      console.log(`Duration: ${result.data.duration}s`);
     }
+    if (result.data.width && result.data.height) {
+      console.log(`Resolution: ${result.data.width}x${result.data.height}`);
+    }
+
     return true;
   }
   return false;
@@ -71,20 +110,18 @@ async function handleDataImageResponse(result, modelEndpoint, local_output_overr
     if (result.requestId) {
       console.log(`Request ID: ${result.requestId}`);
     }
-    if (result.data) {
-      console.log(`Generation Data:`, result.data);
-    }
 
     if (result.data.image_url) {
       const imageUrl = result.data.image_url;
       const fileName = getFileNameFromUrl(imageUrl);
-      const response = await fetch(imageUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch image from ${imageUrl}`);
+      console.log(`Downloading image...`);
+      await downloadWithProgress(imageUrl, fileName, local_output_override, 'image');
+
+      // Show image metadata if available
+      if (result.data.width && result.data.height) {
+        console.log(`Resolution: ${result.data.width}x${result.data.height}`);
       }
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      await saveImage(buffer, fileName, local_output_override);
+
       return true;
     }
   }
@@ -102,13 +139,15 @@ async function handleAudioResponse(result, modelEndpoint, local_output_override)
 
   if (audioUrl) {
     const fileName = getFileNameFromUrl(audioUrl);
-    const response = await fetch(audioUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch audio from ${audioUrl}`);
+    console.log(`Downloading audio...`);
+    await downloadWithProgress(audioUrl, fileName, local_output_override, 'audio');
+
+    // Show audio metadata if available
+    if (result.audio?.duration || result.data?.duration) {
+      const duration = result.audio?.duration || result.data?.duration;
+      console.log(`Duration: ${duration}s`);
     }
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    await saveImage(buffer, fileName, local_output_override);
+
     return true;
   }
   return false;
@@ -126,24 +165,17 @@ async function handle3DResponse(result, modelEndpoint, local_output_override) {
 
   if (modelUrl) {
     const fileName = getFileNameFromUrl(modelUrl);
-    const response = await fetch(modelUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch 3D model from ${modelUrl}`);
-    }
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    await saveImage(buffer, fileName, local_output_override);
+    console.log(`Downloading 3D model...`);
+    await downloadWithProgress(modelUrl, fileName, local_output_override, '3D model');
 
     // Some 3D models also return preview images
     if (result.preview_image || result.data?.preview_image) {
       const previewUrl = result.preview_image || result.data.preview_image;
       const previewFileName = getFileNameFromUrl(previewUrl);
-      const previewResponse = await fetch(previewUrl);
-      if (previewResponse.ok) {
-        const previewBuffer = Buffer.from(await previewResponse.arrayBuffer());
-        await saveImage(previewBuffer, previewFileName, local_output_override);
-      }
+      console.log(`Downloading preview image...`);
+      await downloadWithProgress(previewUrl, previewFileName, local_output_override, 'preview image');
     }
+
     return true;
   }
   return false;
