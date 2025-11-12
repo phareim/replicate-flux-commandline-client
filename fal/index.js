@@ -2,18 +2,12 @@
 
 import * as fal from "@fal-ai/serverless-client";
 import path from "path";
-import fetch from "node-fetch";
 import fs from "fs";
 import { fileFromSync } from "fetch-blob/from.js";
 import { fal as falUpload } from "@fal-ai/client";
 
 import { setupCLI } from "./cli.js";
-import {
-  getPromptFromFile,
-  saveImage,
-  fetchImages,
-  getFileNameFromUrl
-} from "./utils.js";
+import { getPromptFromFile } from "./utils.js";
 import {
   getModelEndpoint,
   getModelInfo,
@@ -26,6 +20,7 @@ import {
 } from "./config.js";
 import { buildParameters, getRequiredParams } from "./parameter-builders.js";
 import { applyModelOverrides, supportsLoras } from "./model-overrides.js";
+import { handleResponse } from "./response-handlers.js";
 
 let DEBUG = false;
 let local_output_override = false;
@@ -159,99 +154,12 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
     return;
   }
 
-  // Handle video output for video-to-video model
-  if (modelEndpoint === "fal-ai/minimax/video-01/image-to-video") {
-    if (result && result.video && result.video.url) {
-      const videoUrl = result.video.url;
-      const fileName = getFileNameFromUrl(videoUrl);
-      const response = await fetch(videoUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch video from ${videoUrl}`);
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      await saveImage(buffer, fileName, local_output_override);
-    } else {
-      console.error("No video returned from the API.");
-    }
-  } else if (modelEndpoint === "fal-ai/hunyuan-video") {
-    // Handle Hunyuan video output
-    if (result && result.data && result.data.video_url) {
-      const videoUrl = result.data.video_url;
-      const fileName = getFileNameFromUrl(videoUrl);
-      const response = await fetch(videoUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch video from ${videoUrl}`);
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      await saveImage(buffer, fileName, local_output_override);
-      console.log(`Request ID: ${result.requestId || 'N/A'}`);
-      console.log(`Generation Data:`, result.data);
-    } else {
-      console.error("No video returned from the Hunyuan API.");
-    }
-  } else if (modelEndpoint === "fal-ai/wan-i2v") {
-    // Handle Wan-i2v video output
-    if (result && result.data && result.data.video_url) {
-      const videoUrl = result.data.video_url;
-      const fileName = getFileNameFromUrl(videoUrl);
-      const response = await fetch(videoUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch video from ${videoUrl}`);
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      await saveImage(buffer, fileName, local_output_override);
-      console.log(`Request ID: ${result.requestId || 'N/A'}`);
-      console.log(`Generation Data:`, result.data);
-    } else {
-      console.error("No video returned from the Wan-i2v API.");
-    }
-  } else if (modelEndpoint === "fal-ai/kling-video/v2.1/standard/image-to-video") {
-    // Handle Kling video output
-    if (result && result.data && result.data.video_url) {
-      const videoUrl = result.data.video_url;
-      const fileName = getFileNameFromUrl(videoUrl);
-      const response = await fetch(videoUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch video from ${videoUrl}`);
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      await saveImage(buffer, fileName, local_output_override);
-      console.log(`Request ID: ${result.requestId || 'N/A'}`);
-      console.log(`Generation Data:`, result.data);
-    } else {
-      console.error("No video returned from the Kling API.");
-    }
-  } else if (modelEndpoint === "fal-ai/flux-pro/kontext") {
-    // Handle Kontext model output
-    if (result && result.data) {
-      console.log(`Request ID: ${result.requestId || 'N/A'}`);
-      console.log(`Generation Data:`, result.data);
-      if (result.data.image_url) {
-        const imageUrl = result.data.image_url;
-        const fileName = getFileNameFromUrl(imageUrl);
-        const response = await fetch(imageUrl);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch image from ${imageUrl}`);
-        }
-        const arrayBuffer = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        await saveImage(buffer, fileName, local_output_override);
-      }
-    } else {
-      console.error("No data returned from the Kontext API.");
-    }
-  } else {
-    // Existing image handling logic
-    if (result && Array.isArray(result.images) && result.images.length > 0) {
-      const imageUrls = result.images;
-      await fetchImages(imageUrls, local_output_override);
-    } else {
-      console.error("No images returned from the API.");
-    }
+  // Handle response based on model category
+  const handled = await handleResponse(result, category, modelEndpoint, local_output_override);
+
+  if (!handled) {
+    console.error(`Failed to process response for category '${category}'`);
+    console.error('Please check the API response format or report this issue.');
   }
 };
 
