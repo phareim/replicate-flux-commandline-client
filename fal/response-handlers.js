@@ -44,6 +44,15 @@ async function downloadWithProgress(url, fileName, local_output_override, mediaT
 async function handleImageResponse(result, modelEndpoint, local_output_override) {
   if (result && Array.isArray(result.images) && result.images.length > 0) {
     console.log(`Downloading ${result.images.length} image(s)...`);
+
+    // Display remote URLs
+    console.log('\n📎 Remote URL(s):');
+    result.images.forEach((img, idx) => {
+      const url = typeof img === 'string' ? img : img.url;
+      console.log(`  [${idx + 1}] ${url}`);
+    });
+    console.log();
+
     const imageUrls = result.images;
     await fetchImages(imageUrls, local_output_override);
     return true;
@@ -58,6 +67,10 @@ async function handleVideoResponse(result, modelEndpoint, local_output_override)
   if (result && result.video && result.video.url) {
     const videoUrl = result.video.url;
     const fileName = getFileNameFromUrl(videoUrl);
+
+    console.log('\n📎 Remote URL:');
+    console.log(`  ${videoUrl}\n`);
+
     console.log(`Downloading video...`);
     await downloadWithProgress(videoUrl, fileName, local_output_override, 'video');
 
@@ -81,6 +94,9 @@ async function handleDataVideoResponse(result, modelEndpoint, local_output_overr
   if (result && result.data && result.data.video_url) {
     const videoUrl = result.data.video_url;
     const fileName = getFileNameFromUrl(videoUrl);
+
+    console.log('\n📎 Remote URL:');
+    console.log(`  ${videoUrl}\n`);
 
     console.log(`Downloading video...`);
     await downloadWithProgress(videoUrl, fileName, local_output_override, 'video');
@@ -114,6 +130,10 @@ async function handleDataImageResponse(result, modelEndpoint, local_output_overr
     if (result.data.image_url) {
       const imageUrl = result.data.image_url;
       const fileName = getFileNameFromUrl(imageUrl);
+
+      console.log('\n📎 Remote URL:');
+      console.log(`  ${imageUrl}\n`);
+
       console.log(`Downloading image...`);
       await downloadWithProgress(imageUrl, fileName, local_output_override, 'image');
 

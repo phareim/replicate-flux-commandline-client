@@ -5,6 +5,8 @@ import path from "path";
 import fs from "fs";
 import { fileFromSync } from "fetch-blob/from.js";
 import { fal as falUpload } from "@fal-ai/client";
+import terminalImage from "terminal-image";
+import sharp from "sharp";
 
 import { setupCLI } from "./cli.js";
 import { getPromptFromFile } from "./utils.js";
@@ -63,6 +65,50 @@ const processImageInput = async (inputPathOrUrl) => {
   }
 };
 
+const displayThumbnail = async (thumbnailUrl) => {
+  if (!thumbnailUrl) return;
+
+  try {
+    const response = await fetch(thumbnailUrl);
+    if (!response.ok) return;
+
+    const buffer = await response.arrayBuffer();
+
+    // Convert to PNG using sharp (terminal-image doesn't support WebP)
+    // and resize to a reasonable size for terminal display
+    const pngBuffer = await sharp(Buffer.from(buffer))
+      .resize(80, 80, { fit: 'inside' })
+      .png()
+      .toBuffer();
+
+    const image = await terminalImage.buffer(pngBuffer);
+    console.log(image);
+  } catch (error) {
+    // Silently fail if thumbnail can't be displayed
+    // (terminal might not support images)
+    console.error("Failed to display thumbnail:", error);
+  }
+};
+
+const extractProgressFromLogs = (logs) => {
+  // Find the most recent progress bar in logs
+  // Format: ' 64%|██████▍   | 18/28 [00:01<00:01,  9.49it/s]'
+  const progressRegex = /(\d+)%\|([█▌▍▎▏ ]+)\|\s*(\d+)\/(\d+)/;
+
+  for (let i = logs.length - 1; i >= 0; i--) {
+    const match = logs[i].match(progressRegex);
+    if (match) {
+      return {
+        percentage: parseInt(match[1]),
+        bar: match[2],
+        current: parseInt(match[3]),
+        total: parseInt(match[4])
+      };
+    }
+  }
+  return null;
+};
+
 const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imageUrl, duration, strength, numImages) => {
   let count = 0;
 
@@ -109,7 +155,21 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
   const showLogs = true;
 
   try {
-    console.log("## Model Endpoint ##\n",modelEndpoint);
+    // Display generation header with model info
+    console.log('\n' + '_'.repeat(60));
+    console.log('GENERATING IMAGE');
+    console.log('‾'.repeat(60));
+
+    if (modelInfo?.metadata?.thumbnail_url) {
+      await displayThumbnail(modelInfo.metadata.thumbnail_url);
+    }
+
+    console.log(`Model: ${modelInfo?.metadata?.display_name || modelEndpoint}`);
+    console.log(`Category: ${category}`);
+    if (modelInfo?.metadata?.duration_estimate) {
+      console.log(`Estimated duration: ~${modelInfo.metadata.duration_estimate}s`);
+    }
+    console.log('‾'.repeat(60) + '\n');
     result = await fal.subscribe(modelEndpoint, {
       input,
       logs: showLogs,
@@ -120,24 +180,39 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
             `\r${update.status}: position ${update.queue_position}.`
           );
         } else if (update.status === "IN_PROGRESS") {
-          process.stdout.write(
-            `\r${update.status}: ${count++} sec.           `
-          );
-          
           // Display logs for supported models
           if (showLogs && update.logs && update.logs.length > 0) {
-            console.log("\n--- Generation Logs ---");
-            update.logs.map(log => log.message).forEach(console.log);
-            console.log("----------------------");
+            const messages = update.logs.map(log => log.message);
+            const progress = extractProgressFromLogs(messages);
+
+            if (progress) {
+              // Display a clean progress bar
+              process.stdout.write(
+                `\r🎨 Generating... ${progress.bar} ${progress.percentage}% (${progress.current}/${progress.total} steps) | ${count++}s      `
+              );
+            } else {
+              // Fallback to basic progress
+              process.stdout.write(
+                `\r🎨 Generating... ${count++}s      `
+              );
+            }
+          } else {
+            process.stdout.write(
+              `\r${update.status}: ${count++} sec.           `
+            );
           }
         } else if (update.status === "COMPLETED") {
           process.stdout.write(
-            "\rDONE ✔                                    \n"
+            "\r✨ Generation complete!                                    \n"
           );
         }
       },
     });
-    console.log("## RESULT ##\n",result);
+
+    if (DEBUG) {
+      console.log("## RESULT ##\n",result);
+    }
+
     // Check for error responses
     if (result && result.status === 400) {
       console.error(`API Error (400): ${result.detail || 'Unknown error'}`);
@@ -168,17 +243,15 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
   }
 
   // Display generation metadata
-  console.log('\n--- Generation Summary ---');
+  console.log('\n' + '__ Generation Summary ' + '_'.repeat(38) + ' ' + 
+  (result.has_nsfw_concepts && result.has_nsfw_concepts.some(x => x) ? '🤘🏻' : ''));
   if (result.seed) {
     console.log(`Seed: ${result.seed}`);
   }
   if (result.timings && result.timings.inference) {
     console.log(`Inference time: ${result.timings.inference.toFixed(2)}s`);
   }
-  if (result.has_nsfw_concepts && result.has_nsfw_concepts.some(x => x)) {
-    console.warn('Warning: Some images may contain NSFW content');
-  }
-  console.log('-------------------------\n');
+  console.log('‾'.repeat(60) + '\n');
 };
 
 const main = async () => {
@@ -226,6 +299,13 @@ const main = async () => {
     }
 
     console.log('\n=== Model Information ===\n');
+
+    // Display thumbnail if available
+    if (model.metadata.thumbnail_url) {
+      await displayThumbnail(model.metadata.thumbnail_url);
+      console.log(); // Extra newline for spacing
+    }
+
     console.log(`Name: ${model.metadata.display_name}`);
     console.log(`ID: ${model.endpoint_id}`);
     console.log(`Category: ${model.metadata.category}`);
