@@ -12,25 +12,25 @@
     "venice-sd35": {
       "widthHeightDivisor": 16,
       "maxSteps": 30,
-      "defaultSteps": 25,
+      "defaultSteps": 30,
       "promptCharacterLimit": 1500
     },
     "hidream": {
       "widthHeightDivisor": 8,
       "maxSteps": 50,
-      "defaultSteps": 20,
+      "defaultSteps": 50,
       "promptCharacterLimit": 1500
     },
     "lustify-sdxl": {
       "widthHeightDivisor": 8,
       "maxSteps": 50,
-      "defaultSteps": 20,
+      "defaultSteps": 40,
       "promptCharacterLimit": 1500
     },
     "lustify-v7": {
       "widthHeightDivisor": 8,
       "maxSteps": 50,
-      "defaultSteps": 20,
+      "defaultSteps": 40,
       "promptCharacterLimit": 1500
     },
     "qwen-image": {
@@ -42,7 +42,7 @@
     "wai-Illustrious": {
       "widthHeightDivisor": 16,
       "maxSteps": 30,
-      "defaultSteps": 25,
+      "defaultSteps": 30,
       "promptCharacterLimit": 1500
     }
   },

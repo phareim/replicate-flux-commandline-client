@@ -58,7 +58,7 @@ export function getModelConstraints(modelKey) {
   return modelConstraints[effectiveModel] || {
     widthHeightDivisor: 16,
     maxSteps: 50,
-    defaultSteps: 20,
+    defaultSteps: 30,
     promptCharacterLimit: 1500
   };
 } 
