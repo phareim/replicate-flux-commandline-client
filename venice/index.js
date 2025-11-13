@@ -83,7 +83,7 @@ const run = async (options) => {
 
     // Optional parameters
     if (options.seed !== undefined) input.seed = parseInt(options.seed);
-    if (options.stylePreset) input.style_preset = options.stylePreset;
+    if (options.lora) input.style_preset = options.lora;
     if (options.negativePrompt) input.negative_prompt = options.negativePrompt;
     if (options.outputFormat) input.format = options.outputFormat;
     if (options.loraStrength !== undefined) input.lora_strength = Math.min(Math.max(parseInt(options.loraStrength), 0), 100);

@@ -18,7 +18,7 @@ Generate images using Venice AI's models with extensive customization options.
 venice --prompt "A futuristic cityscape at dusk"
 
 # Advanced options
-venice --prompt "A serene landscape" --format wide --style-preset photographic
+venice --prompt "A serene landscape" --format wide --lora photographic
 venice --prompt "A cyberpunk scene" --steps 25 --cfg-scale 2 --seed 42
 venice --prompt "Portrait" --model qwen-image --variants 4 --output-format png
 ```
@@ -30,7 +30,7 @@ venice --prompt "Portrait" --model qwen-image --variants 4 --output-format png
 - `--format <formatKey>`: Image size preset (square, portrait, landscape, wide, tall)
 - `--width <number>`: Custom image width (default: 1024)
 - `--height <number>`: Custom image height (default: 1024)
-- `--style-preset <preset>`: Visual style (Anime, Photographic, Cinematic, Fantasy Art, etc.)
+- `--lora <preset>`: Apply a Venice LoRA/style preset (Anime, Photographic, Cinematic, Fantasy Art, etc.)
 - `--steps <number>`: Number of inference steps (default: 20)
 - `--cfg-scale <number>`: Guidance scale (default: 2)
 - `--seed <number>`: Random seed for reproducible results

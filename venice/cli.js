@@ -76,8 +76,8 @@ export function setupCLI() {
       parseFloat
     )
     .option(
-      "--style-preset <preset>",
-      "Choose a style preset for image generation"
+      "--lora <key>",
+      "Apply a LoRA (Venice style preset) to the generation"
     )
     .option(
       "--output-format <format>",
@@ -128,8 +128,8 @@ export function setupCLI() {
         .map((key) => `  - ${key.padEnd(10)}: ${image_size[key].width}x${image_size[key].height}`)
         .join("\n");
 
-      // Generate the list of style presets
-      const availableStylePresets = stylePresets.join(", ");
+      // Generate the list of available LoRAs (Venice style presets)
+      const availableLoras = stylePresets.join(", ");
 
       console.log(`
 Available Models:
@@ -138,12 +138,12 @@ ${availableModels}
 Available Formats:
 ${availableFormats}
 
-Available Style Presets:
-${availableStylePresets}
+Available LoRAs:
+${availableLoras}
 
 Examples:
   venice --prompt "A futuristic cityscape at dusk" --model venice-sd35
-  venice --prompt "A serene landscape" --format wide --style-preset photographic
+  venice --prompt "A serene landscape" --format wide --lora photographic
   venice --prompt "A cyberpunk scene" --steps 30 --cfg-scale 9 --seed 42
   venice --prompt "Anime character" --model wai --output-format png
   venice --prompt "Portrait" --model qwen-image --variants 4
