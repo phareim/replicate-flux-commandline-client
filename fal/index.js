@@ -243,8 +243,8 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
   }
 
   // Display generation metadata
-  console.log('\n' + '__ Generation Summary ' + '_'.repeat(38) + ' ' + 
-  (result.has_nsfw_concepts && result.has_nsfw_concepts.some(x => x) ? '🤘🏻' : ''));
+  console.log('\n' + '__ Generation Summary ' + '_'.repeat(36) + '' + 
+  (result.has_nsfw_concepts && result.has_nsfw_concepts.some(x => x) ? ' 🤘🏻' : '__'));
   if (result.seed) {
     console.log(`Seed: ${result.seed}`);
   }
