@@ -42,16 +42,43 @@ make get    # Run replicate/get.js with prediction ID as argument
 
 ### Module Independence
 
-Each service module (`venice/`, `fal/`, `replicate/`) is completely self-contained with no cross-dependencies. They share a common architectural pattern but can be modified independently:
+Each service module (`venice/`, `fal/`, `replicate/`) is completely self-contained with no cross-dependencies. Each has evolved its own structure based on its specific needs:
 
+**Venice structure:**
 ```
-<module>/
-├── index.js      # Main entry point with orchestration logic
-├── cli.js        # Commander.js CLI setup and option parsing
-├── config.js     # Configuration constants and defaults
-├── models.js     # Model endpoint mappings (Venice & Fal only)
-├── utils.js      # File I/O, HTTP requests, image saving
+venice/
+├── index.js        # Main entry point with orchestration logic
+├── cli.js          # Commander.js CLI setup and option parsing
+├── config.js       # Configuration constants and defaults
+├── models.js       # Loads model endpoint mappings from models.json
+├── utils.js        # File I/O, HTTP requests, image saving
+├── generate.js     # Generation logic
+├── get-models.js   # Dynamic model discovery from Venice API
 ```
+
+**Fal structure (heavily refactored):**
+```
+fal/
+├── index.js                # Main entry point with orchestration logic
+├── cli.js                  # Commander.js CLI setup and option parsing
+├── config.js               # Configuration constants and defaults
+├── models.js               # Re-export hub for model utilities
+├── model-resolver.js       # Model endpoint resolution from models.json
+├── model-utils.js          # Model search and query utilities
+├── model-overrides.js      # Model-specific parameter overrides
+├── loras.js                # LoRA definitions and utilities
+├── parameter-builders.js   # Category-based parameter building
+├── response-handlers.js    # Category-based response handling
+├── utils.js                # File I/O, HTTP requests, image saving
+```
+
+**Replicate structure (minimal):**
+```
+replicate/
+├── index.js      # Main entry point - fetches all predictions
+├── get.js        # Fetches specific prediction by ID
+```
+Note: Replicate has no cli.js, config.js, or models.js files. It's a simple script that downloads predictions.
 
 ### CLI Entry Points (package.json bin)
 
@@ -70,14 +97,16 @@ These are symlinked when installed globally via `npm install -g`.
 
 The file-based approach enables batch workflows and avoids shell escaping issues.
 
-**Model Endpoint Resolution**: Venice and Fal use a key-based system (`models.js`) that maps short keys (e.g., `pro`, `dev`) to full API endpoints. This abstraction allows easy updates when providers change endpoints.
+**Model Endpoint Resolution**:
+- **Venice**: Uses `models.js` which dynamically loads model endpoint mappings from `models.json`. Also supports `getModelConstraints()` for model-specific parameter validation.
+- **Fal**: Uses a more sophisticated system with `model-resolver.js` loading from `models.json` and auto-generating short keys from endpoint IDs (e.g., `fal-ai/flux-pro/v1.1` → `pro11`). Additional model utilities in `model-utils.js` provide search and category filtering.
 
-**LoRA System (Fal only)**: The Fal module supports LoRA (Low-Rank Adaptation) models defined in `fal/models.js`. LoRAs can be:
+**LoRA System (Fal only)**: The Fal module supports LoRA (Low-Rank Adaptation) models defined in `fal/loras.js`. LoRAs can be:
 - Applied via `--lora <key>` flags (multiple allowed)
 - Automatically inject trigger keywords into prompts
 - Have configurable scale values for blend strength
 
-When LoRAs are specified, the model endpoint automatically switches to `fal-ai/flux-lora` unless explicitly overridden.
+LoRA support is model-specific and controlled via `model-overrides.js`. Only models that support LoRAs (like `flux-lora`, `flux-krea-lora`) will apply them.
 
 **Video Generation (Fal only)**: Several Fal models support video generation with specific workflows:
 - Models like `image_to_video`, `hunyuan`, `wan-i2v`, `kling-i2v` require an input image
@@ -107,7 +136,7 @@ File naming convention: `<source>_<timestamp>.png` or extracted from URL for dow
 
 **Venice**: Returns binary image data directly with `return_binary: true`. No polling required.
 
-**Fal**: Uses queue-based generation with progress callbacks:
+**Fal**: Uses queue-based generation with progress callbacks and category-based response handling:
 ```javascript
 fal.subscribe(modelEndpoint, {
   input,
@@ -117,6 +146,12 @@ fal.subscribe(modelEndpoint, {
   }
 })
 ```
+
+Response handling has been refactored into `response-handlers.js` with category-specific handlers:
+- `handleImageResponse`: Standard image results (result.images[])
+- `handleVideoResponse`: Video results (result.video.url)
+- `handleDataResponse`: Data/model results (result.data.url for 3D models, etc.)
+- Each handler includes progress tracking and proper file naming
 
 **Replicate**: Uses the official Replicate SDK's prediction API. The `repflux` command fetches all existing predictions from the account rather than generating new images.
 
@@ -134,15 +169,22 @@ Maximum dimensions: 1280x1280 (enforced via `Math.min`).
 
 ### Model-Specific Parameter Handling (Fal)
 
-Different Fal models accept different parameters. The `fal/index.js` implementation uses conditional logic based on `modelEndpoint`:
+The Fal module uses a **category-based architecture** for parameter handling:
 
-- Video models require `image_url` parameter
-- **Krea models** have specialized parameter handling:
-  - `krea` (text-to-image): Uses generic defaults, no LoRA support
-  - `krea-i2i` (image-to-image): Requires `image_url`, uses hardcoded parameters (strength=0.9, steps=40, guidance=4.5, format=jpeg)
-  - `krea-lora` (text-to-image with LoRA): Uses steps=28, guidance=3.5, format=jpeg, supports LoRAs
-- Standard Flux models support LoRAs
-- All other parameters are passed through (Fal ignores unsupported ones)
+**Category-based parameter building** (`parameter-builders.js`):
+- Models are categorized: `text-to-image`, `image-to-image`, `image-to-video`, `text-to-video`, `video-to-video`, `image-to-3d`, etc.
+- Each category has a strategy function that builds appropriate default parameters
+- Categories determine required parameters (e.g., image-to-video requires `image_url`)
+
+**Model-specific overrides** (`model-overrides.js`):
+- Models needing non-standard parameters are defined in `modelOverrides` object
+- **Krea models** have specialized handling:
+  - `fal-ai/flux/krea`: output_format=jpeg, acceleration=none, no LoRA support
+  - `fal-ai/flux/krea/image-to-image`: strength=0.9, steps=40, guidance=4.5, output_format=jpeg, no LoRA support
+  - `fal-ai/flux-krea-lora`: steps=28, guidance=3.5, output_format=jpeg, supports LoRAs
+- Override system also controls which models support LoRAs via `supportsLoras` flag
+
+This architecture makes it easy to add new models without cluttering the main index.js file.
 
 ### Dynamic Model Updates (Venice)
 
@@ -164,28 +206,49 @@ This enables seamless local file usage for image-to-video workflows.
 **Venice**: Run `venice-models` to auto-update, or manually edit `venice/models.json`:
 ```json
 {
-  "model-key": "venice/model-endpoint"
+  "modelEndpoints": {
+    "model-key": "venice/model-endpoint"
+  }
 }
 ```
 
-**Fal**: Edit `fal/models.js` and add to `modelEndpoints`:
+**Fal**: Models are loaded from `fal/models.json` which contains model metadata and endpoint IDs. The file structure:
+```json
+{
+  "models": [
+    {
+      "endpoint_id": "fal-ai/your/endpoint",
+      "metadata": {
+        "display_name": "Your Model",
+        "category": "text-to-image",
+        "description": "Model description",
+        "status": "live",
+        ...
+      }
+    }
+  ]
+}
+```
+
+The `model-resolver.js` auto-generates short keys from endpoint IDs, but you can add manual shortcuts in the `shortcuts` object in `model-resolver.js`.
+
+If the model needs special parameter handling:
+1. Check if its category in `parameter-builders.js` handles it correctly
+2. If not, add model-specific overrides to `model-overrides.js`:
 ```javascript
-export const modelEndpoints = {
-  "your-key": "fal-ai/your/endpoint",
-  // ...
+export const modelOverrides = {
+  'fal-ai/your/endpoint': {
+    params: {
+      custom_param: value,
+    },
+    supportsLoras: true,  // or false
+  },
 };
 ```
 
-If the model requires special parameter handling (like Krea models or video models), add a conditional block in `fal/index.js` around line 92-129. Models that need special handling include:
-- Models requiring `image_url` input
-- Models with non-standard default parameters
-- Models that need specific parameter combinations
-
-Example: `krea-lora` sets `num_inference_steps: 28`, `guidance_scale: 3.5`, and applies LoRAs.
-
 ### Adding a New LoRA (Fal)
 
-Edit `fal/models.js` and add to `loraNames`:
+Edit `fal/loras.js` and add to `loraNames`:
 ```javascript
 export const loraNames = {
   "your-lora": {
@@ -197,7 +260,30 @@ export const loraNames = {
 };
 ```
 
-The keyword is automatically prepended to prompts when the LoRA is used.
+The keyword is automatically prepended to prompts when the LoRA is used. Ensure the model you're using supports LoRAs by checking `model-overrides.js`.
+
+### Model Discovery (Fal)
+
+The Fal module includes powerful model discovery features:
+
+```bash
+# List all available model categories
+falflux --list-categories
+
+# List all models, grouped by category
+falflux --list-models
+
+# List models in a specific category
+falflux --list-models --category text-to-image
+
+# Search for models by name or description
+falflux --search "video"
+
+# Get detailed information about a specific model
+falflux --model-info pro
+```
+
+These commands use data from `models.json` and utilities in `model-utils.js`.
 
 ### Debugging API Issues
 
