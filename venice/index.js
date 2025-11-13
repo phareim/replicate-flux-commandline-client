@@ -117,6 +117,26 @@ const run = async (options) => {
     }
 
     try {
+        // Display generation header
+        console.log('__Generating image' + '_'.repeat(60 - 18));
+        console.log(`Model: ${input.model}`);
+        console.log(`Dimensions: ${input.width}x${input.height}`);
+        console.log(`Steps: ${input.steps} | CFG Scale: ${input.cfg_scale}`);
+        if (input.seed) {
+            console.log(`Seed: ${input.seed}`);
+        }
+        console.log('‾'.repeat(60) + '\n');
+
+        // Track generation time
+        const startTime = Date.now();
+        let elapsed = 0;
+
+        // Show progress indicator
+        const progressInterval = setInterval(() => {
+            elapsed = Math.floor((Date.now() - startTime) / 1000);
+            process.stdout.write(`\r🎨 Generating... ${elapsed}s      `);
+        }, 1000);
+
         const response = await fetch("https://api.venice.ai/api/v1/image/generate", {
             method: "POST",
             headers: {
@@ -126,9 +146,12 @@ const run = async (options) => {
             body: JSON.stringify(input),
         });
 
+        clearInterval(progressInterval);
+        process.stdout.write('\r✨ Generation complete!                                    \n');
+
         // Check if response is JSON (error) or binary (image)
         const contentType = response.headers.get('content-type');
-        
+
         if (contentType && contentType.includes('application/json')) {
             // Handle JSON response (likely an error)
             const result = await response.json();
@@ -144,9 +167,18 @@ const run = async (options) => {
         // Handle binary image response
         const buffer = Buffer.from(await response.arrayBuffer());
         const fileName = `venice_${Date.now()}.png`;
-        
-        console.log("\nGeneration successful, saving image...");
+        const generationTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
         await saveImage(buffer, fileName);
+
+        // Display generation summary
+        console.log('\n' + '__ Generation Summary ' + '_'.repeat(38));
+        if (input.seed) {
+            console.log(`Seed: ${input.seed}`);
+        }
+        console.log(`Total time: ${generationTime}s`);
+        console.log(`Dimensions: ${input.width}x${input.height}`);
+        console.log('‾'.repeat(60) + '\n');
 
     } catch (error) {
         console.error("Error during image generation:", error);

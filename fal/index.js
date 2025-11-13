@@ -156,9 +156,7 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
 
   try {
     // Display generation header with model info
-    console.log('\n' + '_'.repeat(60));
-    console.log('GENERATING IMAGE');
-    console.log('‾'.repeat(60));
+    console.log('__Generating image' + '_'.repeat(60 - 18));
 
     if (modelInfo?.metadata?.thumbnail_url) {
       await displayThumbnail(modelInfo.metadata.thumbnail_url);
