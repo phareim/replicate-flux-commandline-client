@@ -387,6 +387,7 @@ const main = async () => {
   }
 
   const userPrompt = options.prompt;
+  const promptFile = options.promptFile || "prompt.txt";
   const modelKey = options.model;
   const formatKey = options.format;
   const loraKeys = options.lora || [];
@@ -433,11 +434,11 @@ const main = async () => {
 
   if (allPrompts) {
     // With the new single-prompt file approach, --all-prompts simply triggers
-    // a single generation using the entire content of "prompt.txt".
-    const promptFilePath = path.resolve(process.cwd(), "prompt.txt");
+    // a single generation using the entire content of the prompt file.
+    const promptFilePath = path.resolve(process.cwd(), promptFile);
     getPromptFromFile(promptFilePath)
       .then(async (promptText) => {
-        console.log("Generating image for prompt.txt");
+        console.log(`Generating image for ${promptFile}`);
         await run(
           promptText,
           modelEndpoint,
@@ -457,7 +458,7 @@ const main = async () => {
   } else {
     const promptPromise = userPrompt
       ? Promise.resolve(userPrompt)
-      : getPromptFromFile(path.resolve(process.cwd(), "prompt.txt"));
+      : getPromptFromFile(path.resolve(process.cwd(), promptFile));
 
     promptPromise
       .then((promptText) => {

@@ -3,15 +3,13 @@ import path from "path";
 import fetch from "node-fetch";
 
 export const getVenicePath = (localOutputOverride = false) => {
-  // use $FAL_PATH  if set
-  if (process.env.FAL_PATH) {
-    return path.resolve(process.env.FAL_PATH, "venice");
-  }
-  let venicePath = path.resolve(process.cwd(), "images/venice");
-  venicePath = localOutputOverride
-    ? path.resolve(process.cwd(), "images/venice")
-    : venicePath;
-  return venicePath;
+  // use $FAL_PATH if set, unless explicitly overridden via --out
+  const defaultPath = path.resolve(process.cwd(), "images/");
+  const envPath = process.env.FAL_PATH
+    ? path.resolve(process.env.FAL_PATH)
+    : defaultPath;
+
+  return localOutputOverride ? defaultPath : envPath;
 };
 
 export const getFileNameFromUrl = (url) => {

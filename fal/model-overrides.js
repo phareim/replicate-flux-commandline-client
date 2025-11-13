@@ -24,8 +24,8 @@ export const modelOverrides = {
 
   'fal-ai/flux-krea-lora': {
     params: {
-      num_inference_steps: 28,
-      guidance_scale: 3.5,
+      num_inference_steps: 38,
+      guidance_scale: 2.5,
       output_format: "jpeg",
     },
     supportsLoras: true,

@@ -61,7 +61,7 @@ export const loraNames = {
     cinematic: {
         url: "https://civitai.com/api/download/models/857668?type=Model&format=SafeTensor",
         scale: "1",
-        keyword: "cinematic, cinematic still image",
+        keyword: "cinematic, cinematic still image, ",
     },
     "anime-flat": {
         url: "https://civitai.com/api/download/models/838667?type=Model&format=SafeTensor",
@@ -71,43 +71,48 @@ export const loraNames = {
     anime: {
         url: "https://civitai.com/api/download/models/753053?type=Model&format=SafeTensor",
         scale: "1",
-        keyword: "MythAn1m3",
+        keyword: "MythAn1m3, ",
     },
     "anime-portrait": {
         url: "https://civitai.com/api/download/models/753053?type=Model&format=SafeTensor",
         scale: "1",
-        keyword: "MythP0rt",
+        keyword: "MythP0rt, ",
     },
     niji: {
         url: "https://civitai.com/api/download/models/855516?type=Model&format=SafeTensor",
         scale: "0.9",
-        keyword: "aidmanijiv6",
+        keyword: "aidmanijiv6, ",
     },
     "fantasy-core": {
         url: "https://civitai.com/api/download/models/905789?type=Model&format=SafeTensor",
         scale: "1",
         keyword:
-            "This is a highly detailed, CGI-rendered digital artwork depicting a",
+            "This is a highly detailed, CGI-rendered digital artwork depicting a ",
     },
     goofy: {
         url: "https://civitai.com/api/download/models/830009?type=Model&format=SafeTensor",
         scale: "1",
-        keyword: "3d render ",
+        keyword: "3d render, ",
     },
     psychedelic: {
         url: "https://civitai.com/api/download/models/983116?type=Model&format=SafeTensor",
         scale: "0.6",
-        keyword: "ArsMovieStill, movie still from a 60s psychedelic movie",
+        keyword: "ArsMovieStill, movie still from a 60s psychedelic movie, ",
     },
     neurocore: {
         url: "https://civitai.com/api/download/models/1010560?type=Model&format=SafeTensor",
         scale: "1",
-        keyword: "A digital artwork in the style of cknc,",
+        keyword: "A digital artwork in the style of cknc, ",
     },
     "anime-realistic": {
         url: "https://civitai.com/api/download/models/1023735?type=Model&format=SafeTensor",
         scale: "1",
-        keyword: "Realistic anime style,",
+        keyword: "Realistic anime style, ",
+    },
+    "comic-realistic": {
+        url: "https://civitai.com/api/download/models/2321629?type=Model&format=SafeTensor",
+        scale: "1",
+        keyword: "pingtu style、illustration-fen, ",
     },
 };
 

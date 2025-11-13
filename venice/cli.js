@@ -34,7 +34,11 @@ export function setupCLI() {
       "Specify the text prompt for image generation."
     )
     .option(
-      "--negative-prompt <text>", 
+      "--prompt-file <path>",
+      "Read prompt from a specified file (default: ./prompt.txt)"
+    )
+    .option(
+      "--negative-prompt <text>",
       "Specify a negative prompt to guide what not to generate."
     )
     .option(
@@ -89,6 +93,10 @@ export function setupCLI() {
       "Number of image variants to generate (1-4, only works when return-binary is false)",
       parseFloat,
       DEFAULT_VARIANTS
+    )
+    .option(
+      "--out",
+      "Save images to the current directory instead of the default folder."
     )
     .option(
       "--lora-strength <number>",
@@ -151,6 +159,7 @@ Examples:
 Notes:
   - The 'VENICE_API_TOKEN' environment variable must be set with your Venice AI API key.
   - Images are saved to the './images/venice' directory by default.
+  - Use '--out' to save images in the current working directory instead.
         `);
 
       // Exit the process after displaying help

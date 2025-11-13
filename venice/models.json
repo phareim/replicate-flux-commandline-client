@@ -79,5 +79,5 @@
     }
   },
   "stylePresets": [],
-  "defaultModel": "wai-Illustrious"
+  "defaultModel": "qwen-image"
 }

@@ -21,6 +21,7 @@ import {
     saveImage} from "./utils.js";
 
 let DEBUG = false;
+let localOutputOverride = false;
 
 // Function to read prompt from file
 const readPromptFromFile = async (filePath) => {
@@ -42,14 +43,15 @@ const run = async (options) => {
         process.exit(1);
     }
 
-    // If no prompt provided via CLI, try to read from ./prompt.txt
+    // If no prompt provided via CLI, try to read from file
     if (!options.prompt) {
-        const promptFromFile = await readPromptFromFile('./prompt.txt');
+        const promptFilePath = options.promptFile || './prompt.txt';
+        const promptFromFile = await readPromptFromFile(promptFilePath);
         if (promptFromFile) {
             options.prompt = promptFromFile;
-            console.log(`Using prompt from ./prompt.txt.`);
+            console.log(`Using prompt from ${promptFilePath}.`);
         } else {
-            console.error("Error: No prompt provided. Please use --prompt or create a ./prompt.txt file.");
+            console.error(`Error: No prompt provided. Please use --prompt, --prompt-file, or create a ./prompt.txt file.`);
             process.exit(1);
         }
     }
@@ -169,7 +171,7 @@ const run = async (options) => {
         const fileName = `venice_${Date.now()}.png`;
         const generationTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
-        await saveImage(buffer, fileName);
+        await saveImage(buffer, fileName, localOutputOverride);
 
         // Display generation summary
         console.log('\n' + '__ Generation Summary ' + '_'.repeat(38));
@@ -188,6 +190,7 @@ const run = async (options) => {
 const main = async () => {
     const options = setupCLI();
     DEBUG = options.debug || false;
+    localOutputOverride = options.out || false;
 
     await run(options);
 };

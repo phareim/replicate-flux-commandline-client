@@ -14,6 +14,10 @@ export function setupCLI() {
       "--prompt <text>",
       'Specify the text prompt for image generation. If omitted, the content of "prompt.txt" is used.'
     )
+    .option(
+      "--prompt-file <path>",
+      "Read prompt from a specified file (default: ./prompt.txt)"
+    )
     .option("--model <modelKey>", "Choose the AI model to use.", DEFAULT_MODEL)
     .option("--raw", "Generate less processed, more natural-looking images.")
     .option("--format <formatKey>", "Specify image size/format.")
@@ -35,11 +39,6 @@ export function setupCLI() {
     .option(
       "--out",
       "Save images to the current directory instead of the default."
-    )
-    // The index option is deprecated but kept for backward compatibility
-    .option(
-      "-i, --index <index>",
-      "(Deprecated) Not used: prompt.txt is treated as a single prompt."
     )
     .option("--debug", "Enable debug mode to display additional logs.")
     .option("--all-prompts", 'Generate image using the content of "prompt.txt".')
