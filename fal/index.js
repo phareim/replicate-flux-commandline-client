@@ -17,7 +17,8 @@ import {
   loraNames,
   allModels,
   searchModels,
-  getModelsByCategory
+  getModelsByCategory,
+  getShortCodesForEndpoint
 } from "./models.js";
 import {
   image_size,
@@ -77,7 +78,7 @@ const displayThumbnail = async (thumbnailUrl) => {
     // Convert to PNG using sharp (terminal-image doesn't support WebP)
     // and resize to a reasonable size for terminal display
     const pngBuffer = await sharp(Buffer.from(buffer))
-      .resize(80, 80, { fit: 'inside' })
+      .resize(40, 40, { fit: 'inside' })
       .png()
       .toBuffer();
 
@@ -157,11 +158,6 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
   try {
     // Display generation header with model info
     console.log('__Generating image' + '_'.repeat(60 - 18));
-
-    if (modelInfo?.metadata?.thumbnail_url) {
-      await displayThumbnail(modelInfo.metadata.thumbnail_url);
-    }
-
     console.log(`Model: ${modelInfo?.metadata?.display_name || modelEndpoint}`);
     console.log(`Category: ${category}`);
     if (modelInfo?.metadata?.duration_estimate) {
@@ -241,8 +237,43 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
   }
 
   // Display generation metadata
-  console.log('\n' + '__ Generation Summary ' + '_'.repeat(36) + '' + 
+  console.log('\n' + '__ Generation Summary ' + '_'.repeat(36) + '' +
   (result.has_nsfw_concepts && result.has_nsfw_concepts.some(x => x) ? ' 🤘🏻' : '__'));
+
+  // Input parameters
+  console.log(`Model: ${modelInfo?.metadata?.display_name || modelEndpoint}`);
+
+  if (format && format.width && format.height) {
+    console.log(`Size: ${format.width}x${format.height}`);
+  }
+
+  if (numImages > 1) {
+    console.log(`Images: ${numImages}`);
+  }
+
+  if (scale) {
+    console.log(`Guidance scale: ${scale}`);
+  }
+
+  if (strength) {
+    console.log(`Strength: ${strength}`);
+  }
+
+  if (loraObjects && loraObjects.length > 0) {
+    const loraNames = loraObjects.map(l => l.keyword || 'unnamed').join(', ');
+    console.log(`LoRAs: ${loraNames}`);
+  }
+
+  if (imageUrl) {
+    const displayUrl = imageUrl.length > 50 ? '...' + imageUrl.substring(imageUrl.length - 47) : imageUrl;
+    console.log(`Input image: ${displayUrl}`);
+  }
+
+  if (duration && category.includes('video')) {
+    console.log(`Duration: ${duration}s`);
+  }
+
+  // Output metadata
   if (result.seed) {
     console.log(`Seed: ${result.seed}`);
   }
@@ -278,8 +309,12 @@ const main = async () => {
     } else {
       console.log(`Found ${results.length} model(s):\n`);
       results.forEach(model => {
+        const shortCodes = getShortCodesForEndpoint(model.endpoint_id);
         console.log(`  ${model.metadata.display_name}`);
         console.log(`    ID: ${model.endpoint_id}`);
+        if (shortCodes.length > 0) {
+          console.log(`    CLI: ${shortCodes.join(', ')}`);
+        }
         console.log(`    Category: ${model.metadata.category}`);
         console.log(`    ${model.metadata.description.substring(0, 100)}...`);
         console.log();
@@ -306,6 +341,12 @@ const main = async () => {
 
     console.log(`Name: ${model.metadata.display_name}`);
     console.log(`ID: ${model.endpoint_id}`);
+
+    const shortCodes = getShortCodesForEndpoint(model.endpoint_id);
+    if (shortCodes.length > 0) {
+      console.log(`CLI short-codes: ${shortCodes.join(', ')}`);
+    }
+
     console.log(`Category: ${model.metadata.category}`);
     console.log(`Status: ${model.metadata.status}`);
     console.log(`License: ${model.metadata.license_type || 'N/A'}`);
@@ -369,14 +410,22 @@ const main = async () => {
         console.log(`\n${cat.toUpperCase()} (${byCategory[cat].length})`);
         console.log('─'.repeat(50));
         byCategory[cat].forEach(m => {
+          const shortCodes = getShortCodesForEndpoint(m.endpoint_id);
           console.log(`  ${m.metadata.display_name}`);
-          console.log(`    ${m.endpoint_id}`);
+          console.log(`    ID: ${m.endpoint_id}`);
+          if (shortCodes.length > 0) {
+            console.log(`    CLI: ${shortCodes.join(', ')}`);
+          }
         });
       });
     } else {
       modelsToShow.forEach(m => {
+        const shortCodes = getShortCodesForEndpoint(m.endpoint_id);
         console.log(`  ${m.metadata.display_name}`);
         console.log(`    ID: ${m.endpoint_id}`);
+        if (shortCodes.length > 0) {
+          console.log(`    CLI: ${shortCodes.join(', ')}`);
+        }
         console.log(`    ${m.metadata.description.substring(0, 80)}...`);
         console.log();
       });
@@ -462,7 +511,6 @@ const main = async () => {
 
     promptPromise
       .then((promptText) => {
-        console.log(`Generating image...`);
         run(
           promptText,
           modelEndpoint,

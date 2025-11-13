@@ -8,7 +8,8 @@ export {
     allModels,
     modelEndpoints,
     getModelEndpoint,
-    getModelInfo
+    getModelInfo,
+    getShortCodesForEndpoint
 } from './model-resolver.js';
 
 // Model search and query utilities

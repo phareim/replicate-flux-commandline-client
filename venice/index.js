@@ -138,7 +138,7 @@ const run = async (options) => {
             elapsed = Math.floor((Date.now() - startTime) / 1000);
             process.stdout.write(`\r🎨 Generating... ${elapsed}s      `);
         }, 1000);
-
+        process.stdout.write('\r');
         const response = await fetch("https://api.venice.ai/api/v1/image/generate", {
             method: "POST",
             headers: {

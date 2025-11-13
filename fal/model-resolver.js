@@ -123,5 +123,21 @@ export function getModelInfo(modelKey) {
     return keyToModel[modelKey] || null;
 }
 
+/**
+ * Get all short-codes that map to a given endpoint ID
+ * @param {string} endpointId - Full endpoint ID
+ * @returns {Array<string>} - Array of short keys
+ */
+export function getShortCodesForEndpoint(endpointId) {
+    const shortCodes = [];
+    for (const [key, endpoint] of Object.entries(modelEndpoints)) {
+        // Only include short keys (exclude the full endpoint_id mapping)
+        if (endpoint === endpointId && key !== endpointId) {
+            shortCodes.push(key);
+        }
+    }
+    return shortCodes.sort();
+}
+
 // Internal export for model-utils.js
 export { keyToModel };
