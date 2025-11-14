@@ -84,6 +84,10 @@ export function setupCLI() {
       "Apply a LoRA (Venice style preset) to the generation"
     )
     .option(
+      "--random-lora",
+      "Randomly select a LoRA (style preset) to apply"
+    )
+    .option(
       "--output-format <format>",
       "Image output format (jpeg, png, webp)",
       DEFAULT_FORMAT
@@ -155,6 +159,7 @@ Examples:
   venice --prompt "A cyberpunk scene" --steps 30 --cfg-scale 9 --seed 42
   venice --prompt "Anime character" --model wai --output-format png
   venice --prompt "Portrait" --model qwen-image --variants 4
+  venice --prompt "Surprise me" --random-lora
 
 Notes:
   - The 'VENICE_API_TOKEN' environment variable must be set with your Venice AI API key.

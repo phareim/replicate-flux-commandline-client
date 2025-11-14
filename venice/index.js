@@ -11,11 +11,13 @@ import {
     DEFAULT_CFG_SCALE,
     DEFAULT_HIDE_WATERMARK,
     DEFAULT_RETURN_BINARY,
-    image_size
+    image_size,
+    stylePresets
 } from "./config.js";
 import {
     getModelEndpoint,
-    getModelConstraints
+    getModelConstraints,
+    stylePresets as dynamicStylePresets
 } from "./models.js";
 import {
     saveImage} from "./utils.js";
@@ -191,6 +193,15 @@ const main = async () => {
     const options = setupCLI();
     DEBUG = options.debug || false;
     localOutputOverride = options.out || false;
+
+    // Handle random LoRA selection
+    if (options.randomLora) {
+        // Use dynamic presets if available, otherwise fall back to hardcoded ones
+        const availablePresets = dynamicStylePresets.length > 0 ? dynamicStylePresets : stylePresets;
+        const randomPreset = availablePresets[Math.floor(Math.random() * availablePresets.length)];
+        options.lora = randomPreset;
+        console.log(`\n🎲 Randomly selected LoRA (style preset): ${randomPreset}\n`);
+    }
 
     await run(options);
 };

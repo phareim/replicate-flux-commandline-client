@@ -439,7 +439,16 @@ const main = async () => {
   const promptFile = options.promptFile || "prompt.txt";
   const modelKey = options.model;
   const formatKey = options.format;
-  const loraKeys = options.lora || [];
+  let loraKeys = options.lora || [];
+
+  // Handle random LoRA selection
+  if (options.randomLora) {
+    const availableLoraKeys = Object.keys(loraNames);
+    const randomKey = availableLoraKeys[Math.floor(Math.random() * availableLoraKeys.length)];
+    loraKeys = [randomKey];
+    console.log(`\n🎲 Randomly selected LoRA: ${randomKey}\n`);
+  }
+
   const allPrompts = options.allPrompts || false;
   const seed = options.seed || null;
   const scale = options.scale || null;

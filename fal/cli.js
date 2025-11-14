@@ -30,6 +30,10 @@ export function setupCLI() {
           : value.split(",").map((s) => s.trim())
     )
     .option(
+      "--random-lora",
+      "Randomly select a LoRA to apply."
+    )
+    .option(
       "--seed <number>",
       "Set a seed for randomization to reproduce results."
     )
@@ -91,6 +95,7 @@ Examples:
   falflux --lora disney --prompt "An enchanted forest"
   falflux --lora disney,lucid --prompt "A magical landscape"
   falflux --lora cinematic --prompt "A dramatic sunset over mountains" --format wide
+  falflux --random-lora --prompt "Surprise me with a random style"
 
   # Using different models
   falflux --model pro --prompt "Photorealistic portrait"
