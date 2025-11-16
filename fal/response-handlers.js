@@ -1,6 +1,8 @@
 import fetch from "node-fetch";
 import { saveImage, fetchImages, getFileNameFromUrl } from "./utils.js";
 
+const FAL_SMOKE_MODE = process.env.FAL_SMOKE_TEST === "1";
+
 /**
  * Category-based response handlers
  * Each handler processes the API result and downloads the appropriate media
@@ -20,6 +22,13 @@ function formatFileSize(bytes) {
  * Download a file with progress tracking
  */
 async function downloadWithProgress(url, fileName, local_output_override, mediaType = 'file') {
+  if (FAL_SMOKE_MODE) {
+    const buffer = Buffer.from(`mock fal ${mediaType}`);
+    await saveImage(buffer, fileName, local_output_override);
+    console.log(`Mock-downloaded ${fileName}`);
+    return buffer.length;
+  }
+
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch ${mediaType} from ${url} (${response.status} ${response.statusText})`);

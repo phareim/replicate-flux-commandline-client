@@ -22,6 +22,37 @@ import {
 import {
     saveImage} from "./utils.js";
 
+const VENICE_API_URL = "https://api.venice.ai/api/v1/image/generate";
+const SMOKE_MODE = process.env.VENICE_SMOKE_TEST === "1";
+
+const createMockResponse = () => {
+    const buffer = Buffer.from("mock venice image");
+    return {
+        ok: true,
+        status: 200,
+        headers: {
+            get: (name) => (name && name.toLowerCase() === "content-type" ? "image/png" : null)
+        },
+        arrayBuffer: async () => buffer,
+        json: async () => ({ message: "mocked response" })
+    };
+};
+
+const requestImage = async (body) => {
+    if (SMOKE_MODE) {
+        return createMockResponse();
+    }
+
+    return fetch(VENICE_API_URL, {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${process.env.VENICE_API_TOKEN}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+    });
+};
+
 let DEBUG = false;
 let localOutputOverride = false;
 
@@ -141,14 +172,7 @@ const run = async (options) => {
             process.stdout.write(`\r🎨 Generating... ${elapsed}s      `);
         }, 1000);
         process.stdout.write('\r');
-        const response = await fetch("https://api.venice.ai/api/v1/image/generate", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${process.env.VENICE_API_TOKEN}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(input),
-        });
+        const response = await requestImage(input);
 
         clearInterval(progressInterval);
         process.stdout.write('\r✨ Generation complete!                                    \n');

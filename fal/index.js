@@ -30,6 +30,7 @@ import { handleResponse } from "./response-handlers.js";
 
 let DEBUG = false;
 let local_output_override = false;
+const FAL_SMOKE_MODE = process.env.FAL_SMOKE_TEST === "1";
 
 fal.config({
   credentials: process.env.FAL_KEY,
@@ -68,6 +69,10 @@ const processImageInput = async (inputPathOrUrl) => {
 
 const displayThumbnail = async (thumbnailUrl) => {
   if (!thumbnailUrl) return;
+  if (FAL_SMOKE_MODE) {
+    console.log("(mock thumbnail suppressed in smoke test)");
+    return;
+  }
 
   try {
     const response = await fetch(thumbnailUrl);
@@ -109,6 +114,21 @@ const extractProgressFromLogs = (logs) => {
   }
   return null;
 };
+
+const createMockFalResult = (category, modelEndpoint) => ({
+  status: "COMPLETED",
+  seed: 4242,
+  timings: { inference: 1.23 },
+  images: [{
+    url: "https://example.com/mock-fal-output.png",
+    content_type: "image/png"
+  }],
+  has_nsfw_concepts: [false],
+  metadata: {
+    category,
+    modelEndpoint
+  }
+});
 
 const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imageUrl, duration, strength, numImages) => {
   let count = 0;
@@ -164,44 +184,51 @@ const run = async (prompt, modelEndpoint, format, loraObjects, seed, scale, imag
       console.log(`Estimated duration: ~${modelInfo.metadata.duration_estimate}s`);
     }
     console.log('‾'.repeat(60) + '\n');
-    result = await fal.subscribe(modelEndpoint, {
-      input,
-      logs: showLogs,
-      options: {},
-      onQueueUpdate: (update) => {
-        if (update.status === "IN_QUEUE") {
-          process.stdout.write(
-            `\r${update.status}: position ${update.queue_position}.`
-          );
-        } else if (update.status === "IN_PROGRESS") {
-          // Display logs for supported models
-          if (showLogs && update.logs && update.logs.length > 0) {
-            const messages = update.logs.map(log => log.message);
-            const progress = extractProgressFromLogs(messages);
+    if (FAL_SMOKE_MODE) {
+      result = createMockFalResult(category, modelEndpoint);
+      process.stdout.write(
+        "\r✨ Generation complete! (mock)                               \n"
+      );
+    } else {
+      result = await fal.subscribe(modelEndpoint, {
+        input,
+        logs: showLogs,
+        options: {},
+        onQueueUpdate: (update) => {
+          if (update.status === "IN_QUEUE") {
+            process.stdout.write(
+              `\r${update.status}: position ${update.queue_position}.`
+            );
+          } else if (update.status === "IN_PROGRESS") {
+            // Display logs for supported models
+            if (showLogs && update.logs && update.logs.length > 0) {
+              const messages = update.logs.map(log => log.message);
+              const progress = extractProgressFromLogs(messages);
 
-            if (progress) {
-              // Display a clean progress bar
-              process.stdout.write(
-                `\r🎨 Generating... ${progress.bar} ${progress.percentage}% (${progress.current}/${progress.total} steps) | ${count++}s      `
-              );
+              if (progress) {
+                // Display a clean progress bar
+                process.stdout.write(
+                  `\r🎨 Generating... ${progress.bar} ${progress.percentage}% (${progress.current}/${progress.total} steps) | ${count++}s      `
+                );
+              } else {
+                // Fallback to basic progress
+                process.stdout.write(
+                  `\r🎨 Generating... ${count++}s      `
+                );
+              }
             } else {
-              // Fallback to basic progress
               process.stdout.write(
-                `\r🎨 Generating... ${count++}s      `
+                `\r${update.status}: ${count++} sec.           `
               );
             }
-          } else {
+          } else if (update.status === "COMPLETED") {
             process.stdout.write(
-              `\r${update.status}: ${count++} sec.           `
+              "\r✨ Generation complete!                                    \n"
             );
           }
-        } else if (update.status === "COMPLETED") {
-          process.stdout.write(
-            "\r✨ Generation complete!                                    \n"
-          );
-        }
-      },
-    });
+        },
+      });
+    }
 
     if (DEBUG) {
       console.log("## RESULT ##\n",result);

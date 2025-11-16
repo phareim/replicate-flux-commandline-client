@@ -7,11 +7,12 @@
     "repflux": "./replicate/index.js",
     "falflux": "./fal/index.js",
     "venice": "./venice/index.js",
-    "venice-models": "./venice/get-models.js"
+    "venice-models": "./venice/get-models.js",
+    "wavespeed": "./wavespeed/index.js"
   },
   "type": "module",
   "scripts": {
-    "test": "echo \"Sorry no tests specified.\" && exit 0"
+    "test": "node --test tests/smoke.test.js"
   },
   "keywords": [
     "flux",

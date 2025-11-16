@@ -2,26 +2,25 @@ import { promises as fs } from "fs";
 import path from "path";
 import fetch from "node-fetch";
 
-const FAL_SMOKE_MODE = process.env.FAL_SMOKE_TEST === "1";
+const WAVESPEED_SMOKE_MODE = process.env.WAVESPEED_SMOKE_TEST === "1";
 
-export const getFalPath = (localOutputOverride = false) => {
-  let falPath = process.env.FAL_PATH || path.resolve(process.cwd(), "images");
-  falPath = localOutputOverride
+export const getWavespeedPath = (localOutputOverride = false) => {
+  let wavespeedPath = process.env.WAVESPEED_PATH || path.resolve(process.cwd(), "images");
+  wavespeedPath = localOutputOverride
     ? path.resolve(process.cwd(), "images")
-    : falPath;
-  return falPath;
+    : wavespeedPath;
+  return wavespeedPath;
 };
 
 export const getFileNameFromUrl = (url) => {
   const parsedUrl = new URL(url);
   const fileName = parsedUrl.pathname.split("/").pop();
-  return fileName;
+  return fileName || `wavespeed_${Date.now()}.png`;
 };
 
-export const getPromptFromFile = async (filePath, index = null) => {
+export const getPromptFromFile = async (filePath) => {
   try {
     const data = await fs.readFile(filePath, "utf-8");
-    // Use the entire file content as a single prompt (trim to remove trailing newlines/whitespace)
     return data.trim();
   } catch (error) {
     console.error(`Error reading file ${filePath}:`, error);
@@ -29,24 +28,10 @@ export const getPromptFromFile = async (filePath, index = null) => {
   }
 };
 
-export const getAllPrompts = async (filePath) => {
-  try {
-    const data = await fs.readFile(filePath, "utf-8");
-    const lines = data
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-    return lines;
-  } catch (error) {
-    console.error(`Error reading file ${filePath}:`, error);
-    throw error;
-  }
-};
-
 export const saveImage = async (buffer, fileName, localOutputOverride = false) => {
-  const falPath = getFalPath(localOutputOverride);
-  const filePath = path.join(falPath, fileName);
-  await fs.mkdir(falPath, { recursive: true });
+  const wavespeedPath = getWavespeedPath(localOutputOverride);
+  const filePath = path.join(wavespeedPath, fileName);
+  await fs.mkdir(wavespeedPath, { recursive: true });
 
   try {
     await fs.writeFile(filePath, buffer);
@@ -58,12 +43,11 @@ export const saveImage = async (buffer, fileName, localOutputOverride = false) =
 
 export const fetchImages = async (imageUrls, localOutputOverride = false) => {
   try {
-    const imageFetches = imageUrls.map(async (urlObj) => {
-      const url = urlObj.url;
-      const fileName = getFileNameFromUrl(url) || `fal_mock_${Date.now()}.png`;
+    const imageFetches = imageUrls.map(async (url) => {
+      const fileName = getFileNameFromUrl(url) || `wavespeed_${Date.now()}.png`;
 
-      if (FAL_SMOKE_MODE) {
-        const buffer = Buffer.from("mock fal image");
+      if (WAVESPEED_SMOKE_MODE) {
+        const buffer = Buffer.from("mock wavespeed image");
         await saveImage(buffer, fileName, localOutputOverride);
         return;
       }
@@ -81,4 +65,4 @@ export const fetchImages = async (imageUrls, localOutputOverride = false) => {
   } catch (error) {
     console.error("Error fetching and saving images:", error);
   }
-}; 
+};

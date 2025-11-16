@@ -3,6 +3,8 @@ import fs from "fs";
 import path from "path";
 import https from "https";
 
+const SMOKE_TEST = process.env.REPLICATE_SMOKE_TEST === "1";
+
 if (!process.env.REPLICATE_API_TOKEN) {
     console.error("Error: REPLICATE_API_TOKEN is not defined.");
     process.exit(1);
@@ -21,6 +23,11 @@ if (!fs.existsSync(outputDir)) {
 }
 
 async function downloadFile(url, filePath) {
+    if (SMOKE_TEST) {
+        await fs.promises.writeFile(filePath, `mock data for ${url}`);
+        return;
+    }
+
     return new Promise((resolve, reject) => {
         const file = fs.createWriteStream(filePath);
         https.get(url, (response) => {
@@ -35,6 +42,23 @@ async function downloadFile(url, filePath) {
 }
 
 async function getAllPredictions() {
+    if (SMOKE_TEST) {
+        const mockResults = [
+            { id: "mock-prediction-1", output: ["https://example.com/mock.jpg"] }
+        ];
+        console.log(`You've created ${mockResults.length} images. (mock)`);
+        console.log("Getting predictions...");
+        for (const prediction of mockResults) {
+            const filePath = path.join(outputDir, `${prediction.id}.jpg`);
+            await downloadFile(prediction.output[0], filePath);
+            console.log(`Downloaded prediction ${prediction.id} to ${filePath}`);
+        }
+        console.log("Already downloaded: 0");
+        console.log("Empty output: 0");
+        console.log(`Downloaded: ${mockResults.length}`);
+        return;
+    }
+
     const page = await replicate.predictions.list();
     console.log(`You've created ${page.results.length} images.`);
     console.log("Getting predictions...");
