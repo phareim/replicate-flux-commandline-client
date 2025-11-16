@@ -33,7 +33,10 @@ const pollForResult = async (predictionUrl, maxAttempts = 60, interval = 2000) =
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const result = await response.json();
+      const responseData = await response.json();
+
+      // Extract data object from response (API wraps result in data object)
+      const result = responseData.data || responseData;
 
       if (DEBUG) {
         console.log(`Polling attempt ${attempts + 1}:`, result.status);
@@ -141,23 +144,26 @@ const run = async (prompt, modelEndpoint, size, enableBase64, enableSync) => {
         console.log("Initial response:", JSON.stringify(initialResult, null, 2));
       }
 
+      // Extract data object from response
+      const predictionData = initialResult.data || initialResult;
+
       // If sync mode or already completed, use the result directly
-      if (enableSync || initialResult.status === 'completed') {
-        result = initialResult;
-        if (initialResult.status === 'completed') {
+      if (enableSync || predictionData.status === 'completed') {
+        result = predictionData;
+        if (predictionData.status === 'completed') {
           process.stdout.write("\r✨ Generation complete!                                    \n");
         }
       } else {
         // Poll for result using the prediction URL
-        if (initialResult.urls && initialResult.urls.get) {
-          result = await pollForResult(initialResult.urls.get);
-        } else if (initialResult.id) {
+        if (predictionData.urls && predictionData.urls.get) {
+          result = await pollForResult(predictionData.urls.get);
+        } else if (predictionData.id) {
           // Construct polling URL from prediction ID
-          const pollUrl = `${API_BASE_URL}/${modelEndpoint}/${initialResult.id}`;
+          const pollUrl = `${API_BASE_URL}/${modelEndpoint}/${predictionData.id}`;
           result = await pollForResult(pollUrl);
         } else {
           console.error('Unable to poll for result: no polling URL available');
-          result = initialResult;
+          result = predictionData;
         }
       }
     }
@@ -229,7 +235,7 @@ const main = async () => {
   const userPrompt = options.prompt;
   const promptFile = options.promptFile || "prompt.txt";
   const modelKey = options.model;
-  const sizeKey = options.size;
+  const formatKey = options.format;
   const allPrompts = options.allPrompts || false;
   const enableBase64 = options.enableBase64 || false;
   const enableSync = options.sync || false;
@@ -237,8 +243,8 @@ const main = async () => {
   // Get the model endpoint
   const modelEndpoint = getModelEndpoint(modelKey);
 
-  // Get size - either from size map or use raw value
-  const size = image_size[sizeKey] || sizeKey || image_size.square_hd;
+  // Get size - either from format map or use raw value
+  const size = image_size[formatKey] || formatKey || "2048*2048";
 
   if (allPrompts) {
     const promptFilePath = path.resolve(process.cwd(), promptFile);

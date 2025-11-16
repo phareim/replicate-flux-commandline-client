@@ -18,5 +18,5 @@ export const image_size = {
 };
 
 export const DEFAULT_MODEL = "seedream-v4";
-export const DEFAULT_SIZE = "2048*2048";
+export const DEFAULT_FORMAT = "2048*2048";
 export const API_BASE_URL = "https://api.wavespeed.ai/api/v3";

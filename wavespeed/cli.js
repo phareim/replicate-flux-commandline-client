@@ -19,7 +19,7 @@ export function setupCLI() {
       "Read prompt from a specified file (default: ./prompt.txt)"
     )
     .option("--model <modelKey>", "Choose the AI model to use.", DEFAULT_MODEL)
-    .option("--size <size>", "Specify image size (e.g., '2048*2048', 'square_hd', 'portrait').")
+    .option("--format <formatKey>", "Specify image size/format (e.g., '2048*2048', 'square_hd', 'portrait').")
     .option(
       "--seed <number>",
       "Set a seed for randomization to reproduce results."
@@ -44,16 +44,16 @@ Default Model:
 Available Models:
   seedream-v4, seedream, v4
 
-Available Sizes:
+Available Formats:
   ${availableSizes}
 
 Examples:
   # Basic usage
   wavespeed --prompt "A futuristic cityscape at dusk"
 
-  # With custom size
-  wavespeed --prompt "An enchanted forest" --size square_hd
-  wavespeed --prompt "Mountain landscape" --size 1920*1080
+  # With custom format/size
+  wavespeed --prompt "An enchanted forest" --format square_hd
+  wavespeed --prompt "Mountain landscape" --format 1920*1080
 
   # With seed for reproducibility
   wavespeed --prompt "A magical landscape" --seed 12345

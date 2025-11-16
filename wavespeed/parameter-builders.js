@@ -1,4 +1,4 @@
-import { DEFAULT_SIZE } from "./config.js";
+import { DEFAULT_FORMAT } from "./config.js";
 
 /**
  * Build parameters for Wavespeed API request
@@ -9,7 +9,7 @@ import { DEFAULT_SIZE } from "./config.js";
 export function buildParameters(category, options) {
   const params = {
     prompt: options.prompt,
-    size: options.size || DEFAULT_SIZE,
+    size: options.size || DEFAULT_FORMAT,
   };
 
   // Optional parameters
