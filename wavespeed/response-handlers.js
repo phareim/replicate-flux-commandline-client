@@ -27,7 +27,7 @@ export async function handleResponse(result, category, modelEndpoint, local_outp
       });
       console.log();
 
-      await fetchImages(result.outputs, local_output_override);
+      await fetchImages(result.outputs, local_output_override, result.id);
       return true;
     }
 

@@ -12,8 +12,17 @@ export const getWavespeedPath = (localOutputOverride = false) => {
   return wavespeedPath;
 };
 
-export const getFileNameFromUrl = (url) => {
+export const getFileNameFromUrl = (url, predictionId = null) => {
   const parsedUrl = new URL(url);
+
+  // If predictionId is provided, use it with the original extension
+  if (predictionId) {
+    const fileName = parsedUrl.pathname.split("/").pop();
+    const extension = fileName.split('.').pop() || 'jpeg';
+    return `${predictionId}.${extension}`;
+  }
+
+  // Fallback to original behavior
   const fileName = parsedUrl.pathname.split("/").pop();
   return fileName || `wavespeed_${Date.now()}.png`;
 };
@@ -41,10 +50,14 @@ export const saveImage = async (buffer, fileName, localOutputOverride = false) =
   }
 };
 
-export const fetchImages = async (imageUrls, localOutputOverride = false) => {
+export const fetchImages = async (imageUrls, localOutputOverride = false, predictionId = null) => {
   try {
-    const imageFetches = imageUrls.map(async (url) => {
-      const fileName = getFileNameFromUrl(url) || `wavespeed_${Date.now()}.png`;
+    const imageFetches = imageUrls.map(async (url, index) => {
+      // If multiple images and predictionId exists, append index (e.g., predictionId_0.jpeg, predictionId_1.jpeg)
+      const baseFileName = getFileNameFromUrl(url, predictionId);
+      const fileName = imageUrls.length > 1 && predictionId
+        ? baseFileName.replace(/\.(\w+)$/, `_${index}.$1`)
+        : baseFileName;
 
       if (WAVESPEED_SMOKE_MODE) {
         const buffer = Buffer.from("mock wavespeed image");
