@@ -5,11 +5,10 @@ import fetch from "node-fetch";
 const WAVESPEED_SMOKE_MODE = process.env.WAVESPEED_SMOKE_TEST === "1";
 
 export const getWavespeedPath = (localOutputOverride = false) => {
-  let wavespeedPath = process.env.WAVESPEED_PATH || path.resolve(process.cwd(), "images");
-  wavespeedPath = localOutputOverride
-    ? path.resolve(process.cwd(), "images")
-    : wavespeedPath;
-  return wavespeedPath;
+  if (localOutputOverride) {
+    return path.resolve(process.cwd(), "images");
+  }
+  return process.env.FAL_PATH || path.resolve(process.cwd(), "images");
 };
 
 export const getFileNameFromUrl = (url, predictionId = null) => {
