@@ -82,6 +82,8 @@ const shortcuts = {
   "krea-i2i": "fal-ai/flux/krea/image-to-image",
   "krea-lora": "fal-ai/flux-krea-lora",
   "wan-25": "fal-ai/wan-25-preview/image-to-video",
+  seedream: "fal-ai/bytedance/seedream/v4/text-to-image",
+  "seedream-v4": "fal-ai/bytedance/seedream/v4/text-to-image",
   // Note: Many shortcuts have been removed as the models don't exist in current models.json
   // The auto-generated keys from endpoint_id should cover most models
 };

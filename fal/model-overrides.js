@@ -36,6 +36,15 @@ export const modelOverrides = {
       prompt_optimizer: true,
     },
   },
+
+  'fal-ai/bytedance/seedream/v4/text-to-image': {
+    params: {
+      image_size: { width: 4096, height: 4096 },
+      enable_safety_checker: false,
+      enhance_prompt_mode: "standard",
+    },
+    supportsLoras: false,
+  },
 };
 
 /**

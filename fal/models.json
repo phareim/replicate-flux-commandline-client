@@ -409,6 +409,28 @@
                 "kind": "inference",
                 "pinned": false
             }
+        },
+        {
+            "endpoint_id": "fal-ai/bytedance/seedream/v4/text-to-image",
+            "metadata": {
+                "display_name": "SeeDream v4",
+                "category": "text-to-image",
+                "description": "ByteDance SeeDream v4 integrates image generation and image editing capabilities into a single, unified architecture. Supports up to 4096x4096 resolution and up to 6 simultaneous generations.",
+                "status": "active",
+                "tags": [
+                    "high-res",
+                    "bytedance"
+                ],
+                "updated_at": "2025-11-21T00:00:00.000Z",
+                "is_favorited": false,
+                "thumbnail_url": "https://fal.ai/models/fal-ai/bytedance/seedream/v4/text-to-image",
+                "model_url": "https://fal.run/fal-ai/bytedance/seedream/v4/text-to-image",
+                "license_type": "commercial",
+                "date": "2025-11-21T00:00:00.000Z",
+                "highlighted": true,
+                "kind": "inference",
+                "pinned": false
+            }
         }
     ]
 }
