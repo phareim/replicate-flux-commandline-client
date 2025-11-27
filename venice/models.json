@@ -1,83 +1,269 @@
 {
-  "modelEndpoints": {
-    "venice-sd35": "venice-sd35",
-    "hidream": "hidream",
-    "lustify-sdxl": "lustify-sdxl",
-    "lustify-v7": "lustify-v7",
-    "qwen-image": "qwen-image",
-    "wai": "wai-Illustrious",
-    "wai-Illustrious": "wai-Illustrious"
-  },
-  "modelConstraints": {
-    "venice-sd35": {
-      "widthHeightDivisor": 16,
-      "maxSteps": 30,
-      "defaultSteps": 30,
-      "promptCharacterLimit": 1500
+  "data": [
+    {
+      "created": 1743099022,
+      "id": "venice-sd35",
+      "model_spec": {
+        "pricing": {
+          "generation": {
+            "usd": 0.01,
+            "diem": 0.01
+          },
+          "upscale": {
+            "2x": {
+              "usd": 0.02,
+              "diem": 0.02
+            },
+            "4x": {
+              "usd": 0.08,
+              "diem": 0.08
+            }
+          }
+        },
+        "constraints": {
+          "promptCharacterLimit": 1500,
+          "steps": {
+            "default": 25,
+            "max": 30
+          },
+          "widthHeightDivisor": 16
+        },
+        "name": "Venice SD35",
+        "modelSource": "https://huggingface.co/stabilityai/stable-diffusion-3.5-large",
+        "offline": false,
+        "traits": [
+          "default",
+          "eliza-default"
+        ]
+      },
+      "object": "model",
+      "owned_by": "venice.ai",
+      "type": "image"
     },
-    "hidream": {
-      "widthHeightDivisor": 8,
-      "maxSteps": 50,
-      "defaultSteps": 50,
-      "promptCharacterLimit": 1500
+    {
+      "created": 1747080729,
+      "id": "hidream",
+      "model_spec": {
+        "pricing": {
+          "generation": {
+            "usd": 0.01,
+            "diem": 0.01
+          },
+          "upscale": {
+            "2x": {
+              "usd": 0.02,
+              "diem": 0.02
+            },
+            "4x": {
+              "usd": 0.08,
+              "diem": 0.08
+            }
+          }
+        },
+        "constraints": {
+          "promptCharacterLimit": 1500,
+          "steps": {
+            "default": 20,
+            "max": 50
+          },
+          "widthHeightDivisor": 8
+        },
+        "name": "HiDream",
+        "modelSource": "https://huggingface.co/HiDream-ai/HiDream-I1-Dev",
+        "offline": false,
+        "traits": []
+      },
+      "object": "model",
+      "owned_by": "venice.ai",
+      "type": "image"
     },
-    "lustify-sdxl": {
-      "widthHeightDivisor": 8,
-      "maxSteps": 50,
-      "defaultSteps": 40,
-      "promptCharacterLimit": 1500
+    {
+      "created": 1763653951,
+      "id": "nano-banana-pro",
+      "model_spec": {
+        "pricing": {
+          "generation": {
+            "usd": 0.18,
+            "diem": 0.18
+          },
+          "upscale": {
+            "2x": {
+              "usd": 0.02,
+              "diem": 0.02
+            },
+            "4x": {
+              "usd": 0.08,
+              "diem": 0.08
+            }
+          }
+        },
+        "constraints": {
+          "promptCharacterLimit": 32768,
+          "steps": {
+            "default": 20,
+            "max": 1
+          },
+          "widthHeightDivisor": 1
+        },
+        "name": "Nano Banana Pro",
+        "offline": false,
+        "traits": []
+      },
+      "object": "model",
+      "owned_by": "venice.ai",
+      "type": "image"
     },
-    "lustify-v7": {
-      "widthHeightDivisor": 8,
-      "maxSteps": 50,
-      "defaultSteps": 40,
-      "promptCharacterLimit": 1500
+    {
+      "created": 1738704152,
+      "id": "lustify-sdxl",
+      "model_spec": {
+        "pricing": {
+          "generation": {
+            "usd": 0.01,
+            "diem": 0.01
+          },
+          "upscale": {
+            "2x": {
+              "usd": 0.02,
+              "diem": 0.02
+            },
+            "4x": {
+              "usd": 0.08,
+              "diem": 0.08
+            }
+          }
+        },
+        "constraints": {
+          "promptCharacterLimit": 1500,
+          "steps": {
+            "default": 20,
+            "max": 50
+          },
+          "widthHeightDivisor": 8
+        },
+        "name": "Lustify SDXL",
+        "modelSource": "https://civitai.com/models/573152/lustify-sdxl-nsfw-checkpoint",
+        "offline": false,
+        "traits": []
+      },
+      "object": "model",
+      "owned_by": "venice.ai",
+      "type": "image"
     },
-    "qwen-image": {
-      "widthHeightDivisor": 8,
-      "maxSteps": 8,
-      "defaultSteps": 8,
-      "promptCharacterLimit": 1500
+    {
+      "created": 1736635129,
+      "id": "lustify-v7",
+      "model_spec": {
+        "pricing": {
+          "generation": {
+            "usd": 0.01,
+            "diem": 0.01
+          },
+          "upscale": {
+            "2x": {
+              "usd": 0.02,
+              "diem": 0.02
+            },
+            "4x": {
+              "usd": 0.08,
+              "diem": 0.08
+            }
+          }
+        },
+        "constraints": {
+          "promptCharacterLimit": 1500,
+          "steps": {
+            "default": 20,
+            "max": 50
+          },
+          "widthHeightDivisor": 8
+        },
+        "name": "Lustify v7",
+        "modelSource": "https://civitai.com/models/573152/lustify-sdxl-nsfw-checkpoint",
+        "offline": false,
+        "traits": []
+      },
+      "object": "model",
+      "owned_by": "venice.ai",
+      "type": "image"
     },
-    "wai-Illustrious": {
-      "widthHeightDivisor": 16,
-      "maxSteps": 30,
-      "defaultSteps": 30,
-      "promptCharacterLimit": 1500
+    {
+      "created": 1736635129,
+      "id": "qwen-image",
+      "model_spec": {
+        "pricing": {
+          "generation": {
+            "usd": 0.01,
+            "diem": 0.01
+          },
+          "upscale": {
+            "2x": {
+              "usd": 0.02,
+              "diem": 0.02
+            },
+            "4x": {
+              "usd": 0.08,
+              "diem": 0.08
+            }
+          }
+        },
+        "constraints": {
+          "promptCharacterLimit": 1500,
+          "steps": {
+            "default": 8,
+            "max": 8
+          },
+          "widthHeightDivisor": 8
+        },
+        "name": "Qwen Image",
+        "modelSource": "https://huggingface.co/Qwen/Qwen-Image",
+        "offline": false,
+        "traits": [
+          "highest_quality"
+        ]
+      },
+      "object": "model",
+      "owned_by": "venice.ai",
+      "type": "image"
+    },
+    {
+      "created": 1736635129,
+      "id": "wai-Illustrious",
+      "model_spec": {
+        "pricing": {
+          "generation": {
+            "usd": 0.01,
+            "diem": 0.01
+          },
+          "upscale": {
+            "2x": {
+              "usd": 0.02,
+              "diem": 0.02
+            },
+            "4x": {
+              "usd": 0.08,
+              "diem": 0.08
+            }
+          }
+        },
+        "constraints": {
+          "promptCharacterLimit": 1500,
+          "steps": {
+            "default": 25,
+            "max": 30
+          },
+          "widthHeightDivisor": 16
+        },
+        "name": "Anime (WAI)",
+        "modelSource": "https://civitai.com/models/827184?modelVersionId=1761560",
+        "offline": false,
+        "traits": []
+      },
+      "object": "model",
+      "owned_by": "venice.ai",
+      "type": "image"
     }
-  },
-  "modelInfo": {
-    "venice-sd35": {
-      "name": "Venice SD35",
-      "traits": ["default", "eliza-default"],
-      "modelSource": "https://huggingface.co/stabilityai/stable-diffusion-3.5-large"
-    },
-    "hidream": {
-      "name": "HiDream",
-      "traits": [],
-      "modelSource": "https://huggingface.co/HiDream-ai/HiDream-I1-Dev"
-    },
-    "lustify-sdxl": {
-      "name": "Lustify SDXL",
-      "traits": [],
-      "modelSource": "https://civitai.com/models/573152/lustify-sdxl-nsfw-checkpoint"
-    },
-    "lustify-v7": {
-      "name": "Lustify v7",
-      "traits": [],
-      "modelSource": "https://civitai.com/models/573152/lustify-sdxl-nsfw-checkpoint"
-    },
-    "qwen-image": {
-      "name": "Qwen Image",
-      "traits": ["highest_quality"],
-      "modelSource": "https://huggingface.co/Qwen/Qwen-Image"
-    },
-    "wai-Illustrious": {
-      "name": "Anime (WAI)",
-      "traits": [],
-      "modelSource": "https://civitai.com/models/827184?modelVersionId=1761560"
-    }
-  },
-  "stylePresets": [],
-  "defaultModel": "qwen-image"
+  ],
+  "object": "list",
+  "type": "image"
 }

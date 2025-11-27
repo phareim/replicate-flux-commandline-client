@@ -33,64 +33,15 @@ const fetchModels = async () => {
 
     const result = await modelsResponse.json();
 
-    // Fetch style presets
-    let stylePresets = [];
-    try {
-      const stylesResponse = await fetch("https://api.venice.ai/api/v1/image/styles", {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${process.env.VENICE_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (stylesResponse.ok) {
-        const stylesResult = await stylesResponse.json();
-        stylePresets = stylesResult.data || [];
-        console.log(`Fetched ${stylePresets.length} style presets`);
-      }
-    } catch (styleError) {
-      console.warn("Could not fetch style presets:", styleError.message);
-    }
-
-    // Filter image models
+    // Filter to only image models
     const imageModels = result.data.filter(model => model.type === "image");
 
-    // Find default model - prefer wai-Illustrious (anime model)
-    const waiModel = imageModels.find(m => m.id === "wai-Illustrious");
-    const defaultModelId = waiModel?.id || (imageModels.length > 0 ? imageModels[0].id : "wai-Illustrious");
-
-    // Prepare models data
+    // Save the API response format directly (with filtered data)
     const modelsData = {
-      modelEndpoints: {},
-      modelConstraints: {},
-      modelInfo: {},
-      stylePresets: stylePresets,
-      defaultModel: defaultModelId
+      data: imageModels,
+      object: result.object || "list",
+      type: result.type || "image"
     };
-
-    imageModels.forEach(model => {
-      modelsData.modelEndpoints[model.id] = model.id;
-
-      // Store model constraints if available
-      if (model.model_spec && model.model_spec.constraints) {
-        modelsData.modelConstraints[model.id] = {
-          widthHeightDivisor: model.model_spec.constraints.widthHeightDivisor || 16,
-          maxSteps: model.model_spec.constraints.steps?.max || 50,
-          defaultSteps: model.model_spec.constraints.steps?.default || 20,
-          promptCharacterLimit: model.model_spec.constraints.promptCharacterLimit || 1500
-        };
-      }
-
-      // Store model info (name, traits, source)
-      if (model.model_spec) {
-        modelsData.modelInfo[model.id] = {
-          name: model.model_spec.name || model.id,
-          traits: model.model_spec.traits || [],
-          modelSource: model.model_spec.modelSource || ""
-        };
-      }
-    });
 
     // Write to models.json
     const modelsPath = path.join(__dirname, 'models.json');
@@ -99,6 +50,11 @@ const fetchModels = async () => {
     // Print out the models
     console.log("\nAvailable Venice AI Image Models:");
     console.log("=".repeat(60));
+
+    // Find default model - prefer wai-Illustrious (anime model)
+    const waiModel = imageModels.find(m => m.id === "wai-Illustrious");
+    const defaultModelId = waiModel?.id || (imageModels.length > 0 ? imageModels[0].id : "wai-Illustrious");
+
     imageModels.forEach(model => {
       const name = model.model_spec?.name || model.id;
       const isDefault = model.id === defaultModelId;
@@ -124,8 +80,8 @@ const fetchModels = async () => {
     });
 
     console.log("\n" + "=".repeat(60));
-    console.log(`\nModels and constraints saved to: ${modelsPath}`);
-    console.log(`Style presets fetched: ${stylePresets.length}`);
+    console.log(`\nModels saved to: ${modelsPath}`);
+    console.log(`Total models: ${imageModels.length}`);
 
   } catch (error) {
     console.error("Error fetching and updating models:", error);
