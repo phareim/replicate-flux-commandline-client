@@ -34,7 +34,7 @@ export function setupCLI() {
       "Specify the text prompt for image generation."
     )
     .option(
-      "--prompt-file <path>",
+      "--file <path>",
       "Read prompt from a specified file (default: ./prompt.txt)"
     )
     .option(

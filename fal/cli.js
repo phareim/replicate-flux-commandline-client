@@ -15,7 +15,7 @@ export function setupCLI() {
       'Specify the text prompt for image generation. If omitted, the content of "prompt.txt" is used.'
     )
     .option(
-      "--prompt-file <path>",
+      "--file <path>",
       "Read prompt from a specified file (default: ./prompt.txt)"
     )
     .option("--model <modelKey>", "Choose the AI model to use.", DEFAULT_MODEL)

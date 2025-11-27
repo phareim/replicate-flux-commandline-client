@@ -78,13 +78,13 @@ const run = async (options) => {
 
     // If no prompt provided via CLI, try to read from file
     if (!options.prompt) {
-        const promptFilePath = options.promptFile || './prompt.txt';
+        const promptFilePath = options.file || './prompt.txt';
         const promptFromFile = await readPromptFromFile(promptFilePath);
         if (promptFromFile) {
             options.prompt = promptFromFile;
             console.log(`Using prompt from ${promptFilePath}.`);
         } else {
-            console.error(`Error: No prompt provided. Please use --prompt, --prompt-file, or create a ./prompt.txt file.`);
+            console.error(`Error: No prompt provided. Please use --prompt, --file, or create a ./prompt.txt file.`);
             process.exit(1);
         }
     }

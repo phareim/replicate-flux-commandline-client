@@ -463,7 +463,7 @@ const main = async () => {
   }
 
   const userPrompt = options.prompt;
-  const promptFile = options.promptFile || "prompt.txt";
+  const promptFile = options.file || "prompt.txt";
   const modelKey = options.model;
   const formatKey = options.format;
   let loraKeys = options.lora || [];
