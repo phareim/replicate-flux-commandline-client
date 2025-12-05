@@ -5,7 +5,7 @@ import fetch from "node-fetch";
 
 import { setupCLI } from "./cli.js";
 import { getPromptFromFile } from "./utils.js";
-import { getModelEndpoint, getModelInfo } from "./models.js";
+import { getModelEndpoint, getModelInfo, constrainDimensions } from "./models.js";
 import { image_size, API_BASE_URL } from "./config.js";
 import { buildParameters } from "./parameter-builders.js";
 import { handleResponse } from "./response-handlers.js";
@@ -244,7 +244,10 @@ const main = async () => {
   const modelEndpoint = getModelEndpoint(modelKey);
 
   // Get size - either from format map or use raw value
-  const size = image_size[formatKey] || formatKey || "2048*2048";
+  let size = image_size[formatKey] || formatKey || "2048*2048";
+
+  // Constrain size to model's maximum dimensions
+  size = constrainDimensions(size, modelEndpoint);
 
   if (allPrompts) {
     const promptFilePath = path.resolve(process.cwd(), promptFile);

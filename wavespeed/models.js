@@ -24,6 +24,8 @@ export const allModels = [
       status: "live",
       tags: ["wavespeed", "text-to-image", "turbo", "fast", "6b"],
       model_url: "https://api.wavespeed.ai/api/v3/wavespeed-ai/z-image/turbo'",
+      maxWidth: 1536,
+      maxHeight: 1536,
     }
   },
   {
@@ -35,6 +37,8 @@ export const allModels = [
       status: "live",
       tags: ["bytedance", "text-to-image", "4k", "latest"],
       model_url: "https://wavespeed.ai/models/bytedance/seedream-v4.5",
+      maxWidth: 4096,
+      maxHeight: 4096,
     }
   },
   {
@@ -46,6 +50,8 @@ export const allModels = [
       status: "live",
       tags: ["bytedance", "text-to-image", "4k"],
       model_url: "https://wavespeed.ai/models/bytedance/seedream-v4",
+      maxWidth: 4096,
+      maxHeight: 4096,
     }
   }
 ];
@@ -63,4 +69,43 @@ export function getModelEndpoint(modelKey) {
 export function getModelInfo(modelKeyOrEndpoint) {
   const endpoint = getModelEndpoint(modelKeyOrEndpoint);
   return allModels.find(m => m.endpoint_id === endpoint);
+}
+
+/**
+ * Constrain dimensions to model's maximum values while preserving aspect ratio
+ * @param {string} size - Size string in format "width*height"
+ * @param {string} modelKeyOrEndpoint - Model key or endpoint to check constraints
+ * @returns {string} - Constrained size string
+ */
+export function constrainDimensions(size, modelKeyOrEndpoint) {
+  const modelInfo = getModelInfo(modelKeyOrEndpoint);
+
+  if (!modelInfo?.metadata?.maxWidth && !modelInfo?.metadata?.maxHeight) {
+    return size; // No constraints for this model
+  }
+
+  // Parse the size string
+  const [widthStr, heightStr] = size.split('*');
+  let width = parseInt(widthStr, 10);
+  let height = parseInt(heightStr, 10);
+
+  if (isNaN(width) || isNaN(height)) {
+    return size; // Invalid format, return as-is
+  }
+
+  const maxWidth = modelInfo.metadata.maxWidth || Infinity;
+  const maxHeight = modelInfo.metadata.maxHeight || Infinity;
+
+  // Calculate scaling factor to fit within max dimensions
+  const scaleWidth = maxWidth / width;
+  const scaleHeight = maxHeight / height;
+  const scale = Math.min(scaleWidth, scaleHeight, 1); // Don't upscale
+
+  if (scale < 1) {
+    // Need to scale down
+    width = Math.floor(width * scale);
+    height = Math.floor(height * scale);
+  }
+
+  return `${width}*${height}`;
 }

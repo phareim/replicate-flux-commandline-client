@@ -44,8 +44,38 @@ export const modelOverrides = {
       enhance_prompt_mode: "standard",
     },
     supportsLoras: false,
+    maxWidth: 4096,
+    maxHeight: 4096,
   },
 };
+
+/**
+ * Constrain image dimensions to model's maximum values while preserving aspect ratio
+ * @param {Object} imageSize - Image size object with width and height
+ * @param {number} maxWidth - Maximum allowed width
+ * @param {number} maxHeight - Maximum allowed height
+ * @returns {Object} - Constrained image size object
+ */
+function constrainImageSize(imageSize, maxWidth, maxHeight) {
+  if (!imageSize || typeof imageSize !== 'object' || !imageSize.width || !imageSize.height) {
+    return imageSize; // Not an object with dimensions, return as-is
+  }
+
+  let { width, height } = imageSize;
+
+  // Calculate scaling factor to fit within max dimensions
+  const scaleWidth = maxWidth / width;
+  const scaleHeight = maxHeight / height;
+  const scale = Math.min(scaleWidth, scaleHeight, 1); // Don't upscale
+
+  if (scale < 1) {
+    // Need to scale down
+    width = Math.floor(width * scale);
+    height = Math.floor(height * scale);
+  }
+
+  return { width, height };
+}
 
 /**
  * Apply model-specific overrides to input parameters
@@ -69,6 +99,20 @@ export function applyModelOverrides(modelEndpoint, input, options) {
     if (!(key === 'guidance_scale' && options.scale) &&
         !(key === 'strength' && options.strength)) {
       mergedInput[key] = value;
+    }
+  }
+
+  // Apply dimension constraints if model has max dimensions
+  if (override.maxWidth || override.maxHeight) {
+    const maxWidth = override.maxWidth || Infinity;
+    const maxHeight = override.maxHeight || Infinity;
+
+    if (mergedInput.image_size) {
+      mergedInput.image_size = constrainImageSize(
+        mergedInput.image_size,
+        maxWidth,
+        maxHeight
+      );
     }
   }
 
