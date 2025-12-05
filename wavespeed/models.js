@@ -3,12 +3,40 @@
  */
 
 export const modelEndpoints = {
+  "z-wave": "wavespeed-ai/z-image/turbo",
+  "z-image-turbo": "wavespeed-ai/z-image/turbo",
+  "z-image": "wavespeed-ai/z-image/turbo",
+  "turbo": "wavespeed-ai/z-image/turbo",
+  "seedream-v4.5": "bytedance/seedream-v4.5",
   "seedream-v4": "bytedance/seedream-v4",
-  "seedream": "bytedance/seedream-v4",
+  "seedream": "bytedance/seedream-v4.5",
+  "v4.5": "bytedance/seedream-v4.5",
   "v4": "bytedance/seedream-v4",
 };
 
 export const allModels = [
+  {
+    endpoint_id: "wavespeed-ai/z-image/turbo",
+    metadata: {
+      display_name: "Z-Image-Turbo",
+      category: "text-to-image",
+      description: "6 billion parameter text-to-image model that generates photorealistic images in sub-second time. Best performance, no coldstarts, affordable pricing.",
+      status: "live",
+      tags: ["wavespeed", "text-to-image", "turbo", "fast", "6b"],
+      model_url: "https://api.wavespeed.ai/api/v3/wavespeed-ai/z-image/turbo'",
+    }
+  },
+  {
+    endpoint_id: "bytedance/seedream-v4.5",
+    metadata: {
+      display_name: "Seedream v4.5",
+      category: "text-to-image",
+      description: "Seedream 4.5 by ByteDance - latest version with improved quality and performance.",
+      status: "live",
+      tags: ["bytedance", "text-to-image", "4k", "latest"],
+      model_url: "https://wavespeed.ai/models/bytedance/seedream-v4.5",
+    }
+  },
   {
     endpoint_id: "bytedance/seedream-v4",
     metadata: {
