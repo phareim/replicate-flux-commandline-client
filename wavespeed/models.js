@@ -3,6 +3,9 @@
  */
 
 export const modelEndpoints = {
+  "flux-2-flex": "wavespeed-ai/flux-2-flex/text-to-image",
+  "flux2": "wavespeed-ai/flux-2-flex/text-to-image",
+  "flex": "wavespeed-ai/flux-2-flex/text-to-image",
   "z-wave": "wavespeed-ai/z-image/turbo",
   "z-image-turbo": "wavespeed-ai/z-image/turbo",
   "z-image": "wavespeed-ai/z-image/turbo",
@@ -15,6 +18,20 @@ export const modelEndpoints = {
 };
 
 export const allModels = [
+  {
+    endpoint_id: "wavespeed-ai/flux-2-flex/text-to-image",
+    metadata: {
+      display_name: "FLUX.2 [flex]",
+      category: "text-to-image",
+      description: "Fast, flexible text-to-image generation with enhanced realism, sharper text rendering, and built-in editing. No cold start delays.",
+      status: "live",
+      tags: ["flux", "text-to-image", "flex", "fast", "realistic"],
+      model_url: "https://api.wavespeed.ai/api/v3/wavespeed-ai/flux-2-flex/text-to-image",
+      defaultSize: "1536*1536",
+      maxWidth: 1536,
+      maxHeight: 1536,
+    }
+  },
   {
     endpoint_id: "wavespeed-ai/z-image/turbo",
     metadata: {
