@@ -32,6 +32,7 @@ export function setupCLI() {
     .option("--all-prompts", 'Generate image using the content of "prompt.txt".')
     .option("--enable-base64", "Enable base64 output instead of URL (API only).")
     .option("--sync", "Enable synchronous mode (wait for result in single response).")
+    .option("--count <number>", "Number of times to run the generation (default: 1).", "1")
     .helpOption("-h, --help", "Display this help message.")
     .on("--help", () => {
       const availableSizes = Object.keys(image_size).join(", ");
@@ -57,6 +58,9 @@ Examples:
 
   # With seed for reproducibility
   wavespeed --prompt "A magical landscape" --seed 12345
+
+  # Generate multiple images
+  wavespeed --prompt "A magical landscape" --count 4
 
   # Using prompt file
   wavespeed --all-prompts

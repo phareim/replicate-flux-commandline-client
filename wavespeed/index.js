@@ -239,6 +239,7 @@ const main = async () => {
   const allPrompts = options.allPrompts || false;
   const enableBase64 = options.enableBase64 || false;
   const enableSync = options.sync || false;
+  const count = parseInt(options.count, 10) || 1;
 
   // Get the model endpoint
   const modelEndpoint = getModelEndpoint(modelKey);
@@ -254,7 +255,12 @@ const main = async () => {
     getPromptFromFile(promptFilePath)
       .then(async (promptText) => {
         console.log(`Generating image for ${promptFile}`);
-        await run(promptText, modelEndpoint, size, enableBase64, enableSync);
+        for (let i = 0; i < count; i++) {
+          if (count > 1) {
+            console.log(`\n${'='.repeat(60)}\nGeneration ${i + 1} of ${count}\n${'='.repeat(60)}\n`);
+          }
+          await run(promptText, modelEndpoint, size, enableBase64, enableSync);
+        }
       })
       .catch((error) => {
         console.error("Failed to read prompt:", error);
@@ -265,8 +271,13 @@ const main = async () => {
       : getPromptFromFile(path.resolve(process.cwd(), promptFile));
 
     promptPromise
-      .then((promptText) => {
-        run(promptText, modelEndpoint, size, enableBase64, enableSync);
+      .then(async (promptText) => {
+        for (let i = 0; i < count; i++) {
+          if (count > 1) {
+            console.log(`\n${'='.repeat(60)}\nGeneration ${i + 1} of ${count}\n${'='.repeat(60)}\n`);
+          }
+          await run(promptText, modelEndpoint, size, enableBase64, enableSync);
+        }
       })
       .catch((error) => {
         console.error("Failed to get prompt:", error);

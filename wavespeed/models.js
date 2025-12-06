@@ -12,9 +12,14 @@ export const modelEndpoints = {
   "turbo": "wavespeed-ai/z-image/turbo",
   "seedream-v4.5": "bytedance/seedream-v4.5",
   "seedream-v4": "bytedance/seedream-v4",
+  "seedream-v3.1": "bytedance/seedream-v3.1",
   "seedream": "bytedance/seedream-v4.5",
   "v4.5": "bytedance/seedream-v4.5",
   "v4": "bytedance/seedream-v4",
+  "v3.1": "bytedance/seedream-v3.1",
+  "wan-2.5": "alibaba/wan-2.5/text-to-image",
+  "wan2.5": "alibaba/wan-2.5/text-to-image",
+  "wan": "alibaba/wan-2.5/text-to-image",
 };
 
 export const allModels = [
@@ -69,6 +74,34 @@ export const allModels = [
       model_url: "https://wavespeed.ai/models/bytedance/seedream-v4",
       maxWidth: 4096,
       maxHeight: 4096,
+    }
+  },
+  {
+    endpoint_id: "bytedance/seedream-v3.1",
+    metadata: {
+      display_name: "Seedream v3.1",
+      category: "text-to-image",
+      description: "Seedream V3.1 by ByteDance is a text-to-image model with upgraded visuals, stronger style fidelity, and rich detail from text prompts.",
+      status: "live",
+      tags: ["bytedance", "text-to-image"],
+      model_url: "https://wavespeed.ai/models/bytedance/seedream-v3.1",
+      defaultSize: "2048*2048",
+      maxWidth: 2048,
+      maxHeight: 2048,
+    }
+  },
+  {
+    endpoint_id: "alibaba/wan-2.5/text-to-image",
+    metadata: {
+      display_name: "WAN 2.5",
+      category: "text-to-image",
+      description: "Alibaba WAN 2.5 Text-to-Image turns text prompts into AI-generated images with the WAN 2.5 model for on-demand image creation.",
+      status: "live",
+      tags: ["alibaba", "text-to-image", "wan"],
+      model_url: "https://wavespeed.ai/models/alibaba/wan-2.5/text-to-image",
+      defaultSize: "1440*1440",
+      maxWidth: 1440,
+      maxHeight: 1440,
     }
   }
 ];
