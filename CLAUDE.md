@@ -146,7 +146,7 @@ These must be set in the shell environment, not hardcoded.
 ### Output Directories
 
 Images/videos are saved to:
-- Venice: `./images/venice/` (auto-created)
+- Venice: `./images/venice/` or `$VENICE_PATH` if set
 - Fal: `./images/` or `$FAL_PATH` if set
 - Wavespeed: `./images/` or `$WAVESPEED_PATH` if set
 - Replicate: `./output/` or `$REPLICATE_OUTPUT_DIR` if set

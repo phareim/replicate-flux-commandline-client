@@ -3,10 +3,10 @@ import path from "path";
 import fetch from "node-fetch";
 
 export const getVenicePath = (localOutputOverride = false) => {
-  // use $FAL_PATH if set, unless explicitly overridden via --out
-  const defaultPath = path.resolve(process.cwd(), "images/");
-  const envPath = process.env.FAL_PATH
-    ? path.resolve(process.env.FAL_PATH)
+  // use $VENICE_PATH if set, unless explicitly overridden via --out
+  const defaultPath = path.resolve(process.cwd(), "images/venice/");
+  const envPath = process.env.VENICE_PATH
+    ? path.resolve(process.env.VENICE_PATH)
     : defaultPath;
 
   return localOutputOverride ? defaultPath : envPath;

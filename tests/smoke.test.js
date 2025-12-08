@@ -40,7 +40,7 @@ test("venice smoke test saves mocked image output", () => {
       {
         VENICE_API_TOKEN: "test-token",
         VENICE_SMOKE_TEST: "1",
-        FAL_PATH: outputDir, // venice utils reuse FAL_PATH
+        VENICE_PATH: outputDir,
         NODE_ENV: "test"
       }
     );
