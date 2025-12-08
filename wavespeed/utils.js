@@ -8,7 +8,7 @@ export const getWavespeedPath = (localOutputOverride = false) => {
   if (localOutputOverride) {
     return path.resolve(process.cwd(), "images");
   }
-  return process.env.FAL_PATH || path.resolve(process.cwd(), "images");
+  return process.env.WAVESPEED_PATH || path.resolve(process.cwd(), "images");
 };
 
 export const getFileNameFromUrl = (url, predictionId = null) => {

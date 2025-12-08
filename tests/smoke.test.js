@@ -91,3 +91,43 @@ test("replicate smoke test writes mocked prediction download", () => {
     removeDir(outputDir);
   }
 });
+
+test("wavespeed smoke test saves mocked image output", () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "wavespeed-smoke-"));
+  try {
+    runCli(
+      ["wavespeed/index.js", "--prompt", "smoke test"],
+      {
+        WAVESPEED_KEY: "test-key",
+        WAVESPEED_SMOKE_TEST: "1",
+        WAVESPEED_PATH: outputDir,
+        NODE_ENV: "test"
+      }
+    );
+
+    const files = fs.readdirSync(outputDir);
+    assert(files.some((file) => file.endsWith(".png")), "Expected wavespeed output file");
+  } finally {
+    removeDir(outputDir);
+  }
+});
+
+test("wavespeed smoke test with optimize flag", () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "wavespeed-opt-smoke-"));
+  try {
+    runCli(
+      ["wavespeed/index.js", "--prompt", "test", "--optimize"],
+      {
+        WAVESPEED_KEY: "test-key",
+        WAVESPEED_SMOKE_TEST: "1",
+        WAVESPEED_PATH: outputDir,
+        NODE_ENV: "test"
+      }
+    );
+
+    const files = fs.readdirSync(outputDir);
+    assert(files.some((file) => file.endsWith(".png")), "Expected wavespeed output file with optimization");
+  } finally {
+    removeDir(outputDir);
+  }
+});

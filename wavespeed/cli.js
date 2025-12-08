@@ -33,6 +33,10 @@ export function setupCLI() {
     .option("--enable-base64", "Enable base64 output instead of URL (API only).")
     .option("--sync", "Enable synchronous mode (wait for result in single response).")
     .option("--count <number>", "Number of times to run the generation (default: 1).", "1")
+    .option("--optimize", "Use Wavespeed prompt optimizer to enhance the prompt before generation.")
+    .option("--optimize-mode <mode>", "Optimization mode: 'image' or 'video' (default: image).", "image")
+    .option("--optimize-style <style>", "Optimization style: default, artistic, photographic, technical, anime, realistic (default: default).", "default")
+    .option("--optimize-image <url>", "Reference image URL for optimization context.")
     .helpOption("-h, --help", "Display this help message.")
     .on("--help", () => {
       const availableSizes = Object.keys(image_size).join(", ");
@@ -64,6 +68,12 @@ Examples:
 
   # Using prompt file
   wavespeed --all-prompts
+
+  # With prompt optimization
+  wavespeed --prompt "woman walking" --optimize
+  wavespeed --prompt "city scene" --optimize --optimize-mode video
+  wavespeed --prompt "portrait shot" --optimize --optimize-style photographic
+  wavespeed --prompt "fantasy art" --optimize --optimize-style artistic
 
 Notes:
   - Ensure that 'prompt.txt' exists in the directory where you run the script.

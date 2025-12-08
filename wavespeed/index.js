@@ -77,6 +77,147 @@ const createMockResult = (modelEndpoint) => ({
 });
 
 /**
+ * Optimize a prompt using the Wavespeed prompt optimizer
+ */
+const optimizePrompt = async (promptText, mode = "image", style = "default", imageUrl = null) => {
+  // Validate mode parameter
+  const validModes = ["image", "video"];
+  if (!validModes.includes(mode)) {
+    console.warn(`Invalid optimization mode '${mode}'. Using default 'image'. Valid options: ${validModes.join(", ")}`);
+    mode = "image";
+  }
+
+  // Validate style parameter
+  const validStyles = ["default", "artistic", "photographic", "technical", "anime", "realistic"];
+  if (!validStyles.includes(style)) {
+    console.warn(`Invalid optimization style '${style}'. Using default 'default'. Valid options: ${validStyles.join(", ")}`);
+    style = "default";
+  }
+
+  if (WAVESPEED_SMOKE_MODE) {
+    console.log("🔧 Prompt optimization (mock)");
+    return `Optimized: ${promptText}`;
+  }
+
+  const url = `${API_BASE_URL}/wavespeed-ai/prompt-optimizer`;
+
+  console.log('__Optimizing prompt' + '_'.repeat(60 - 18));
+  console.log(`Mode: ${mode}`);
+  console.log(`Style: ${style}`);
+  if (imageUrl) {
+    console.log(`Reference Image: ${imageUrl}`);
+  }
+  console.log('‾'.repeat(60) + '\n');
+
+  const payload = {
+    enable_sync_mode: false,
+    text: promptText,
+    mode,
+    style,
+  };
+
+  if (imageUrl) {
+    payload.image = imageUrl;
+  }
+
+  try {
+    if (DEBUG) {
+      console.log('Optimizer API URL:', url);
+      console.log('Optimizer payload:', JSON.stringify(payload, null, 2));
+    }
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.WAVESPEED_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Optimizer API Error (${response.status}): ${errorText}`);
+      console.log("Continuing with original prompt...\n");
+      return promptText;
+    }
+
+    const initialResult = await response.json();
+    const requestId = initialResult.data?.id;
+
+    if (!requestId) {
+      console.error('Failed to get request ID from optimizer');
+      console.log("Continuing with original prompt...\n");
+      return promptText;
+    }
+
+    if (DEBUG) {
+      console.log(`Optimizer task submitted. Request ID: ${requestId}`);
+    }
+
+    process.stdout.write('🔧 Optimizing prompt...');
+
+    // Poll for result
+    let attempts = 0;
+    const maxAttempts = 60;
+    const interval = 500; // 0.5 seconds
+
+    while (attempts < maxAttempts) {
+      const pollResponse = await fetch(
+        `${API_BASE_URL}/predictions/${requestId}/result`,
+        {
+          headers: {
+            "Authorization": `Bearer ${process.env.WAVESPEED_KEY}`,
+          },
+        }
+      );
+
+      if (pollResponse.ok) {
+        const result = await pollResponse.json();
+        const data = result.data;
+        const status = data.status;
+
+        if (status === "completed") {
+          const optimizedPrompt = data.outputs?.[0];
+          process.stdout.write('\r✨ Prompt optimized!                                    \n\n');
+
+          console.log('Original prompt:', promptText);
+          console.log('Optimized prompt:', optimizedPrompt);
+          console.log('');
+
+          return optimizedPrompt || promptText;
+        } else if (status === "failed") {
+          process.stdout.write('\r');
+          console.error("Optimizer task failed:", data.error);
+          console.log("Continuing with original prompt...\n");
+          return promptText;
+        }
+        // Still processing, continue polling
+      } else {
+        const errorData = await pollResponse.json();
+        console.error(`\nOptimizer polling error: ${pollResponse.status}`, errorData);
+        console.log("Continuing with original prompt...\n");
+        return promptText;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, interval));
+      attempts++;
+    }
+
+    // Timeout
+    process.stdout.write('\r');
+    console.error('Optimizer timeout: took too long');
+    console.log("Continuing with original prompt...\n");
+    return promptText;
+
+  } catch (error) {
+    console.error('Optimizer error:', error.message);
+    console.log("Continuing with original prompt...\n");
+    return promptText;
+  }
+};
+
+/**
  * Main generation function
  */
 const run = async (prompt, modelEndpoint, size, enableBase64, enableSync) => {
@@ -240,6 +381,10 @@ const main = async () => {
   const enableBase64 = options.enableBase64 || false;
   const enableSync = options.sync || false;
   const count = parseInt(options.count, 10) || 1;
+  const optimize = options.optimize || false;
+  const optimizeMode = options.optimizeMode || "image";
+  const optimizeStyle = options.optimizeStyle || "default";
+  const optimizeImage = options.optimizeImage || null;
 
   // Get the model endpoint
   const modelEndpoint = getModelEndpoint(modelKey);
@@ -255,11 +400,18 @@ const main = async () => {
     getPromptFromFile(promptFilePath)
       .then(async (promptText) => {
         console.log(`Generating image for ${promptFile}`);
+
+        // Optimize prompt if requested
+        let finalPrompt = promptText;
+        if (optimize) {
+          finalPrompt = await optimizePrompt(promptText, optimizeMode, optimizeStyle, optimizeImage);
+        }
+
         for (let i = 0; i < count; i++) {
           if (count > 1) {
             console.log(`\n${'='.repeat(60)}\nGeneration ${i + 1} of ${count}\n${'='.repeat(60)}\n`);
           }
-          await run(promptText, modelEndpoint, size, enableBase64, enableSync);
+          await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync);
         }
       })
       .catch((error) => {
@@ -272,11 +424,17 @@ const main = async () => {
 
     promptPromise
       .then(async (promptText) => {
+        // Optimize prompt if requested
+        let finalPrompt = promptText;
+        if (optimize) {
+          finalPrompt = await optimizePrompt(promptText, optimizeMode, optimizeStyle, optimizeImage);
+        }
+
         for (let i = 0; i < count; i++) {
           if (count > 1) {
             console.log(`\n${'='.repeat(60)}\nGeneration ${i + 1} of ${count}\n${'='.repeat(60)}\n`);
           }
-          await run(promptText, modelEndpoint, size, enableBase64, enableSync);
+          await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync);
         }
       })
       .catch((error) => {

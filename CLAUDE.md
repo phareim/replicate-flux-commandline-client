@@ -4,14 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-flux-client is a CLI tool providing unified interfaces to three AI image generation services: Venice.ai, Fal.ai, and Replicate.ai. Each service is implemented as an independent module with its own CLI entry point.
+flux-client is a CLI tool providing unified interfaces to four AI image generation services: Venice.ai, Fal.ai, Replicate.ai, and Wavespeed.ai. Each service is implemented as an independent module with its own CLI entry point.
 
 ## Development Commands
 
 ### Testing
 ```bash
-npm test  # Currently returns success with "no tests" message
+npm test  # Runs smoke tests for all services (venice, fal, replicate, wavespeed)
 ```
+
+The smoke tests use mock modes to verify that each CLI generates/downloads output files without making actual API calls.
 
 ### Running Services Locally (Development)
 
@@ -23,6 +25,9 @@ node venice/index.js --prompt "your prompt here"
 
 # Fal.ai
 node fal/index.js --prompt "your prompt here" --model pro
+
+# Wavespeed.ai
+node wavespeed/index.js --prompt "your prompt here"
 
 # Replicate - List and download all predictions
 node replicate/index.js
@@ -42,7 +47,7 @@ make get    # Run replicate/get.js with prediction ID as argument
 
 ### Module Independence
 
-Each service module (`venice/`, `fal/`, `replicate/`) is completely self-contained with no cross-dependencies. Each has evolved its own structure based on its specific needs:
+Each service module (`venice/`, `fal/`, `replicate/`, `wavespeed/`) is completely self-contained with no cross-dependencies. Each has evolved its own structure based on its specific needs:
 
 **Venice structure:**
 ```
@@ -72,6 +77,18 @@ fal/
 ├── utils.js                # File I/O, HTTP requests, image saving
 ```
 
+**Wavespeed structure (similar to Fal):**
+```
+wavespeed/
+├── index.js                # Main entry point with orchestration logic
+├── cli.js                  # Commander.js CLI setup and option parsing
+├── config.js               # Configuration constants and defaults
+├── models.js               # Model endpoint mappings and metadata
+├── parameter-builders.js   # Category-based parameter building
+├── response-handlers.js    # Category-based response handling
+├── utils.js                # File I/O, HTTP requests, image saving
+```
+
 **Replicate structure (minimal):**
 ```
 replicate/
@@ -85,6 +102,7 @@ Note: Replicate has no cli.js, config.js, or models.js files. It's a simple scri
 - `venice` → `venice/index.js`
 - `venice-models` → `venice/get-models.js`
 - `falflux` → `fal/index.js`
+- `wavespeed` → `wavespeed/index.js`
 - `repflux` → `replicate/index.js`
 
 These are symlinked when installed globally via `npm install -g`.
@@ -100,6 +118,7 @@ The file-based approach enables batch workflows and avoids shell escaping issues
 **Model Endpoint Resolution**:
 - **Venice**: Uses `models.js` which dynamically loads model endpoint mappings from `models.json`. Also supports `getModelConstraints()` for model-specific parameter validation.
 - **Fal**: Uses a more sophisticated system with `model-resolver.js` loading from `models.json` and auto-generating short keys from endpoint IDs (e.g., `fal-ai/flux-pro/v1.1` → `pro11`). Additional model utilities in `model-utils.js` provide search and category filtering.
+- **Wavespeed**: Uses `models.js` with hardcoded `modelEndpoints` and `allModels` arrays. Includes `constrainDimensions()` to automatically scale dimensions to fit model-specific max width/height while preserving aspect ratio.
 
 **LoRA System (Fal only)**: The Fal module supports LoRA (Low-Rank Adaptation) models defined in `fal/loras.js`. LoRAs can be:
 - Applied via `--lora <key>` flags (multiple allowed)
@@ -119,6 +138,7 @@ All services require environment variables set before use:
 
 - `VENICE_API_TOKEN` - Bearer token for Venice.ai
 - `FAL_KEY` - API key for Fal.ai
+- `WAVESPEED_KEY` - API key for Wavespeed.ai
 - `REPLICATE_API_TOKEN` - API token for Replicate.ai
 
 These must be set in the shell environment, not hardcoded.
@@ -128,6 +148,7 @@ These must be set in the shell environment, not hardcoded.
 Images/videos are saved to:
 - Venice: `./images/venice/` (auto-created)
 - Fal: `./images/` or `$FAL_PATH` if set
+- Wavespeed: `./images/` or `$WAVESPEED_PATH` if set
 - Replicate: `./output/` or `$REPLICATE_OUTPUT_DIR` if set
 
 File naming convention: `<source>_<timestamp>.png` or extracted from URL for downloads.
@@ -153,6 +174,33 @@ Response handling has been refactored into `response-handlers.js` with category-
 - `handleDataResponse`: Data/model results (result.data.url for 3D models, etc.)
 - Each handler includes progress tracking and proper file naming
 
+**Wavespeed**: Uses a polling-based approach with async predictions:
+```javascript
+// POST to API endpoint creates a prediction
+const response = await fetch(apiUrl, { method: "POST", ... });
+const predictionData = response.data;
+
+// Poll for completion using prediction.urls.get or prediction.id
+while (status !== 'completed') {
+  const result = await fetch(predictionUrl);
+  // Status: processing → completed | failed
+}
+```
+
+Response handling uses `response-handlers.js` with category-based handlers similar to Fal. Supports both async (default) and sync modes via `--sync` flag.
+
+**Prompt Optimization (Wavespeed only)**: Wavespeed includes a prompt optimizer API that can enhance prompts before generation:
+- Enabled via `--optimize` flag
+- Optimizer endpoint: `wavespeed-ai/prompt-optimizer`
+- Parameters:
+  - `--optimize-mode`: `image` (default) or `video`
+  - `--optimize-style`: `default`, `artistic`, `photographic`, `technical`, `anime`, or `realistic`
+  - `--optimize-image`: Optional reference image URL for context
+- Implementation validates parameters against API spec and falls back to defaults for invalid values
+- Returns an enhanced version of the prompt
+- Falls back to original prompt on error to ensure generation continues
+- Uses async mode with polling (0.5s intervals) to retrieve optimized prompt
+
 **Replicate**: Uses the official Replicate SDK's prediction API. The `repflux` command fetches all existing predictions from the account rather than generating new images.
 
 ## Important Implementation Details
@@ -166,6 +214,22 @@ _height = Math.floor(_height / 16) * 16;
 ```
 
 Maximum dimensions: 1280x1280 (enforced via `Math.min`).
+
+### Model-Specific Dimension Constraints (Wavespeed)
+
+Wavespeed models have varying maximum dimensions defined in `models.js`:
+```javascript
+const modelInfo = getModelInfo(modelEndpoint);
+const maxWidth = modelInfo.metadata.maxWidth;  // e.g., 4096, 1536, 1440
+const maxHeight = modelInfo.metadata.maxHeight;
+```
+
+The `constrainDimensions()` function automatically scales down requested dimensions while preserving aspect ratio to fit within model limits. Examples:
+- `flux-2-flex`: 1536x1536 max
+- `z-image-turbo`: 1536x1536 max
+- `seedream-v4.5`, `seedream-v4`: 4096x4096 max
+- `seedream-v3.1`: 2048x2048 max
+- `wan-2.5`: 1440x1440 max
 
 ### Model-Specific Parameter Handling (Fal)
 
@@ -285,21 +349,64 @@ falflux --model-info pro
 
 These commands use data from `models.json` and utilities in `model-utils.js`.
 
+### Adding a New Model (Wavespeed)
+
+Wavespeed models are hardcoded in `wavespeed/models.js`:
+
+1. Add shortcut mapping to `modelEndpoints`:
+```javascript
+export const modelEndpoints = {
+  "your-key": "provider/model-name/endpoint",
+  // ...
+};
+```
+
+2. Add full model metadata to `allModels`:
+```javascript
+{
+  endpoint_id: "provider/model-name/endpoint",
+  metadata: {
+    display_name: "Model Name",
+    category: "text-to-image",
+    description: "Model description",
+    status: "live",
+    tags: ["provider", "text-to-image"],
+    model_url: "https://...",
+    maxWidth: 4096,
+    maxHeight: 4096,
+  }
+}
+```
+
+The `constrainDimensions()` function will automatically enforce the max dimensions.
+
 ### Debugging API Issues
 
-Set `--debug` flag (Venice and Fal) to enable verbose output:
+Set `--debug` flag (Venice, Fal, and Wavespeed) to enable verbose output:
 - Venice: Logs full input parameters
 - Fal: Logs complete API responses
+- Wavespeed: Logs API URL, request parameters, and full responses
 
 Check for common issues:
 - Missing environment variables (error on startup)
 - Invalid model keys (falls back to default)
 - API rate limits or authentication failures
-- Image dimension constraints (Venice)
+- Image dimension constraints (Venice, Wavespeed)
 
 ### Testing Changes to CLI Options
 
-Since there are no automated tests, manually verify:
+There are smoke tests in `tests/smoke.test.js` that verify basic functionality for all services. To run them:
+```bash
+npm test
+```
+
+Smoke tests use special environment variables to enable mock mode:
+- `VENICE_SMOKE_TEST=1` - Venice returns mock binary data
+- `FAL_SMOKE_TEST=1` - Fal returns mock results
+- `WAVESPEED_SMOKE_TEST=1` - Wavespeed returns mock predictions
+- `REPLICATE_SMOKE_TEST=1` - Replicate returns mock downloads
+
+For manual testing of new CLI options:
 1. Run with new options to ensure parsing works
 2. Check default values when options are omitted
 3. Verify file-based prompt fallback when `--prompt` not provided
