@@ -245,7 +245,7 @@ const main = async () => {
   const modelEndpoint = getModelEndpoint(modelKey);
 
   // Get size - either from format map or use raw value
-  let size = image_size[formatKey] || formatKey || "2048*2048";
+  let size = image_size[formatKey] || formatKey || "4096*4096";
 
   // Constrain size to model's maximum dimensions
   size = constrainDimensions(size, modelEndpoint);
