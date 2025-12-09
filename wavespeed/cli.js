@@ -29,13 +29,13 @@ export function setupCLI() {
       "Save images to the current directory instead of the default."
     )
     .option("--debug", "Enable debug mode to display additional logs.")
-    .option("--all-prompts", 'Generate image using the content of "prompt.txt".')
+    .option("--all-prompts", 'Generate images for all .txt files in the current directory.')
     .option("--enable-base64", "Enable base64 output instead of URL (API only).")
     .option("--sync", "Enable synchronous mode (wait for result in single response).")
     .option("--count <number>", "Number of times to run the generation (default: 1).", "1")
     .option("--optimize", "Use Wavespeed prompt optimizer to enhance the prompt before generation.")
     .option("--optimize-mode <mode>", "Optimization mode: 'image' or 'video' (default: image).", "image")
-    .option("--optimize-style <style>", "Optimization style: default, artistic, photographic, technical, anime, realistic (default: default).", "default")
+    .option("--optimize-style <style>", "Optimization style: default, artistic, photographic, technical, realistic, random (default: default).", "default")
     .option("--optimize-image <url>", "Reference image URL for optimization context.")
     .helpOption("-h, --help", "Display this help message.")
     .on("--help", () => {
@@ -77,17 +77,23 @@ Examples:
   # Generate multiple images
   wavespeed --prompt "A magical landscape" --count 4
 
-  # Using prompt file
+  # Process all .txt files in current directory
   wavespeed --all-prompts
+
+  # Process all .txt files with optimization and multiple generations per file
+  wavespeed --all-prompts --optimize --optimize-style random --count 2
 
   # With prompt optimization
   wavespeed --prompt "woman walking" --optimize
   wavespeed --prompt "city scene" --optimize --optimize-mode video
   wavespeed --prompt "portrait shot" --optimize --optimize-style photographic
   wavespeed --prompt "fantasy art" --optimize --optimize-style artistic
+  wavespeed --prompt "creative scene" --optimize --optimize-style random --count 4
 
 Notes:
-  - Ensure that 'prompt.txt' exists in the directory where you run the script.
+  - When using --prompt, provide the prompt as a command-line argument.
+  - Without --prompt, the script reads from 'prompt.txt' in the current directory.
+  - With --all-prompts, the script processes all .txt files in the current directory.
   - The 'WAVESPEED_KEY' environment variable must be set with your Wavespeed API key.
   - Images are saved to the directory specified by 'WAVESPEED_PATH' or './images' by default.
         `);

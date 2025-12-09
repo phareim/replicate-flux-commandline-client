@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import path from "path";
+import fs from "fs/promises";
 import fetch from "node-fetch";
 
 import { setupCLI } from "./cli.js";
@@ -87,10 +88,15 @@ const optimizePrompt = async (promptText, mode = "image", style = "default", ima
     mode = "image";
   }
 
-  // Validate style parameter
-  const validStyles = ["default", "artistic", "photographic", "technical", "anime", "realistic"];
-  if (!validStyles.includes(style)) {
-    console.warn(`Invalid optimization style '${style}'. Using default 'default'. Valid options: ${validStyles.join(", ")}`);
+  // Validate and handle style parameter
+  const validStyles = ["default", "artistic", "photographic", "technical", "realistic"];
+
+  // Handle "random" style by randomly selecting from valid styles
+  if (style === "random") {
+    style = validStyles[Math.floor(Math.random() * validStyles.length)];
+    console.log(`🎲 Randomly selected style: ${style}`);
+  } else if (!validStyles.includes(style)) {
+    console.warn(`Invalid optimization style '${style}'. Using default 'default'. Valid options: ${validStyles.join(", ")}, random`);
     style = "default";
   }
 
@@ -396,27 +402,51 @@ const main = async () => {
   size = constrainDimensions(size, modelEndpoint);
 
   if (allPrompts) {
-    const promptFilePath = path.resolve(process.cwd(), promptFile);
-    getPromptFromFile(promptFilePath)
-      .then(async (promptText) => {
-        console.log(`Generating image for ${promptFile}`);
+    // Find all .txt files in current directory
+    const currentDir = process.cwd();
 
-        // Optimize prompt if requested
-        let finalPrompt = promptText;
-        if (optimize) {
-          finalPrompt = await optimizePrompt(promptText, optimizeMode, optimizeStyle, optimizeImage);
-        }
+    try {
+      const files = await fs.readdir(currentDir);
+      const txtFiles = files.filter(file => file.endsWith('.txt')).sort();
 
-        for (let i = 0; i < count; i++) {
-          if (count > 1) {
-            console.log(`\n${'='.repeat(60)}\nGeneration ${i + 1} of ${count}\n${'='.repeat(60)}\n`);
+      if (txtFiles.length === 0) {
+        console.error("No .txt files found in the current directory.");
+        process.exit(1);
+      }
+
+      console.log(`Found ${txtFiles.length} prompt file(s): ${txtFiles.join(', ')}\n`);
+
+      // Process each .txt file
+      for (const txtFile of txtFiles) {
+        const promptFilePath = path.resolve(currentDir, txtFile);
+
+        try {
+          const promptText = await getPromptFromFile(promptFilePath);
+
+          console.log(`\n${'#'.repeat(60)}\n# Processing: ${txtFile}\n${'#'.repeat(60)}\n`);
+
+          for (let i = 0; i < count; i++) {
+            if (count > 1) {
+              console.log(`\n${'='.repeat(60)}\nGeneration ${i + 1} of ${count}\n${'='.repeat(60)}\n`);
+            }
+
+            // Optimize prompt if requested (once per generation)
+            let finalPrompt = promptText;
+            if (optimize) {
+              finalPrompt = await optimizePrompt(promptText, optimizeMode, optimizeStyle, optimizeImage);
+            }
+
+            await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync);
           }
-          await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync);
+        } catch (error) {
+          console.error(`Failed to read prompt from ${txtFile}:`, error.message);
+          console.log(`Skipping ${txtFile}...\n`);
         }
-      })
-      .catch((error) => {
-        console.error("Failed to read prompt:", error);
-      });
+      }
+    } catch (error) {
+      console.error("Failed to read directory:", error);
+      process.exit(1);
+    }
   } else {
     const promptPromise = userPrompt
       ? Promise.resolve(userPrompt)
@@ -424,16 +454,17 @@ const main = async () => {
 
     promptPromise
       .then(async (promptText) => {
-        // Optimize prompt if requested
-        let finalPrompt = promptText;
-        if (optimize) {
-          finalPrompt = await optimizePrompt(promptText, optimizeMode, optimizeStyle, optimizeImage);
-        }
-
         for (let i = 0; i < count; i++) {
           if (count > 1) {
             console.log(`\n${'='.repeat(60)}\nGeneration ${i + 1} of ${count}\n${'='.repeat(60)}\n`);
           }
+
+          // Optimize prompt if requested (once per generation)
+          let finalPrompt = promptText;
+          if (optimize) {
+            finalPrompt = await optimizePrompt(promptText, optimizeMode, optimizeStyle, optimizeImage);
+          }
+
           await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync);
         }
       })
