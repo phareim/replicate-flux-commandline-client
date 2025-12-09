@@ -1,6 +1,6 @@
 # AI Image Generation CLI Tools
 
-A unified command-line interface for AI image generation services: Venice.ai, Fal.ai, and Replicate.ai. Generate images, videos, and 3D models using state-of-the-art AI models.
+A unified command-line interface for AI image generation services: Venice.ai, Fal.ai, Wavespeed.ai, and Replicate.ai. Generate images, videos, and 3D models using state-of-the-art AI models.
 
 ## Installation
 
@@ -156,6 +156,95 @@ falflux --model-info krea-lora
 
 ---
 
+### Wavespeed AI (`wavespeed`)
+Generate high-quality images using Wavespeed AI's fast and powerful models, including FLUX.2, Seedream, and more.
+
+#### Basic Usage
+
+```bash
+# Basic image generation (default model: z-image-turbo)
+wavespeed --prompt "A futuristic cityscape at dusk"
+
+# Using specific models
+wavespeed --model flux2 --prompt "Photorealistic portrait"
+wavespeed --model seedream --prompt "High quality landscape"
+wavespeed --model grok --prompt "Product photography shot"
+```
+
+#### Available Models
+
+- **flux-2-flex, flux2, flex** - FLUX.2 [flex]: Fast, flexible text-to-image with enhanced realism (1536x1536 max)
+- **z-image-turbo, z-image, turbo** - Z-Image-Turbo: 6B parameter model, photorealistic in sub-second time (1536x1536 max, default)
+- **seedream-v4.5, seedream, v4.5** - Seedream v4.5: Latest version by ByteDance with improved quality (4096x4096 max)
+- **seedream-v4, v4** - Seedream v4: High-fidelity image generation (4096x4096 max)
+- **seedream-v3.1, v3.1** - Seedream v3.1: Strong style fidelity and rich detail (2048x2048 max)
+- **wan-2.5, wan2.5, wan** - WAN 2.5: Alibaba text-to-image model (1440x1440 max)
+- **grok-2-image, grok2, grok** - Grok 2 Image: xAI's photorealistic image generation (1536x1536 max)
+
+#### Prompt Optimization
+
+Wavespeed includes a built-in prompt optimizer that enhances your prompts before generation:
+
+```bash
+# Basic optimization
+wavespeed --prompt "woman walking" --optimize
+
+# Optimization for video prompts
+wavespeed --prompt "city scene" --optimize --optimize-mode video
+
+# Style-specific optimization
+wavespeed --prompt "portrait shot" --optimize --optimize-style photographic
+wavespeed --prompt "fantasy art" --optimize --optimize-style artistic
+wavespeed --prompt "anime character" --optimize --optimize-style anime
+
+# With reference image
+wavespeed --prompt "similar style" --optimize --optimize-image https://example.com/reference.jpg
+```
+
+**Optimization Modes:** `image` (default), `video`
+**Optimization Styles:** `default`, `artistic`, `photographic`, `technical`, `anime`, `realistic`
+
+#### Advanced Features
+
+```bash
+# Custom image sizes
+wavespeed --prompt "Mountain landscape" --format 1920*1080
+wavespeed --prompt "Square image" --format square_hd
+
+# Multiple generations
+wavespeed --prompt "A magical landscape" --count 4
+
+# With seed for reproducibility
+wavespeed --prompt "A magical landscape" --seed 12345
+
+# Synchronous mode (wait for result in single response)
+wavespeed --prompt "Quick test" --sync
+
+# Save to current directory
+wavespeed --prompt "Local save" --out
+
+# Debug mode
+wavespeed --prompt "Test" --debug
+```
+
+**Options:**
+- `--prompt <text>`: Text prompt for generation
+- `--model <modelKey>`: Model to use (default: z-image-turbo)
+- `--format <formatKey>`: Image size preset (square, portrait, landscape, wide, tall) or custom dimensions
+- `--seed <number>`: Random seed for reproducibility
+- `--count <number>`: Number of generations (default: 1)
+- `--optimize`: Enable prompt optimization
+- `--optimize-mode <mode>`: Optimization mode (image, video)
+- `--optimize-style <style>`: Optimization style (default, artistic, photographic, technical, anime, realistic)
+- `--optimize-image <url>`: Reference image URL for optimization
+- `--sync`: Enable synchronous mode
+- `--out`: Save to current directory instead of default
+- `--debug`: Enable debug mode
+
+**Note:** Images are automatically constrained to model-specific maximum dimensions while preserving aspect ratio.
+
+---
+
 ### Replicate (`repflux`)
 Download and manage existing predictions from your Replicate account.
 
@@ -176,6 +265,7 @@ All services require their respective API credentials to be set as environment v
 ```bash
 export VENICE_API_TOKEN="your-venice-api-token"
 export FAL_KEY="your-fal-api-key"
+export WAVESPEED_KEY="your-wavespeed-api-key"
 export REPLICATE_API_TOKEN="your-replicate-api-token"
 ```
 

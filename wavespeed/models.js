@@ -20,6 +20,9 @@ export const modelEndpoints = {
   "wan-2.5": "alibaba/wan-2.5/text-to-image",
   "wan2.5": "alibaba/wan-2.5/text-to-image",
   "wan": "alibaba/wan-2.5/text-to-image",
+  "grok-2-image": "x-ai/grok-2-image",
+  "grok2": "x-ai/grok-2-image",
+  "grok": "x-ai/grok-2-image",
 };
 
 export const allModels = [
@@ -102,6 +105,19 @@ export const allModels = [
       defaultSize: "1440*1440",
       maxWidth: 1440,
       maxHeight: 1440,
+    }
+  },
+  {
+    endpoint_id: "x-ai/grok-2-image",
+    metadata: {
+      display_name: "Grok 2 Image",
+      category: "text-to-image",
+      description: "xAI's latest image generation model converting simple text prompts into sharp, photorealistic visuals. Suitable for product photography, social media content, and conceptual artwork with close adherence to instructions.",
+      status: "live",
+      tags: ["x-ai", "text-to-image", "grok", "photorealistic", "fast"],
+      model_url: "https://api.wavespeed.ai/api/v3/x-ai/grok-2-image",
+      maxWidth: 1536,
+      maxHeight: 1536,
     }
   }
 ];

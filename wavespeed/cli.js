@@ -44,17 +44,28 @@ export function setupCLI() {
       console.log(`
 Default Model:
   ${DEFAULT_MODEL} (${modelEndpoints[DEFAULT_MODEL]})
-  Seedream 4.0 by ByteDance - state-of-the-art image generation delivering high-fidelity outputs.
+  Z-Image-Turbo - 6B parameter model generating photorealistic images in sub-second time.
 
 Available Models:
-  seedream-v4, seedream, v4
+  flux-2-flex, flux2, flex          FLUX.2 [flex] - Fast, flexible text-to-image with enhanced realism
+  z-image-turbo, z-image, turbo     Z-Image-Turbo - 6B parameter model, photorealistic in sub-second time
+  seedream-v4.5, seedream, v4.5     Seedream v4.5 - Latest version by ByteDance
+  seedream-v4, v4                   Seedream v4 - High-fidelity image generation
+  seedream-v3.1, v3.1               Seedream v3.1 - Strong style fidelity and rich detail
+  wan-2.5, wan2.5, wan              WAN 2.5 - Alibaba text-to-image model
+  grok-2-image, grok2, grok         Grok 2 Image - xAI's photorealistic image generation
 
 Available Formats:
   ${availableSizes}
 
 Examples:
-  # Basic usage
+  # Basic usage (default model: z-image-turbo)
   wavespeed --prompt "A futuristic cityscape at dusk"
+
+  # Using specific models
+  wavespeed --model flux2 --prompt "Photorealistic portrait"
+  wavespeed --model turbo --prompt "Quick render of mountain landscape"
+  wavespeed --model grok --prompt "Product photography shot"
 
   # With custom format/size
   wavespeed --prompt "An enchanted forest" --format square_hd
