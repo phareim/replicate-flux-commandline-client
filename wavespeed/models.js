@@ -11,11 +11,16 @@ export const modelEndpoints = {
   "z-image": "wavespeed-ai/z-image/turbo",
   "turbo": "wavespeed-ai/z-image/turbo",
   "seedream-v4.5": "bytedance/seedream-v4.5",
+  "seedream-v4.5-edit": "bytedance/seedream-v4.5/edit",
   "seedream-v4": "bytedance/seedream-v4",
+  "seedream-v4-edit": "bytedance/seedream-v4/edit",
   "seedream-v3.1": "bytedance/seedream-v3.1",
   "seedream": "bytedance/seedream-v4.5",
+  "seedream-edit": "bytedance/seedream-v4.5/edit",
   "v4.5": "bytedance/seedream-v4.5",
+  "v4.5-edit": "bytedance/seedream-v4.5/edit",
   "v4": "bytedance/seedream-v4",
+  "v4-edit": "bytedance/seedream-v4/edit",
   "v3.1": "bytedance/seedream-v3.1",
   "wan-2.5": "alibaba/wan-2.5/text-to-image",
   "wan2.5": "alibaba/wan-2.5/text-to-image",
@@ -67,6 +72,19 @@ export const allModels = [
     }
   },
   {
+    endpoint_id: "bytedance/seedream-v4.5/edit",
+    metadata: {
+      display_name: "Seedream v4.5 Edit",
+      category: "image-to-image",
+      description: "ByteDance Seedream 4.5 Edit preserves facial features, lighting, and color tone from reference images, delivering professional, high-fidelity edits up to 4K with strong prompt adherence.",
+      status: "live",
+      tags: ["bytedance", "image-to-image", "edit", "4k"],
+      model_url: "https://wavespeed.ai/models/bytedance/seedream-v4.5/edit",
+      maxWidth: 4096,
+      maxHeight: 4096,
+    }
+  },
+  {
     endpoint_id: "bytedance/seedream-v4",
     metadata: {
       display_name: "Seedream v4",
@@ -75,6 +93,19 @@ export const allModels = [
       status: "live",
       tags: ["bytedance", "text-to-image", "4k"],
       model_url: "https://wavespeed.ai/models/bytedance/seedream-v4",
+      maxWidth: 4096,
+      maxHeight: 4096,
+    }
+  },
+  {
+    endpoint_id: "bytedance/seedream-v4/edit",
+    metadata: {
+      display_name: "Seedream v4 Edit",
+      category: "image-to-image",
+      description: "ByteDance's state-of-the-art image editing model that outperforms Nano Banana in fidelity and edit quality. Ready-to-use REST inference API, best performance, no coldstarts, affordable pricing.",
+      status: "live",
+      tags: ["bytedance", "image-to-image", "edit", "4k"],
+      model_url: "https://wavespeed.ai/models/bytedance/seedream-v4/edit",
       maxWidth: 4096,
       maxHeight: 4096,
     }

@@ -226,7 +226,7 @@ const optimizePrompt = async (promptText, mode = "image", style = "default", ima
 /**
  * Main generation function
  */
-const run = async (prompt, modelEndpoint, size, enableBase64, enableSync) => {
+const run = async (prompt, modelEndpoint, size, enableBase64, enableSync, images = null) => {
   const modelInfo = getModelInfo(modelEndpoint);
   const category = modelInfo?.metadata?.category || 'text-to-image';
 
@@ -241,6 +241,7 @@ const run = async (prompt, modelEndpoint, size, enableBase64, enableSync) => {
     size,
     enableBase64,
     sync: enableSync,
+    images,
   };
 
   const input = buildParameters(category, options);
@@ -391,6 +392,7 @@ const main = async () => {
   const optimizeMode = options.optimizeMode || "image";
   const optimizeStyle = options.optimizeStyle || "default";
   const optimizeImage = options.optimizeImage || null;
+  const images = options.images || null;
 
   // Get the model endpoint
   const modelEndpoint = getModelEndpoint(modelKey);
@@ -436,7 +438,7 @@ const main = async () => {
               finalPrompt = await optimizePrompt(promptText, optimizeMode, optimizeStyle, optimizeImage);
             }
 
-            await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync);
+            await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync, images);
           }
         } catch (error) {
           console.error(`Failed to read prompt from ${txtFile}:`, error.message);
@@ -465,7 +467,7 @@ const main = async () => {
             finalPrompt = await optimizePrompt(promptText, optimizeMode, optimizeStyle, optimizeImage);
           }
 
-          await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync);
+          await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync, images);
         }
       })
       .catch((error) => {

@@ -21,6 +21,10 @@ export function setupCLI() {
     .option("--model <modelKey>", "Choose the AI model to use.", DEFAULT_MODEL)
     .option("--format <formatKey>", "Specify image size/format (e.g., '2048*2048', 'square_hd', 'portrait').")
     .option(
+      "--images <urls...>",
+      "Input image URLs for image-to-image models (space-separated, max 10)."
+    )
+    .option(
       "--seed <number>",
       "Set a seed for randomization to reproduce results."
     )
@@ -47,13 +51,15 @@ Default Model:
   Z-Image-Turbo - 6B parameter model generating photorealistic images in sub-second time.
 
 Available Models:
-  flux-2-flex, flux2, flex          FLUX.2 [flex] - Fast, flexible text-to-image with enhanced realism
-  z-image-turbo, z-image, turbo     Z-Image-Turbo - 6B parameter model, photorealistic in sub-second time
-  seedream-v4.5, seedream, v4.5     Seedream v4.5 - Latest version by ByteDance
-  seedream-v4, v4                   Seedream v4 - High-fidelity image generation
-  seedream-v3.1, v3.1               Seedream v3.1 - Strong style fidelity and rich detail
-  wan-2.5, wan2.5, wan              WAN 2.5 - Alibaba text-to-image model
-  grok-2-image, grok2, grok         Grok 2 Image - xAI's photorealistic image generation
+  flux-2-flex, flux2, flex              FLUX.2 [flex] - Fast, flexible text-to-image with enhanced realism
+  z-image-turbo, z-image, turbo         Z-Image-Turbo - 6B parameter model, photorealistic in sub-second time
+  seedream-v4.5, seedream, v4.5         Seedream v4.5 - Latest version by ByteDance
+  seedream-v4.5-edit, seedream-edit     Seedream v4.5 Edit - Professional image editing with facial preservation
+  seedream-v4, v4                       Seedream v4 - High-fidelity image generation
+  seedream-v4-edit, v4-edit             Seedream v4 Edit - State-of-the-art image editing (4K)
+  seedream-v3.1, v3.1                   Seedream v3.1 - Strong style fidelity and rich detail
+  wan-2.5, wan2.5, wan                  WAN 2.5 - Alibaba text-to-image model
+  grok-2-image, grok2, grok             Grok 2 Image - xAI's photorealistic image generation
 
 Available Formats:
   ${availableSizes}
@@ -89,6 +95,14 @@ Examples:
   wavespeed --prompt "portrait shot" --optimize --optimize-style photographic
   wavespeed --prompt "fantasy art" --optimize --optimize-style artistic
   wavespeed --prompt "creative scene" --optimize --optimize-style random --count 4
+
+  # Image-to-image editing (Seedream v4.5 Edit)
+  wavespeed --model seedream-edit --images https://example.com/photo.jpg --prompt "Professional headshot"
+  wavespeed --model v4.5-edit --images img1.jpg img2.jpg --prompt "Enhance lighting and color"
+
+  # Image-to-image editing (Seedream v4 Edit)
+  wavespeed --model v4-edit --images photo.jpg --prompt "Transform into oil painting style"
+  wavespeed --model seedream-v4-edit --images img1.jpg img2.jpg --prompt "Cinematic color grading"
 
 Notes:
   - When using --prompt, provide the prompt as a command-line argument.
