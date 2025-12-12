@@ -226,7 +226,7 @@ const optimizePrompt = async (promptText, mode = "image", style = "default", ima
 /**
  * Main generation function
  */
-const run = async (prompt, modelEndpoint, size, enableBase64, enableSync, images = null) => {
+const run = async (prompt, modelEndpoint, size, enableBase64, enableSync, images = null, negativePrompt = null, seed = null, aspectRatio = null, resolution = null, outputFormat = null) => {
   const modelInfo = getModelInfo(modelEndpoint);
   const category = modelInfo?.metadata?.category || 'text-to-image';
 
@@ -242,6 +242,11 @@ const run = async (prompt, modelEndpoint, size, enableBase64, enableSync, images
     enableBase64,
     sync: enableSync,
     images,
+    negativePrompt,
+    seed,
+    aspectRatio,
+    resolution,
+    outputFormat,
   };
 
   const input = buildParameters(category, options);
@@ -393,6 +398,11 @@ const main = async () => {
   const optimizeStyle = options.optimizeStyle || "default";
   const optimizeImage = options.optimizeImage || null;
   const images = options.images || null;
+  const negativePrompt = options.negativePrompt || null;
+  const seed = options.seed || null;
+  const aspectRatio = options.aspectRatio || null;
+  const resolution = options.resolution || null;
+  const outputFormat = options.outputFormat || null;
 
   // Get the model endpoint
   const modelEndpoint = getModelEndpoint(modelKey);
@@ -438,7 +448,7 @@ const main = async () => {
               finalPrompt = await optimizePrompt(promptText, optimizeMode, optimizeStyle, optimizeImage);
             }
 
-            await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync, images);
+            await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync, images, negativePrompt, seed, aspectRatio, resolution, outputFormat);
           }
         } catch (error) {
           console.error(`Failed to read prompt from ${txtFile}:`, error.message);
@@ -467,7 +477,7 @@ const main = async () => {
             finalPrompt = await optimizePrompt(promptText, optimizeMode, optimizeStyle, optimizeImage);
           }
 
-          await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync, images);
+          await run(finalPrompt, modelEndpoint, size, enableBase64, enableSync, images, negativePrompt, seed, aspectRatio, resolution, outputFormat);
         }
       })
       .catch((error) => {

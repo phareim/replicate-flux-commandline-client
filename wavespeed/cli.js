@@ -25,8 +25,24 @@ export function setupCLI() {
       "Input image URLs for image-to-image models (space-separated, max 10)."
     )
     .option(
+      "--negative-prompt <text>",
+      "Specify negative prompt to guide what to avoid in generation."
+    )
+    .option(
       "--seed <number>",
       "Set a seed for randomization to reproduce results."
+    )
+    .option(
+      "--aspect-ratio <ratio>",
+      "Aspect ratio for generation (e.g., '1:1', '16:9', '9:16'). Model-specific."
+    )
+    .option(
+      "--resolution <res>",
+      "Output resolution: '1k', '2k', or '4k'. Model-specific."
+    )
+    .option(
+      "--output-format <format>",
+      "Output format: 'png' or 'jpeg'. Model-specific."
     )
     .option(
       "--out",
@@ -59,6 +75,9 @@ Available Models:
   seedream-v4-edit, v4-edit             Seedream v4 Edit - State-of-the-art image editing (4K)
   seedream-v3.1, v3.1                   Seedream v3.1 - Strong style fidelity and rich detail
   wan-2.5, wan2.5, wan                  WAN 2.5 - Alibaba text-to-image model
+  wan-2.5-edit, wan-edit, wan2.5-edit   WAN 2.5 Edit - Alibaba image editing with stylistic upgrades
+  nano-banana-pro-edit, nano-edit       Nano Banana Pro Edit - Google Gemini 3.0 image editing (4K)
+  banana-edit, gemini-edit              (aliases for nano-banana-pro-edit)
   grok-2-image, grok2, grok             Grok 2 Image - xAI's photorealistic image generation
 
 Available Formats:
@@ -103,6 +122,15 @@ Examples:
   # Image-to-image editing (Seedream v4 Edit)
   wavespeed --model v4-edit --images photo.jpg --prompt "Transform into oil painting style"
   wavespeed --model seedream-v4-edit --images img1.jpg img2.jpg --prompt "Cinematic color grading"
+
+  # Image-to-image editing (WAN 2.5 Edit)
+  wavespeed --model wan-edit --images photo.jpg --prompt "Professional portrait with soft lighting"
+  wavespeed --model wan-2.5-edit --images img1.jpg --prompt "Enhance colors" --negative-prompt "oversaturated, blurry"
+
+  # Image-to-image editing (Nano Banana Pro Edit / Gemini 3.0)
+  wavespeed --model nano-edit --images photo.jpg --prompt "Transform into artwork"
+  wavespeed --model gemini-edit --images img1.jpg img2.jpg --prompt "Enhance details" --resolution 4k
+  wavespeed --model banana-edit --images photo.jpg --prompt "Professional edit" --aspect-ratio 16:9 --output-format jpeg
 
 Notes:
   - When using --prompt, provide the prompt as a command-line argument.

@@ -25,6 +25,13 @@ export const modelEndpoints = {
   "wan-2.5": "alibaba/wan-2.5/text-to-image",
   "wan2.5": "alibaba/wan-2.5/text-to-image",
   "wan": "alibaba/wan-2.5/text-to-image",
+  "wan-2.5-edit": "alibaba/wan-2.5/image-edit",
+  "wan-edit": "alibaba/wan-2.5/image-edit",
+  "wan2.5-edit": "alibaba/wan-2.5/image-edit",
+  "nano-banana-pro-edit": "google/nano-banana-pro/edit",
+  "nano-edit": "google/nano-banana-pro/edit",
+  "banana-edit": "google/nano-banana-pro/edit",
+  "gemini-edit": "google/nano-banana-pro/edit",
   "grok-2-image": "x-ai/grok-2-image",
   "grok2": "x-ai/grok-2-image",
   "grok": "x-ai/grok-2-image",
@@ -136,6 +143,32 @@ export const allModels = [
       defaultSize: "1440*1440",
       maxWidth: 1440,
       maxHeight: 1440,
+    }
+  },
+  {
+    endpoint_id: "alibaba/wan-2.5/image-edit",
+    metadata: {
+      display_name: "WAN 2.5 Edit",
+      category: "image-to-image",
+      description: "Refine existing visuals with Alibaba WAN 2.5 image-edit using prompt-driven adjustments and stylistic upgrades for photos and graphics.",
+      status: "live",
+      tags: ["alibaba", "image-to-image", "edit", "wan"],
+      model_url: "https://wavespeed.ai/models/alibaba/wan-2.5/image-edit",
+      maxWidth: 1440,
+      maxHeight: 1440,
+    }
+  },
+  {
+    endpoint_id: "google/nano-banana-pro/edit",
+    metadata: {
+      display_name: "Nano Banana Pro Edit",
+      category: "image-to-image",
+      description: "Google Nano Banana Pro (Gemini 3.0 Pro Image) Edit enables image editing with 4K-capable output.",
+      status: "live",
+      tags: ["google", "image-to-image", "edit", "gemini", "4k"],
+      model_url: "https://wavespeed.ai/models/google/nano-banana-pro/edit",
+      maxWidth: 4096,
+      maxHeight: 4096,
     }
   },
   {

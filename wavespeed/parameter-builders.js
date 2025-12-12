@@ -38,6 +38,26 @@ export function buildParameters(category, options) {
     params.enable_sync_mode = true;
   }
 
+  if (options.negativePrompt) {
+    params.negative_prompt = options.negativePrompt;
+  }
+
+  if (options.seed !== undefined && options.seed !== null) {
+    params.seed = parseInt(options.seed, 10);
+  }
+
+  if (options.aspectRatio) {
+    params.aspect_ratio = options.aspectRatio;
+  }
+
+  if (options.resolution) {
+    params.resolution = options.resolution;
+  }
+
+  if (options.outputFormat) {
+    params.output_format = options.outputFormat;
+  }
+
   return params;
 }
 
