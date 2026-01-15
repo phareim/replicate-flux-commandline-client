@@ -197,8 +197,8 @@ export const allModels = [
       tags: ["stability-ai", "text-to-image", "sdxl", "stable-diffusion"],
       model_url: "https://api.wavespeed.ai/api/v3/stability-ai/sdxl",
       defaultSize: "1024*1024",
-      maxWidth: 1024,
-      maxHeight: 1024,
+      maxWidth: 1536,
+      maxHeight: 1536,
     }
   },
   {
@@ -210,9 +210,9 @@ export const allModels = [
       status: "live",
       tags: ["wavespeed", "text-to-image", "chroma", "uncensored"],
       model_url: "https://api.wavespeed.ai/api/v3/wavespeed-ai/chroma",
-      defaultSize: "1024*1024",
-      maxWidth: 1024,
-      maxHeight: 1024,
+      defaultSize: "1536*1536",
+      maxWidth: 1536,
+      maxHeight: 1536,
     }
   }
 ];
