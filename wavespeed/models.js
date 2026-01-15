@@ -35,6 +35,9 @@ export const modelEndpoints = {
   "grok-2-image": "x-ai/grok-2-image",
   "grok2": "x-ai/grok-2-image",
   "grok": "x-ai/grok-2-image",
+  "sdxl": "stability-ai/sdxl",
+  "stable-diffusion-xl": "stability-ai/sdxl",
+  "chroma": "wavespeed-ai/chroma",
 };
 
 export const allModels = [
@@ -182,6 +185,34 @@ export const allModels = [
       model_url: "https://api.wavespeed.ai/api/v3/x-ai/grok-2-image",
       maxWidth: 1536,
       maxHeight: 1536,
+    }
+  },
+  {
+    endpoint_id: "stability-ai/sdxl",
+    metadata: {
+      display_name: "SDXL",
+      category: "text-to-image",
+      description: "Stable Diffusion XL - a text-to-image generator that creates beautiful, high-quality images.",
+      status: "live",
+      tags: ["stability-ai", "text-to-image", "sdxl", "stable-diffusion"],
+      model_url: "https://api.wavespeed.ai/api/v3/stability-ai/sdxl",
+      defaultSize: "1024*1024",
+      maxWidth: 1024,
+      maxHeight: 1024,
+    }
+  },
+  {
+    endpoint_id: "wavespeed-ai/chroma",
+    metadata: {
+      display_name: "Chroma",
+      category: "text-to-image",
+      description: "Uncensored image generation for creative expression and artistic freedom. No cold starts.",
+      status: "live",
+      tags: ["wavespeed", "text-to-image", "chroma", "uncensored"],
+      model_url: "https://api.wavespeed.ai/api/v3/wavespeed-ai/chroma",
+      defaultSize: "1024*1024",
+      maxWidth: 1024,
+      maxHeight: 1024,
     }
   }
 ];
