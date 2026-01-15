@@ -58,6 +58,14 @@ export function buildParameters(category, options) {
     params.output_format = options.outputFormat;
   }
 
+  if (options.quality) {
+    params.quality = options.quality;
+  }
+
+  if (options.numImages) {
+    params.num_images = parseInt(options.numImages, 10);
+  }
+
   return params;
 }
 

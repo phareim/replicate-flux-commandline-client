@@ -38,6 +38,13 @@ export const modelEndpoints = {
   "sdxl": "stability-ai/sdxl",
   "stable-diffusion-xl": "stability-ai/sdxl",
   "chroma": "wavespeed-ai/chroma",
+  "cogview-4": "z-ai/cogview-4",
+  "cogview": "z-ai/cogview-4",
+  "cog4": "z-ai/cogview-4",
+  "kling-image-o1": "kwaivgi/kling-image-o1",
+  "kling-image": "kwaivgi/kling-image-o1",
+  "kling-o1": "kwaivgi/kling-image-o1",
+  "kling": "kwaivgi/kling-image-o1",
 };
 
 export const allModels = [
@@ -213,6 +220,36 @@ export const allModels = [
       defaultSize: "1536*1536",
       maxWidth: 1536,
       maxHeight: 1536,
+    }
+  },
+  {
+    endpoint_id: "z-ai/cogview-4",
+    metadata: {
+      display_name: "CogView-4",
+      category: "text-to-image",
+      description: "Zhipu AI's CogView-4 text-to-image model with HD quality support.",
+      status: "live",
+      tags: ["z-ai", "text-to-image", "cogview", "hd"],
+      model_url: "https://api.wavespeed.ai/api/v3/z-ai/cogview-4",
+      defaultSize: "1024*1024",
+      fixedSizes: ["1024*1024", "768*1344", "864*1152", "1344*768", "1152*864", "1440*720", "720*1440"],
+      supportsQuality: true,
+      defaultQuality: "hd",
+    }
+  },
+  {
+    endpoint_id: "kwaivgi/kling-image-o1",
+    metadata: {
+      display_name: "Kling Image O1",
+      category: "text-to-image",
+      description: "Kuaishou's Kling Image O1 model with reference image support and up to 2K resolution.",
+      status: "live",
+      tags: ["kuaishou", "kling", "text-to-image", "2k"],
+      model_url: "https://api.wavespeed.ai/api/v3/kwaivgi/kling-image-o1",
+      supportsNumImages: true,
+      maxNumImages: 9,
+      supportsReferenceImages: true,
+      maxReferenceImages: 10,
     }
   }
 ];

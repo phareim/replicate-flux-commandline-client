@@ -45,6 +45,14 @@ export function setupCLI() {
       "Output format: 'png' or 'jpeg'. Model-specific."
     )
     .option(
+      "--quality <quality>",
+      "Quality setting: 'standard' or 'hd' (CogView-4 only, default: hd)."
+    )
+    .option(
+      "--num-images <number>",
+      "Number of images to generate per request (Kling only, 1-9, default: 1)."
+    )
+    .option(
       "--out",
       "Save images to the current directory instead of the default."
     )
@@ -79,6 +87,8 @@ Available Models:
   nano-banana-pro-edit, nano-edit       Nano Banana Pro Edit - Google Gemini 3.0 image editing (4K)
   banana-edit, gemini-edit              (aliases for nano-banana-pro-edit)
   grok-2-image, grok2, grok             Grok 2 Image - xAI's photorealistic image generation
+  cogview-4, cogview, cog4              CogView-4 - Zhipu AI's HD quality text-to-image
+  kling-image-o1, kling-image, kling    Kling Image O1 - Kuaishou's 2K model with reference images
 
 Available Formats:
   ${availableSizes}
@@ -91,6 +101,8 @@ Examples:
   wavespeed --model flux2 --prompt "Photorealistic portrait"
   wavespeed --model turbo --prompt "Quick render of mountain landscape"
   wavespeed --model grok --prompt "Product photography shot"
+  wavespeed --model cogview --prompt "Beautiful landscape" --quality hd
+  wavespeed --model kling --prompt "Epic fantasy scene" --resolution 2k --num-images 4
 
   # With custom format/size
   wavespeed --prompt "An enchanted forest" --format square_hd
