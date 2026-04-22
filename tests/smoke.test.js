@@ -52,46 +52,6 @@ test("venice smoke test saves mocked image output", () => {
   }
 });
 
-test("fal smoke test downloads mocked assets", () => {
-  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "fal-smoke-"));
-  try {
-    runCli(
-      ["fal/index.js", "--prompt", "smoke test"],
-      {
-        FAL_KEY: "test-key",
-        FAL_SMOKE_TEST: "1",
-        FAL_PATH: outputDir,
-        NODE_ENV: "test"
-      }
-    );
-
-    const files = fs.readdirSync(outputDir);
-    assert(files.length > 0, "Expected at least one fal output file");
-  } finally {
-    removeDir(outputDir);
-  }
-});
-
-test("replicate smoke test writes mocked prediction download", () => {
-  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "replicate-smoke-"));
-  try {
-    runCli(
-      ["replicate/index.js"],
-      {
-        REPLICATE_API_TOKEN: "test-token",
-        REPLICATE_SMOKE_TEST: "1",
-        REPLICATE_OUTPUT_DIR: outputDir,
-        NODE_ENV: "test"
-      }
-    );
-
-    const files = fs.readdirSync(outputDir);
-    assert(files.some((file) => file.endsWith(".jpg")), "Expected replicate mock download");
-  } finally {
-    removeDir(outputDir);
-  }
-});
-
 test("wavespeed smoke test saves mocked image output", () => {
   const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "wavespeed-smoke-"));
   try {

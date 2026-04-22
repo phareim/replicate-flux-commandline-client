@@ -1,11 +1,9 @@
 {
   "name": "flux-client",
   "version": "0.0.1",
-  "description": "A client for the flux image-generation models from venice.ai, replicate.ai and fel.ai",
+  "description": "A client for image-generation models from venice.ai and wavespeed.ai",
   "main": "index.js",
   "bin": {
-    "repflux": "./replicate/index.js",
-    "falflux": "./fal/index.js",
     "venice": "./venice/index.js",
     "venice-models": "./venice/get-models.js",
     "wavespeed": "./wavespeed/index.js"
@@ -15,27 +13,19 @@
     "test": "node --test tests/smoke.test.js"
   },
   "keywords": [
-    "flux",
-    "replicate",
-    "fal",
     "venice",
+    "wavespeed",
     "ai"
   ],
   "author": "phareim@gmail.com",
   "license": "ISC",
   "dependencies": {
-    "@fal-ai/client": "^1.6.1",
-    "@fal-ai/serverless-client": "^0.14.3",
     "axios": "^1.12.1",
     "chromedriver": "^127.0.2",
     "commander": "^12.1.0",
-    "fetch-blob": "^3.2.0",
     "g": "^2.0.1",
     "node-fetch": "^3.3.2",
     "puppeteer": "^23.0.2",
-    "replicate": "^0.32.0",
-    "selenium-webdriver": "^4.23.0",
-    "sharp": "^0.34.5",
-    "terminal-image": "^4.1.0"
+    "selenium-webdriver": "^4.23.0"
   }
 }
