@@ -118,6 +118,19 @@ export function setupCLI() {
       "Return image as binary data"
     )
     .option(
+      "--aiwdm",
+      "Upload the generated image to the aiwdm media library via the local `aiwdm` CLI."
+    )
+    .option(
+      "--aiwdm-rating <rating>",
+      "Rating passed to aiwdm upload (G, PG, PG13, R).",
+      "R"
+    )
+    .option(
+      "--aiwdm-tags <tags>",
+      "Extra comma-separated tags passed to aiwdm upload (source tag `venice` is always added)."
+    )
+    .option(
       "--debug",
       "Enable debug mode to display additional logs"
     )

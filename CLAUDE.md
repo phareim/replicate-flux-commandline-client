@@ -93,6 +93,15 @@ Images are saved to:
 
 File naming convention: `<source>_<timestamp>.png` or extracted from URL for downloads.
 
+### aiwdm Upload Integration
+
+Both CLIs support `--aiwdm` to push the saved image into the aiwdm media library by shelling out to the local `aiwdm upload` binary (`~/.npm-global/bin/aiwdm`). The prompt is forwarded via `--prompt` so `aiwdm` uses it verbatim as the description (skipping its AI description step).
+
+- Flags: `--aiwdm`, `--aiwdm-rating <G|PG|PG13|R>` (default `R`), `--aiwdm-tags <a,b>` (comma-separated extras; a source tag `venice` or `wavespeed` is always prepended).
+- Skipped in smoke-test mode (`VENICE_SMOKE_TEST=1` / `WAVESPEED_SMOKE_TEST=1`).
+- Wavespeed: `fetchImages` now returns saved file paths, and `handleResponse` returns `{ ok, savedPaths }`. When adding new response handlers, follow the same shape so `--aiwdm` keeps working.
+- Implementation is inlined in each `index.js` (`uploadToAiwdm`) to preserve module independence — no shared helper.
+
 ### API Response Handling
 
 **Venice**: Returns binary image data directly with `return_binary: true`. No polling required.

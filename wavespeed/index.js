@@ -2,6 +2,7 @@
 
 import path from "path";
 import fs from "fs/promises";
+import { spawn } from "child_process";
 
 import { setupCLI } from "./cli.js";
 import { getPromptFromFile } from "./utils.js";
@@ -20,6 +21,25 @@ const authHeaders = (extra = {}) => ({
   Authorization: `Bearer ${process.env.WAVESPEED_KEY}`,
   ...extra,
 });
+
+const uploadToAiwdm = (filePath, { prompt, rating, tags }) => {
+  const args = ["upload", filePath];
+  if (rating) args.push("--rating", rating);
+  if (tags && tags.length) args.push("--tags", tags.join(","));
+  if (prompt) args.push("--prompt", prompt);
+
+  return new Promise((resolve) => {
+    const proc = spawn("aiwdm", args, { stdio: "inherit" });
+    proc.on("error", (err) => {
+      console.error(`aiwdm upload failed: ${err.message}`);
+      resolve();
+    });
+    proc.on("close", (code) => {
+      if (code !== 0) console.error(`aiwdm exited with code ${code}`);
+      resolve();
+    });
+  });
+};
 
 /**
  * Poll a prediction until it completes or fails.
@@ -242,11 +262,25 @@ const run = async ({ prompt, modelEndpoint, size, options }) => {
     return;
   }
 
-  const handled = await handleResponse(result, category, modelEndpoint, localOutputOverride);
+  const { ok: handled, savedPaths } = await handleResponse(result, category, modelEndpoint, localOutputOverride);
   if (!handled) {
     console.error(`Failed to process response for category '${category}'`);
     console.error("Please check the API response format or report this issue.");
     return;
+  }
+
+  if (options.aiwdm && !WAVESPEED_SMOKE_MODE && savedPaths.length > 0) {
+    const extraTags = options.aiwdmTags
+      ? options.aiwdmTags.split(",").map((t) => t.trim()).filter(Boolean)
+      : [];
+    const tags = ["wavespeed", ...extraTags];
+    for (const savedPath of savedPaths) {
+      await uploadToAiwdm(savedPath, {
+        prompt,
+        rating: options.aiwdmRating,
+        tags,
+      });
+    }
   }
 
   const nsfwFlag = result.has_nsfw_contents?.some((x) => x) ? " 🔞" : "__";

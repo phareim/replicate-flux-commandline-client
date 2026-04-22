@@ -65,6 +65,9 @@ export function setupCLI() {
     .option("--optimize-mode <mode>", "Optimization mode: 'image' or 'video' (default: image).", "image")
     .option("--optimize-style <style>", "Optimization style: default, artistic, photographic, technical, realistic, random (default: default).", "default")
     .option("--optimize-image <url>", "Reference image URL for optimization context.")
+    .option("--aiwdm", "Upload the generated image(s) to the aiwdm media library via the local `aiwdm` CLI.")
+    .option("--aiwdm-rating <rating>", "Rating passed to aiwdm upload (G, PG, PG13, R).", "R")
+    .option("--aiwdm-tags <tags>", "Extra comma-separated tags passed to aiwdm upload (source tag `wavespeed` is always added).")
     .helpOption("-h, --help", "Display this help message.")
     .on("--help", () => {
       const availableSizes = Object.keys(image_size).join(", ");

@@ -187,6 +187,22 @@ venice --prompt "test" --debug
 wavespeed --prompt "test" --debug
 ```
 
+### Upload to aiwdm
+
+Both CLIs can push the generated image straight into the [aiwdm](https://github.com/phareim/aiwdm) media library after saving it locally. The local `aiwdm` CLI must be on `PATH`.
+
+```bash
+venice --prompt "A serene mountain" --aiwdm
+wavespeed --prompt "A futuristic city" --aiwdm --aiwdm-rating G --aiwdm-tags "scifi,city"
+```
+
+The prompt is passed to `aiwdm upload --prompt …` as the description (skipping AI description generation). A source tag (`venice` or `wavespeed`) is always added; `--aiwdm-tags` appends extras.
+
+**Options:**
+- `--aiwdm`: Upload saved image(s) to aiwdm
+- `--aiwdm-rating <rating>`: `G`, `PG`, `PG13`, or `R` (default: `R`)
+- `--aiwdm-tags <tags>`: Comma-separated extra tags
+
 ## Development
 
 See [CLAUDE.md](./CLAUDE.md) for detailed development documentation, architecture details, and contribution guidelines.

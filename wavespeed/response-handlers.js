@@ -6,13 +6,13 @@ import { fetchImages } from "./utils.js";
  * @param {string} category - Model category (e.g., 'text-to-image')
  * @param {string} modelEndpoint - Full model endpoint ID
  * @param {boolean} localOutputOverride - Save to current directory
- * @returns {Promise<boolean>} - True if handled successfully
+ * @returns {Promise<{ok: boolean, savedPaths: string[]}>} - ok flag plus saved file paths
  */
 export async function handleResponse(result, category, modelEndpoint, localOutputOverride = false) {
   try {
     if (result.status === "failed") {
       console.error("Generation failed:", result.error || "Unknown error");
-      return false;
+      return { ok: false, savedPaths: [] };
     }
 
     if (result && Array.isArray(result.outputs) && result.outputs.length > 0) {
@@ -24,20 +24,20 @@ export async function handleResponse(result, category, modelEndpoint, localOutpu
       });
       console.log();
 
-      await fetchImages(result.outputs, localOutputOverride, result.id);
-      return true;
+      const savedPaths = await fetchImages(result.outputs, localOutputOverride, result.id);
+      return { ok: true, savedPaths };
     }
 
     if (result.status === "processing" || result.status === "created") {
       console.warn("Generation is still processing. Please check back later.");
       if (result.id) console.log(`Prediction ID: ${result.id}`);
-      return true;
+      return { ok: true, savedPaths: [] };
     }
 
     console.error("No outputs found in response");
-    return false;
+    return { ok: false, savedPaths: [] };
   } catch (error) {
     console.error(`Error handling response:`, error.message);
-    return false;
+    return { ok: false, savedPaths: [] };
   }
 }

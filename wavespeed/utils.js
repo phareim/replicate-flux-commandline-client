@@ -43,8 +43,10 @@ export const saveImage = async (buffer, fileName, localOutputOverride = false) =
   try {
     await fs.writeFile(filePath, buffer);
     console.log(`Image saved: ${filePath}`);
+    return filePath;
   } catch (error) {
     console.error(`Failed to save image to ${filePath}:`, error);
+    return null;
   }
 };
 
@@ -59,8 +61,7 @@ export const fetchImages = async (imageUrls, localOutputOverride = false, predic
 
       if (WAVESPEED_SMOKE_MODE) {
         const buffer = Buffer.from("mock wavespeed image");
-        await saveImage(buffer, fileName, localOutputOverride);
-        return;
+        return await saveImage(buffer, fileName, localOutputOverride);
       }
 
       const response = await fetch(url);
@@ -69,11 +70,13 @@ export const fetchImages = async (imageUrls, localOutputOverride = false, predic
       }
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      await saveImage(buffer, fileName, localOutputOverride);
+      return await saveImage(buffer, fileName, localOutputOverride);
     });
 
-    await Promise.all(imageFetches);
+    const paths = await Promise.all(imageFetches);
+    return paths.filter(Boolean);
   } catch (error) {
     console.error("Error fetching and saving images:", error);
+    return [];
   }
 };

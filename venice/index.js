@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { promises as fs } from "fs";
+import { spawn } from "child_process";
 
 import { setupCLI } from "./cli.js";
 import {
@@ -49,6 +50,25 @@ const requestImage = async (body) => {
 
 let DEBUG = false;
 let localOutputOverride = false;
+
+const uploadToAiwdm = (filePath, { prompt, rating, tags }) => {
+    const args = ["upload", filePath];
+    if (rating) args.push("--rating", rating);
+    if (tags && tags.length) args.push("--tags", tags.join(","));
+    if (prompt) args.push("--prompt", prompt);
+
+    return new Promise((resolve) => {
+        const proc = spawn("aiwdm", args, { stdio: "inherit" });
+        proc.on("error", (err) => {
+            console.error(`aiwdm upload failed: ${err.message}`);
+            resolve();
+        });
+        proc.on("close", (code) => {
+            if (code !== 0) console.error(`aiwdm exited with code ${code}`);
+            resolve();
+        });
+    });
+};
 
 const readPromptFromFile = async (filePath) => {
     try {
@@ -174,7 +194,19 @@ const run = async (options) => {
         const fileName = `venice_${Date.now()}.png`;
         const generationTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
-        await saveImage(buffer, fileName, localOutputOverride);
+        const savedPath = await saveImage(buffer, fileName, localOutputOverride);
+
+        if (options.aiwdm && !SMOKE_MODE && savedPath) {
+            const extraTags = options.aiwdmTags
+                ? options.aiwdmTags.split(",").map((t) => t.trim()).filter(Boolean)
+                : [];
+            const tags = ["venice", ...extraTags];
+            await uploadToAiwdm(savedPath, {
+                prompt: options.prompt,
+                rating: options.aiwdmRating,
+                tags,
+            });
+        }
 
         console.log("\n" + "__ Generation Summary " + "_".repeat(38));
         if (input.seed) console.log(`Seed: ${input.seed}`);
