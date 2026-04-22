@@ -72,6 +72,26 @@ test("wavespeed smoke test saves mocked image output", () => {
   }
 });
 
+test("venice-video smoke test saves mocked mp4 output", () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "venice-video-smoke-"));
+  try {
+    runCli(
+      ["venice/video.js", "--prompt", "smoke test"],
+      {
+        VENICE_API_TOKEN: "test-token",
+        VENICE_SMOKE_TEST: "1",
+        VENICE_VIDEO_PATH: outputDir,
+        NODE_ENV: "test"
+      }
+    );
+
+    const files = fs.readdirSync(outputDir);
+    assert(files.some((file) => file.startsWith("venice_") && file.endsWith(".mp4")), "Expected venice-video output file");
+  } finally {
+    removeDir(outputDir);
+  }
+});
+
 test("wavespeed smoke test with optimize flag", () => {
   const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "wavespeed-opt-smoke-"));
   try {

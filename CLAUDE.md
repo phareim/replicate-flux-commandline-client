@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-flux-client is a CLI tool providing unified interfaces to two AI image and video generation services: Venice.ai and Wavespeed.ai. Each service is implemented as an independent module with its own CLI entry point. Wavespeed supports both image and video models today; Venice is image-only in this CLI (video support planned).
+flux-client is a CLI tool providing unified interfaces to two AI image and video generation services: Venice.ai and Wavespeed.ai. Each service is implemented as an independent module with its own CLI entry points.
 
 ## Development Commands
 
@@ -36,12 +36,14 @@ Each service module (`venice/`, `wavespeed/`) is completely self-contained with 
 **Venice structure:**
 ```
 venice/
-├── index.js        # Main entry point with orchestration logic
-├── cli.js          # Commander.js CLI setup and option parsing
+├── index.js        # Image CLI entry point with orchestration logic
+├── cli.js          # Commander.js CLI setup for image generation
 ├── config.js       # Configuration constants and defaults
 ├── models.js       # Loads model endpoint mappings from models.json
 ├── utils.js        # File I/O, image saving
 ├── get-models.js   # Dynamic model discovery from Venice API
+├── video.js        # Video CLI entry point (queue + poll /video/retrieve)
+├── video-cli.js    # Commander.js CLI setup for video generation
 ```
 
 **Wavespeed structure:**
@@ -58,9 +60,10 @@ wavespeed/
 
 ### CLI Entry Points (package.json bin)
 
-- `venice` → `venice/index.js`
-- `venice-models` → `venice/get-models.js`
-- `wavespeed` → `wavespeed/index.js`
+- `venice` → `venice/index.js` (image generation)
+- `venice-models` → `venice/get-models.js` (refresh image model catalog)
+- `venice-video` → `venice/video.js` (WAN 2.7 video generation)
+- `wavespeed` → `wavespeed/index.js` (image + video generation)
 
 These are symlinked when installed globally via `npm install -g`.
 
@@ -174,6 +177,16 @@ Wavespeed video models reuse the existing polling flow but differ in three ways:
 The response handler in `response-handlers.js` saves outputs by URL just like images; `getFileNameFromUrl` picks up the `.mp4` extension from the URL automatically, so no separate video saving path is needed.
 
 WAN 2.7 is the current video family (`alibaba/wan-2.7/text-to-video`, `…/image-to-video`, `…/reference-to-video`). To add new video models, follow the same pattern: add to `modelEndpoints` + `allModels` with the appropriate `-to-video` category.
+
+### Video Generation (Venice)
+
+`venice-video` is a separate entry point because the Venice video API has a different shape from image generation:
+
+- **Flow**: `POST /api/v1/video/queue` (returns `queue_id`) → poll `POST /api/v1/video/retrieve` with `{model, queue_id}`. While processing the response is JSON `{status: "PROCESSING", average_execution_time, execution_duration}`; when complete the response is `Content-Type: video/mp4` binary. The content-type header is the completion signal.
+- **Models** live as a hardcoded alias map in `video-cli.js` (`wan-2.7-t2v`, `wan-i2v`, `wan-r2v`, `wan-edit`) — Venice doesn't get dynamic video model refresh yet; add new aliases in the same file.
+- **Request body** includes `prompt`, `duration` (`"5s"`/`"10s"`/`"15s"`), `resolution` (`"720p"`/`"1080p"`), `aspect_ratio` (only for text-to-video), plus optional `image_url`/`reference_image_urls`/`video_url`/`audio_url`/`negative_prompt`/`seed` per model type.
+- **Output**: saved as `venice_<queue_id>.mp4` under `$VENICE_VIDEO_PATH` or `./videos/venice/`. `--aiwdm` uploads with the `venice-video` source tag.
+- **Smoke testing** reuses `VENICE_SMOKE_TEST=1` — mock mode short-circuits `queueJob` and `retrieveJob` to produce a fake MP4 buffer.
 
 ### Dynamic Model Updates (Venice)
 
