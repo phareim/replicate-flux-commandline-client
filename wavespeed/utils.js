@@ -1,6 +1,5 @@
 import { promises as fs } from "fs";
 import path from "path";
-import fetch from "node-fetch";
 
 const WAVESPEED_SMOKE_MODE = process.env.WAVESPEED_SMOKE_TEST === "1";
 

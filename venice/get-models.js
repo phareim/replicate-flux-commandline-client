@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import fetch from "node-fetch";
 import { writeFile } from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";

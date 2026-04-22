@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import fetch from "node-fetch";
 import { promises as fs } from "fs";
 
 import { setupCLI } from "./cli.js";
@@ -19,29 +18,24 @@ import {
     getModelConstraints,
     stylePresets as dynamicStylePresets
 } from "./models.js";
-import {
-    saveImage} from "./utils.js";
+import { saveImage } from "./utils.js";
 
 const VENICE_API_URL = "https://api.venice.ai/api/v1/image/generate";
 const SMOKE_MODE = process.env.VENICE_SMOKE_TEST === "1";
 
-const createMockResponse = () => {
+const mockResponse = () => {
     const buffer = Buffer.from("mock venice image");
     return {
         ok: true,
         status: 200,
-        headers: {
-            get: (name) => (name && name.toLowerCase() === "content-type" ? "image/png" : null)
-        },
+        headers: { get: (name) => (name?.toLowerCase() === "content-type" ? "image/png" : null) },
         arrayBuffer: async () => buffer,
         json: async () => ({ message: "mocked response" })
     };
 };
 
 const requestImage = async (body) => {
-    if (SMOKE_MODE) {
-        return createMockResponse();
-    }
+    if (SMOKE_MODE) return mockResponse();
 
     return fetch(VENICE_API_URL, {
         method: "POST",
@@ -56,89 +50,62 @@ const requestImage = async (body) => {
 let DEBUG = false;
 let localOutputOverride = false;
 
-// Function to read prompt from file
 const readPromptFromFile = async (filePath) => {
     try {
-        const prompt = await fs.readFile(filePath, 'utf8');
+        const prompt = await fs.readFile(filePath, "utf8");
         return prompt.trim();
     } catch (error) {
-        if (DEBUG) {
-            console.error(`Failed to read prompt from ${filePath}:`, error);
-        }
+        if (DEBUG) console.error(`Failed to read prompt from ${filePath}:`, error);
         return null;
     }
 };
 
-const run = async (options) => {
-    // Validate API token
-    if (!process.env.VENICE_API_TOKEN) {
-        console.error("Error: VENICE_API_TOKEN environment variable is not set.");
-        process.exit(1);
-    }
-
-    // If no prompt provided via CLI, try to read from file
-    if (!options.prompt) {
-        const promptFilePath = options.file || './prompt.txt';
-        const promptFromFile = await readPromptFromFile(promptFilePath);
-        if (promptFromFile) {
-            options.prompt = promptFromFile;
-            console.log(`Using prompt from ${promptFilePath}.`);
-        } else {
-            console.error(`Error: No prompt provided. Please use --prompt, --file, or create a ./prompt.txt file.`);
-            process.exit(1);
-        }
-    }
-
-    // Get model constraints for proper width/height divisor
-    const modelConstraints = getModelConstraints(options.model);
-    const divisor = modelConstraints.widthHeightDivisor;
+const buildInput = (options) => {
+    const constraints = getModelConstraints(options.model);
+    const divisor = constraints.widthHeightDivisor;
 
     let _width = Math.min(parseInt(options.width) || DEFAULT_WIDTH, 1280);
     let _height = Math.min(parseInt(options.height) || DEFAULT_HEIGHT, 1280);
-
     _width = Math.floor(_width / divisor) * divisor;
     _height = Math.floor(_height / divisor) * divisor;
+
+    const requestedSteps = parseInt(options.steps) || DEFAULT_STEPS;
+    if (options.steps && requestedSteps > constraints.maxSteps) {
+        console.warn(`\nWarning: Steps value was capped at ${constraints.maxSteps} (maximum for this model)`);
+    }
 
     const input = {
         model: getModelEndpoint(options.model),
         prompt: options.prompt,
         width: _width,
         height: _height,
-        steps: Math.min(parseInt(options.steps) || DEFAULT_STEPS, modelConstraints.maxSteps),
+        steps: Math.min(requestedSteps, constraints.maxSteps),
         cfg_scale: parseFloat(options.cfgScale) || DEFAULT_CFG_SCALE,
         hide_watermark: options.hideWatermark || DEFAULT_HIDE_WATERMARK,
         return_binary: options.returnBinary || DEFAULT_RETURN_BINARY,
-        safe_mode: false
+        safe_mode: false,
     };
 
-    // Warn if steps was capped
-    if (options.steps && parseInt(options.steps) > modelConstraints.maxSteps) {
-        console.warn(`\nWarning: Steps value was capped at ${modelConstraints.maxSteps} (maximum for this model)`);
-    }
-
-    // Optional parameters
     if (options.seed !== undefined) input.seed = parseInt(options.seed);
     if (options.lora) input.style_preset = options.lora;
     if (options.negativePrompt) input.negative_prompt = options.negativePrompt;
     if (options.outputFormat) input.format = options.outputFormat;
-    if (options.loraStrength !== undefined) input.lora_strength = Math.min(Math.max(parseInt(options.loraStrength), 0), 100);
+    if (options.loraStrength !== undefined) {
+        input.lora_strength = Math.min(Math.max(parseInt(options.loraStrength), 0), 100);
+    }
     if (options.embedExifMetadata) input.embed_exif_metadata = true;
 
-    // Variants handling - only send if > 1 or if return_binary is false
     if (options.variants !== undefined) {
-        const variantsValue = Math.min(Math.max(parseInt(options.variants), 1), 4);
-
-        // Only include variants parameter if > 1 or return_binary is already false
-        if (variantsValue > 1 || !input.return_binary) {
-            if (variantsValue > 1 && input.return_binary) {
+        const variants = Math.min(Math.max(parseInt(options.variants), 1), 4);
+        if (variants > 1 || !input.return_binary) {
+            if (variants > 1 && input.return_binary) {
                 console.warn("\nWarning: Variants only work when return_binary is false. Setting return_binary to false.");
                 input.return_binary = false;
             }
-            input.variants = variantsValue;
+            input.variants = variants;
         }
     }
 
-    // Handle format option if provided
     if (options.format) {
         const formatSize = image_size[options.format];
         if (formatSize) {
@@ -147,67 +114,73 @@ const run = async (options) => {
         }
     }
 
-    if (DEBUG) {
-        console.log("Input parameters:", JSON.stringify(input, null, 2));
+    return input;
+};
+
+const run = async (options) => {
+    if (!process.env.VENICE_API_TOKEN) {
+        console.error("Error: VENICE_API_TOKEN environment variable is not set.");
+        process.exit(1);
     }
 
+    if (!options.prompt) {
+        const promptFilePath = options.file || "./prompt.txt";
+        const promptFromFile = await readPromptFromFile(promptFilePath);
+        if (promptFromFile) {
+            options.prompt = promptFromFile;
+            console.log(`Using prompt from ${promptFilePath}.`);
+        } else {
+            console.error("Error: No prompt provided. Please use --prompt, --file, or create a ./prompt.txt file.");
+            process.exit(1);
+        }
+    }
+
+    const input = buildInput(options);
+
+    if (DEBUG) console.log("Input parameters:", JSON.stringify(input, null, 2));
+
     try {
-        // Display generation header
-        console.log('__Generating image' + '_'.repeat(60 - 18));
+        console.log("__Generating image" + "_".repeat(60 - 18));
         console.log(`Model: ${input.model}`);
         console.log(`Dimensions: ${input.width}x${input.height}`);
         console.log(`Steps: ${input.steps} | CFG Scale: ${input.cfg_scale}`);
-        if (input.seed) {
-            console.log(`Seed: ${input.seed}`);
-        }
-        console.log('‾'.repeat(60) + '\n');
+        if (input.seed) console.log(`Seed: ${input.seed}`);
+        console.log("‾".repeat(60) + "\n");
 
-        // Track generation time
         const startTime = Date.now();
-        let elapsed = 0;
-
-        // Show progress indicator
         const progressInterval = setInterval(() => {
-            elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
             process.stdout.write(`\r🎨 Generating... ${elapsed}s      `);
         }, 1000);
-        process.stdout.write('\r');
+        process.stdout.write("\r");
+
         const response = await requestImage(input);
 
         clearInterval(progressInterval);
-        process.stdout.write('\r✨ Generation complete!                                    \n');
+        process.stdout.write("\r✨ Generation complete!                                    \n");
 
-        // Check if response is JSON (error) or binary (image)
-        const contentType = response.headers.get('content-type');
-
-        if (contentType && contentType.includes('application/json')) {
-            // Handle JSON response (likely an error)
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
             const result = await response.json();
             console.error(`API Error: ${response.status} - ${JSON.stringify(result, null, 2)}`);
             return;
         }
-
         if (!response.ok) {
             console.error(`API Error: ${response.status}`);
             return;
         }
 
-        // Handle binary image response
         const buffer = Buffer.from(await response.arrayBuffer());
         const fileName = `venice_${Date.now()}.png`;
         const generationTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
         await saveImage(buffer, fileName, localOutputOverride);
 
-        // Display generation summary
-        console.log('\n' + '__ Generation Summary ' + '_'.repeat(38));
-        if (input.seed) {
-            console.log(`Seed: ${input.seed}`);
-        }
+        console.log("\n" + "__ Generation Summary " + "_".repeat(38));
+        if (input.seed) console.log(`Seed: ${input.seed}`);
         console.log(`Total time: ${generationTime}s`);
         console.log(`Dimensions: ${input.width}x${input.height}`);
-        console.log('‾'.repeat(60) + '\n');
-
+        console.log("‾".repeat(60) + "\n");
     } catch (error) {
         console.error("Error during image generation:", error);
     }
@@ -218,16 +191,13 @@ const main = async () => {
     DEBUG = options.debug || false;
     localOutputOverride = options.out || false;
 
-    // Handle random LoRA selection
     if (options.randomLora) {
-        // Use dynamic presets if available, otherwise fall back to hardcoded ones
-        const availablePresets = dynamicStylePresets.length > 0 ? dynamicStylePresets : stylePresets;
-        const randomPreset = availablePresets[Math.floor(Math.random() * availablePresets.length)];
-        options.lora = randomPreset;
-        console.log(`\n🎲 Randomly selected LoRA (style preset): ${randomPreset}\n`);
+        const presets = dynamicStylePresets.length > 0 ? dynamicStylePresets : stylePresets;
+        options.lora = presets[Math.floor(Math.random() * presets.length)];
+        console.log(`\n🎲 Randomly selected LoRA (style preset): ${options.lora}\n`);
     }
 
     await run(options);
 };
 
-main(); 
+main();

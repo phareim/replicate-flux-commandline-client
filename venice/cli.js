@@ -12,8 +12,6 @@ import {
   DEFAULT_CFG_SCALE,
   DEFAULT_FORMAT,
   DEFAULT_VARIANTS,
-  DEFAULT_LORA_STRENGTH,
-  DEFAULT_EMBED_EXIF,
   stylePresets as fallbackStylePresets,
   image_size
 } from "./config.js";

@@ -40,8 +40,7 @@ venice/
 ├── cli.js          # Commander.js CLI setup and option parsing
 ├── config.js       # Configuration constants and defaults
 ├── models.js       # Loads model endpoint mappings from models.json
-├── utils.js        # File I/O, HTTP requests, image saving
-├── generate.js     # Generation logic
+├── utils.js        # File I/O, image saving
 ├── get-models.js   # Dynamic model discovery from Venice API
 ```
 

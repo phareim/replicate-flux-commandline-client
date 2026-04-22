@@ -1,6 +1,5 @@
 import { promises as fs } from "fs";
 import path from "path";
-import fetch from "node-fetch";
 
 export const getVenicePath = (localOutputOverride = false) => {
   // use $VENICE_PATH if set, unless explicitly overridden via --out
@@ -10,12 +9,6 @@ export const getVenicePath = (localOutputOverride = false) => {
     : defaultPath;
 
   return localOutputOverride ? defaultPath : envPath;
-};
-
-export const getFileNameFromUrl = (url) => {
-  const parsedUrl = new URL(url);
-  const fileName = parsedUrl.pathname.split("/").pop();
-  return fileName || `venice_image_${Date.now()}.png`;
 };
 
 export const saveImage = async (buffer, fileName, localOutputOverride = false) => {
@@ -32,18 +25,3 @@ export const saveImage = async (buffer, fileName, localOutputOverride = false) =
     throw error;
   }
 };
-
-export const fetchImage = async (imageUrl, fileName, localOutputOverride = false) => {
-  try {
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image from ${imageUrl}`);
-    }
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    return await saveImage(buffer, fileName, localOutputOverride);
-  } catch (error) {
-    console.error("Error fetching and saving image:", error);
-    throw error;
-  }
-}; 
