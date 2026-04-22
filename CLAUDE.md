@@ -90,11 +90,11 @@ These must be set in the shell environment, not hardcoded.
 
 ### Output Directories
 
-Images are saved to:
-- Venice: `./images/venice/` or `$VENICE_PATH` if set
-- Wavespeed: `./images/` or `$WAVESPEED_PATH` if set
+- Venice images: `./images/venice/` or `$VENICE_PATH` if set
+- Venice videos: `./videos/venice/` or `$VENICE_VIDEO_PATH` if set
+- Wavespeed (images + videos): `./images/` or `$WAVESPEED_PATH` if set
 
-File naming convention: `<source>_<timestamp>.png` or extracted from URL for downloads.
+File naming: images use `<source>_<timestamp>.png` or a URL-derived name; videos use `venice_<queue_id>.mp4` (Venice) or the `.mp4` URL-derived name (Wavespeed).
 
 ### aiwdm Upload Integration
 
