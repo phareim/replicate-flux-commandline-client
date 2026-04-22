@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-flux-client is a CLI tool providing unified interfaces to two AI image generation services: Venice.ai and Wavespeed.ai. Each service is implemented as an independent module with its own CLI entry point.
+flux-client is a CLI tool providing unified interfaces to two AI image and video generation services: Venice.ai and Wavespeed.ai. Each service is implemented as an independent module with its own CLI entry point. Wavespeed supports both image and video models today; Venice is image-only in this CLI (video support planned).
 
 ## Development Commands
 
@@ -162,6 +162,18 @@ The `constrainDimensions()` function automatically scales down requested dimensi
 - `seedream-v3.1` (Seedream v3.1): 2048x2048 max
 - `wan-2.5` (WAN 2.5): 1440x1440 max
 - `grok-2-image` (Grok 2 Image): 1536x1536 max
+
+### Video Models (Wavespeed)
+
+Wavespeed video models reuse the existing polling flow but differ in three ways:
+
+1. **Categories**: `text-to-video` and `image-to-video` (distinct from `text-to-image` / `image-to-image`). The category comes from `allModels[].metadata.category`.
+2. **Parameters**: video models ignore `size` and instead take `duration` (seconds, typically 2-15), `resolution` (`720p`/`1080p`), `aspect_ratio`, `audio` (URL), `negative_prompt`, `seed`, and `enable_prompt_expansion`. Built in `parameter-builders.js` under the video category branch.
+3. **Poll timing**: `index.js` bumps `pollPrediction` to `interval=5s, maxAttempts=360` (30 min ceiling) when the category ends with `-to-video`, since generation takes minutes.
+
+The response handler in `response-handlers.js` saves outputs by URL just like images; `getFileNameFromUrl` picks up the `.mp4` extension from the URL automatically, so no separate video saving path is needed.
+
+WAN 2.7 is the current video family (`alibaba/wan-2.7/text-to-video`, `…/image-to-video`, `…/reference-to-video`). To add new video models, follow the same pattern: add to `modelEndpoints` + `allModels` with the appropriate `-to-video` category.
 
 ### Dynamic Model Updates (Venice)
 

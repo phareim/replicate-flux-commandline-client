@@ -192,14 +192,22 @@ const run = async ({ prompt, modelEndpoint, size, options }) => {
     outputFormat: options.outputFormat,
     quality: options.quality,
     numImages: options.numImages,
+    duration: options.duration,
+    audio: options.audio,
+    promptExpansion: options.promptExpansion,
   });
 
   if (DEBUG) console.log("Request parameters:", JSON.stringify(input, null, 2));
 
-  console.log("__Generating image" + "_".repeat(60 - 18));
+  const isVideoCategory = category.endsWith("-to-video");
+  const header = isVideoCategory ? "__Generating video" : "__Generating image";
+  console.log(header + "_".repeat(60 - header.length));
   console.log(`Model: ${modelInfo?.metadata?.display_name || modelEndpoint}`);
   console.log(`Category: ${category}`);
-  console.log(`Size: ${size}`);
+  if (!isVideoCategory) console.log(`Size: ${size}`);
+  if (isVideoCategory && input.duration) console.log(`Duration: ${input.duration}s`);
+  if (isVideoCategory && input.resolution) console.log(`Resolution: ${input.resolution}`);
+  if (isVideoCategory && input.aspect_ratio) console.log(`Aspect: ${input.aspect_ratio}`);
   console.log("‾".repeat(60) + "\n");
 
   let result;
@@ -241,8 +249,14 @@ const run = async ({ prompt, modelEndpoint, size, options }) => {
           console.error("Unable to poll for result: no polling URL available");
           result = predictionData;
         } else {
+          const isVideo = category.endsWith("-to-video");
+          const pollInterval = isVideo ? 5000 : 2000;
+          const pollMaxAttempts = isVideo ? 360 : 60;
+          const icon = isVideo ? "🎬" : "🎨";
           result = await pollPrediction(pollUrl, {
-            onTick: (attempt) => process.stdout.write(`\r🎨 Generating... ${attempt}s      `),
+            interval: pollInterval,
+            maxAttempts: pollMaxAttempts,
+            onTick: (attempt) => process.stdout.write(`\r${icon} Generating... ${attempt * (pollInterval / 1000)}s      `),
           });
           if (result.status === "completed") {
             process.stdout.write("\r✨ Generation complete!                                    \n");
@@ -286,7 +300,8 @@ const run = async ({ prompt, modelEndpoint, size, options }) => {
   const nsfwFlag = result.has_nsfw_contents?.some((x) => x) ? " 🔞" : "__";
   console.log("\n__ Generation Summary " + "_".repeat(36) + nsfwFlag);
   console.log(`Model: ${modelInfo?.metadata?.display_name || modelEndpoint}`);
-  console.log(`Size: ${size}`);
+  if (!isVideoCategory) console.log(`Size: ${size}`);
+  if (isVideoCategory && input.duration) console.log(`Duration: ${input.duration}s`);
   if (result.id) console.log(`Prediction ID: ${result.id}`);
   if (result.created_at) console.log(`Created: ${result.created_at}`);
   console.log("‾".repeat(60) + "\n");

@@ -21,6 +21,19 @@ export function buildParameters(category, options) {
     if (options.size) params.size = options.size;
   }
 
+  if (category === "image-to-video") {
+    if (!options.images || !Array.isArray(options.images) || options.images.length === 0) {
+      throw new Error("image-to-video models require at least one input image. Use --images <url1> <url2> ...");
+    }
+    params.images = options.images;
+  }
+
+  if (category === "text-to-video" || category === "image-to-video") {
+    if (options.duration !== undefined) params.duration = parseInt(options.duration, 10);
+    if (options.audio) params.audio = options.audio;
+    if (options.promptExpansion) params.enable_prompt_expansion = true;
+  }
+
   if (options.enableBase64) params.enable_base64_output = true;
   if (options.sync) params.enable_sync_mode = true;
   if (options.negativePrompt) params.negative_prompt = options.negativePrompt;

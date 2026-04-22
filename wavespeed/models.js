@@ -34,6 +34,16 @@ export const modelEndpoints = {
   "wan-2.5-edit": "alibaba/wan-2.5/image-edit",
   "wan-edit": "alibaba/wan-2.5/image-edit",
   "wan2.5-edit": "alibaba/wan-2.5/image-edit",
+  "wan-2.7-t2v": "alibaba/wan-2.7/text-to-video",
+  "wan2.7-t2v": "alibaba/wan-2.7/text-to-video",
+  "wan-t2v": "alibaba/wan-2.7/text-to-video",
+  "wan-video": "alibaba/wan-2.7/text-to-video",
+  "wan-2.7-i2v": "alibaba/wan-2.7/image-to-video",
+  "wan2.7-i2v": "alibaba/wan-2.7/image-to-video",
+  "wan-i2v": "alibaba/wan-2.7/image-to-video",
+  "wan-2.7-r2v": "alibaba/wan-2.7/reference-to-video",
+  "wan2.7-r2v": "alibaba/wan-2.7/reference-to-video",
+  "wan-r2v": "alibaba/wan-2.7/reference-to-video",
   "nano-banana-pro-edit": "google/nano-banana-pro/edit",
   "nano-edit": "google/nano-banana-pro/edit",
   "banana-edit": "google/nano-banana-pro/edit",
@@ -189,6 +199,39 @@ export const allModels = [
       defaultSize: "1440*1440",
       maxWidth: 1440,
       maxHeight: 1440,
+    }
+  },
+  {
+    endpoint_id: "alibaba/wan-2.7/text-to-video",
+    metadata: {
+      display_name: "WAN 2.7 Text-to-Video",
+      category: "text-to-video",
+      description: "Alibaba WAN 2.7 text-to-video — up to 1080p, 2-15s clips, optional audio sync.",
+      status: "live",
+      tags: ["alibaba", "text-to-video", "wan", "1080p"],
+      model_url: "https://wavespeed.ai/models/alibaba/wan-2.7/text-to-video",
+    }
+  },
+  {
+    endpoint_id: "alibaba/wan-2.7/image-to-video",
+    metadata: {
+      display_name: "WAN 2.7 Image-to-Video",
+      category: "image-to-video",
+      description: "Alibaba WAN 2.7 image-to-video — animates a reference image into a 2-15s clip at up to 1080p.",
+      status: "live",
+      tags: ["alibaba", "image-to-video", "wan", "1080p"],
+      model_url: "https://wavespeed.ai/models/alibaba/wan-2.7/image-to-video",
+    }
+  },
+  {
+    endpoint_id: "alibaba/wan-2.7/reference-to-video",
+    metadata: {
+      display_name: "WAN 2.7 Reference-to-Video",
+      category: "image-to-video",
+      description: "Alibaba WAN 2.7 reference-to-video — up to 5 reference images to lock characters/objects across the generated clip.",
+      status: "live",
+      tags: ["alibaba", "image-to-video", "wan", "reference", "1080p"],
+      model_url: "https://wavespeed.ai/models/alibaba/wan-2.7/reference-to-video",
     }
   },
   {

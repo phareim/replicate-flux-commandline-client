@@ -16,7 +16,8 @@ export async function handleResponse(result, category, modelEndpoint, localOutpu
     }
 
     if (result && Array.isArray(result.outputs) && result.outputs.length > 0) {
-      console.log(`Downloading ${result.outputs.length} image(s)...`);
+      const noun = category.endsWith("-to-video") ? "video" : "image";
+      console.log(`Downloading ${result.outputs.length} ${noun}(s)...`);
 
       console.log("\n📎 Remote URL(s):");
       result.outputs.forEach((url, idx) => {

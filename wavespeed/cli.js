@@ -53,6 +53,18 @@ export function setupCLI() {
       "Number of images to generate per request (Kling only, 1-9, default: 1)."
     )
     .option(
+      "--duration <seconds>",
+      "Video clip length in seconds (video models only, typically 2-15)."
+    )
+    .option(
+      "--audio <url>",
+      "Audio URL to sync with the generated video (video models only)."
+    )
+    .option(
+      "--prompt-expansion",
+      "Let the model auto-expand the prompt before generation (video models only)."
+    )
+    .option(
       "--out",
       "Save images to the current directory instead of the default."
     )
@@ -94,6 +106,11 @@ Available Models:
   grok-2-image, grok2, grok             Grok 2 Image - xAI's photorealistic image generation
   cogview-4, cogview, cog4              CogView-4 - Zhipu AI's HD quality text-to-image
   kling-image-o1, kling-image, kling    Kling Image O1 - Kuaishou's 2K model with reference images
+
+Video Models:
+  wan-2.7-t2v, wan-t2v, wan-video       WAN 2.7 Text-to-Video - up to 1080p, 2-15s, optional audio sync
+  wan-2.7-i2v, wan-i2v                  WAN 2.7 Image-to-Video - animate a reference image into a clip
+  wan-2.7-r2v, wan-r2v                  WAN 2.7 Reference-to-Video - up to 5 refs for character/object lock
 
 Available Formats:
   ${availableSizes}
@@ -148,6 +165,12 @@ Examples:
   wavespeed --model nano-edit --images photo.jpg --prompt "Transform into artwork"
   wavespeed --model gemini-edit --images img1.jpg img2.jpg --prompt "Enhance details" --resolution 4k
   wavespeed --model banana-edit --images photo.jpg --prompt "Professional edit" --aspect-ratio 16:9 --output-format jpeg
+
+  # Video generation (WAN 2.7)
+  wavespeed --model wan-video --prompt "a cat walking through a neon-lit alley" --duration 6 --resolution 1080p
+  wavespeed --model wan-t2v --prompt "aerial drone shot of a misty forest" --aspect-ratio 16:9 --duration 8
+  wavespeed --model wan-i2v --images photo.jpg --prompt "camera slowly pushes in" --duration 5
+  wavespeed --model wan-r2v --images ref1.jpg ref2.jpg --prompt "character walks through a market"
 
 Notes:
   - When using --prompt, provide the prompt as a command-line argument.
