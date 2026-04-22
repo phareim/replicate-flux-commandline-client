@@ -75,13 +75,15 @@ export function setupCLI() {
       console.log(`
 Default Model:
   ${DEFAULT_MODEL} (${modelEndpoints[DEFAULT_MODEL]})
-  Z-Image-Turbo - 6B parameter model generating photorealistic images in sub-second time.
+  Seedream v4.5 - ByteDance's latest text-to-image model with crisp text rendering and up to 8K output.
 
 Available Models:
   flux-2-flex, flux2, flex              FLUX.2 [flex] - Fast, flexible text-to-image with enhanced realism
   z-image-turbo, z-image, turbo         Z-Image-Turbo - 6B parameter model, photorealistic in sub-second time
-  seedream-v4.5, seedream, v4.5         Seedream v4.5 - Latest version by ByteDance
-  seedream-v4.5-edit, seedream-edit     Seedream v4.5 Edit - Professional image editing with facial preservation
+  seedream-v4.5, seedream, v4.5         Seedream v4.5 - Latest text-to-image by ByteDance (8K)
+  seedream-v4.5-edit, seedream-edit     Seedream v4.5 Edit - High-fidelity editing with reference preservation (8K)
+  seedream-v4.5-sequential, v4.5-seq    Seedream v4.5 Sequential - Multi-image sets with consistent characters (8K)
+  seedream-v4.5-edit-sequential         Seedream v4.5 Edit Sequential - Multi-image editing with identity lock (8K)
   seedream-v4, v4                       Seedream v4 - High-fidelity image generation
   seedream-v4-edit, v4-edit             Seedream v4 Edit - State-of-the-art image editing (4K)
   seedream-v3.1, v3.1                   Seedream v3.1 - Strong style fidelity and rich detail
@@ -97,7 +99,7 @@ Available Formats:
   ${availableSizes}
 
 Examples:
-  # Basic usage (default model: z-image-turbo)
+  # Basic usage (default model: seedream-v4.5)
   wavespeed --prompt "A futuristic cityscape at dusk"
 
   # Using specific models

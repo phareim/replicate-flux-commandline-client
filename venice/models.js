@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const FALLBACK_DEFAULT = "wai-Illustrious";
+const FALLBACK_DEFAULT = "chroma";
 const DEFAULT_CONSTRAINTS = {
   widthHeightDivisor: 16,
   maxSteps: 50,

@@ -16,7 +16,7 @@ const fetchModels = async () => {
 
   try {
     // Fetch models
-    const modelsResponse = await fetch("https://api.venice.ai/api/v1/models", {
+    const modelsResponse = await fetch("https://api.venice.ai/api/v1/models?type=image", {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${process.env.VENICE_API_TOKEN}`,
@@ -50,9 +50,9 @@ const fetchModels = async () => {
     console.log("\nAvailable Venice AI Image Models:");
     console.log("=".repeat(60));
 
-    // Find default model - prefer wai-Illustrious (anime model)
-    const waiModel = imageModels.find(m => m.id === "wai-Illustrious");
-    const defaultModelId = waiModel?.id || (imageModels.length > 0 ? imageModels[0].id : "wai-Illustrious");
+    // Find default model - prefer chroma (uncensored generation)
+    const chromaModel = imageModels.find(m => m.id === "chroma");
+    const defaultModelId = chromaModel?.id || (imageModels.length > 0 ? imageModels[0].id : "chroma");
 
     imageModels.forEach(model => {
       const name = model.model_spec?.name || model.id;
