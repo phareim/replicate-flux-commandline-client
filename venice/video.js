@@ -5,6 +5,7 @@ import path from "path";
 import { spawn } from "child_process";
 
 import { setupVideoCLI, resolveVideoModel } from "./video-cli.js";
+import { saveMetadata } from "./utils.js";
 
 const VENICE_API_BASE = "https://api.venice.ai/api/v1";
 const SMOKE_MODE = process.env.VENICE_SMOKE_TEST === "1";
@@ -215,6 +216,29 @@ const run = async (options) => {
 
   const fileName = `venice_${queueId}.mp4`;
   const savedPath = await saveVideo(buffer, fileName);
+
+  if (options.metadata !== false && savedPath) {
+    await saveMetadata(savedPath, {
+      source: "venice-video",
+      kind: "video",
+      generated_at: new Date().toISOString(),
+      cli_version: "1.0.0",
+      model: modelEntry.id,
+      model_key: options.model,
+      model_type: modelEntry.type,
+      prompt: options.prompt,
+      negative_prompt: options.negativePrompt,
+      duration: options.duration,
+      resolution: options.resolution,
+      aspect_ratio: modelEntry.type === "text-to-video" ? options.aspectRatio : undefined,
+      seed: options.seed,
+      image_url: options.imageUrl,
+      reference_image_urls: options.referenceImages,
+      video_url: options.videoUrl,
+      audio_url: options.audioUrl,
+      queue_id: queueId,
+    });
+  }
 
   if (options.aiwdm && !SMOKE_MODE && savedPath) {
     const extraTags = options.aiwdmTags

@@ -5,7 +5,7 @@ import fs from "fs/promises";
 import { spawn } from "child_process";
 
 import { setupCLI } from "./cli.js";
-import { getPromptFromFile } from "./utils.js";
+import { getPromptFromFile, saveMetadata } from "./utils.js";
 import { getModelEndpoint, getModelInfo, constrainDimensions } from "./models.js";
 import { image_size, API_BASE_URL } from "./config.js";
 import { buildParameters } from "./parameter-builders.js";
@@ -173,7 +173,7 @@ const optimizePrompt = async (promptText, mode = "image", style = "default", ima
 /**
  * Generate one image (or batch) using the Wavespeed API.
  */
-const run = async ({ prompt, modelEndpoint, size, options }) => {
+const run = async ({ prompt, originalPrompt, modelEndpoint, size, options }) => {
   const modelInfo = getModelInfo(modelEndpoint);
   const category = modelInfo?.metadata?.category || "text-to-image";
 
@@ -286,6 +286,43 @@ const run = async ({ prompt, modelEndpoint, size, options }) => {
     return;
   }
 
+  if (options.metadata !== false && savedPaths.length > 0) {
+    const baseMetadata = {
+      source: "wavespeed",
+      kind: isVideoCategory ? "video" : "image",
+      generated_at: new Date().toISOString(),
+      cli_version: "1.0.0",
+      model: modelEndpoint,
+      model_key: options.model,
+      model_display_name: modelInfo?.metadata?.display_name,
+      category,
+      prompt,
+      original_prompt: originalPrompt,
+      optimize_mode: originalPrompt ? options.optimizeMode : undefined,
+      optimize_style: originalPrompt ? options.optimizeStyle : undefined,
+      size: isVideoCategory ? undefined : size,
+      aspect_ratio: input.aspect_ratio,
+      resolution: input.resolution,
+      duration: input.duration,
+      negative_prompt: input.negative_prompt,
+      seed: input.seed,
+      output_format: input.output_format,
+      quality: input.quality,
+      num_images: input.num_images,
+      audio: input.audio,
+      enable_prompt_expansion: input.enable_prompt_expansion,
+      input_images: options.images,
+      prediction_id: result?.id,
+      created_at: result?.created_at,
+    };
+    for (const savedPath of savedPaths) {
+      await saveMetadata(savedPath, {
+        ...baseMetadata,
+        output_file: path.basename(savedPath),
+      });
+    }
+  }
+
   if (options.aiwdm && !WAVESPEED_SMOKE_MODE && savedPaths.length > 0) {
     const extraTags = options.aiwdmTags
       ? options.aiwdmTags.split(",").map((t) => t.trim()).filter(Boolean)
@@ -320,8 +357,9 @@ const generateBatch = async (promptText, modelEndpoint, size, options) => {
     const finalPrompt = options.optimize
       ? await optimizePrompt(promptText, options.optimizeMode, options.optimizeStyle, options.optimizeImage)
       : promptText;
+    const originalPrompt = options.optimize && finalPrompt !== promptText ? promptText : undefined;
 
-    await run({ prompt: finalPrompt, modelEndpoint, size, options });
+    await run({ prompt: finalPrompt, originalPrompt, modelEndpoint, size, options });
   }
 };
 

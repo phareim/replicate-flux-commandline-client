@@ -160,6 +160,22 @@ Generated images are automatically saved to the following locations:
 
 File naming convention: `<source>_<timestamp>.<ext>` or extracted from URL for downloads.
 
+### Metadata Sidecars
+
+Every saved image/video is accompanied by a `.json` sidecar sharing the same base name (for example, `venice_1730000000.png` → `venice_1730000000.json`). The sidecar captures the prompt, model, seed, dimensions, LoRA, duration, and other generation parameters so the image/video remains self-describing months later.
+
+```bash
+# Default behaviour — sidecar is written automatically
+venice --prompt "A serene landscape"
+
+# Opt out if you don't want sidecars
+venice --prompt "A serene landscape" --no-metadata
+wavespeed --prompt "A futuristic city" --no-metadata
+venice-video --prompt "drone shot over forest" --no-metadata
+```
+
+For Wavespeed runs with `--optimize`, the sidecar records both the `prompt` actually sent to the model and the `original_prompt` you typed.
+
 ## Prompt Files
 
 Both services support reading prompts from a `prompt.txt` file in the current directory:

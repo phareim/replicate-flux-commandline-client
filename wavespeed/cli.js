@@ -80,6 +80,7 @@ export function setupCLI() {
     .option("--aiwdm", "Upload the generated image(s) to the aiwdm media library via the local `aiwdm` CLI.")
     .option("--aiwdm-rating <rating>", "Rating passed to aiwdm upload (G, PG, PG13, R).", "R")
     .option("--aiwdm-tags <tags>", "Extra comma-separated tags passed to aiwdm upload (source tag `wavespeed` is always added).")
+    .option("--no-metadata", "Skip writing the JSON metadata sidecar next to each saved output.")
     .helpOption("-h, --help", "Display this help message.")
     .on("--help", () => {
       const availableSizes = Object.keys(image_size).join(", ");

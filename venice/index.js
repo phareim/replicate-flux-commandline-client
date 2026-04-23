@@ -19,7 +19,7 @@ import {
     getModelConstraints,
     stylePresets as dynamicStylePresets
 } from "./models.js";
-import { saveImage } from "./utils.js";
+import { saveImage, saveMetadata } from "./utils.js";
 
 const VENICE_API_URL = "https://api.venice.ai/api/v1/image/generate";
 const SMOKE_MODE = process.env.VENICE_SMOKE_TEST === "1";
@@ -195,9 +195,34 @@ const run = async (options) => {
 
         const buffer = Buffer.from(await response.arrayBuffer());
         const fileName = `venice_${Date.now()}.png`;
-        const generationTime = ((Date.now() - startTime) / 1000).toFixed(2);
+        const generationTimeMs = Date.now() - startTime;
+        const generationTime = (generationTimeMs / 1000).toFixed(2);
 
         const savedPath = await saveImage(buffer, fileName, localOutputOverride);
+
+        if (options.metadata !== false && savedPath) {
+            await saveMetadata(savedPath, {
+                source: "venice",
+                kind: "image",
+                generated_at: new Date().toISOString(),
+                cli_version: "1.0.0",
+                model: input.model,
+                model_key: options.model,
+                prompt: input.prompt,
+                negative_prompt: input.negative_prompt,
+                width: input.width,
+                height: input.height,
+                steps: input.steps,
+                cfg_scale: input.cfg_scale,
+                seed: input.seed,
+                style_preset: input.style_preset,
+                lora_strength: input.lora_strength,
+                output_format: input.format,
+                hide_watermark: input.hide_watermark,
+                variants: input.variants,
+                generation_time_ms: generationTimeMs,
+            });
+        }
 
         if (options.aiwdm && !SMOKE_MODE && savedPath) {
             const extraTags = options.aiwdmTags

@@ -46,7 +46,36 @@ test("venice smoke test saves mocked image output", () => {
     );
 
     const files = fs.readdirSync(outputDir);
-    assert(files.some((file) => file.startsWith("venice_") && file.endsWith(".png")), "Expected venice output file");
+    const imageFile = files.find((file) => file.startsWith("venice_") && file.endsWith(".png"));
+    assert(imageFile, "Expected venice output file");
+
+    const sidecar = imageFile.replace(/\.png$/, ".json");
+    assert(files.includes(sidecar), "Expected venice metadata sidecar");
+    const metadata = JSON.parse(fs.readFileSync(path.join(outputDir, sidecar), "utf8"));
+    assert.equal(metadata.source, "venice");
+    assert.equal(metadata.kind, "image");
+    assert.equal(metadata.prompt, "smoke test");
+  } finally {
+    removeDir(outputDir);
+  }
+});
+
+test("venice --no-metadata skips sidecar", () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "venice-nometa-"));
+  try {
+    runCli(
+      ["venice/index.js", "--prompt", "smoke test", "--no-metadata"],
+      {
+        VENICE_API_TOKEN: "test-token",
+        VENICE_SMOKE_TEST: "1",
+        VENICE_PATH: outputDir,
+        NODE_ENV: "test"
+      }
+    );
+
+    const files = fs.readdirSync(outputDir);
+    assert(files.some((file) => file.endsWith(".png")), "Expected venice output file");
+    assert(!files.some((file) => file.endsWith(".json")), "Expected no sidecar with --no-metadata");
   } finally {
     removeDir(outputDir);
   }
@@ -66,7 +95,16 @@ test("wavespeed smoke test saves mocked image output", () => {
     );
 
     const files = fs.readdirSync(outputDir);
-    assert(files.some((file) => file.endsWith(".png")), "Expected wavespeed output file");
+    const imageFile = files.find((file) => file.endsWith(".png"));
+    assert(imageFile, "Expected wavespeed output file");
+
+    const sidecar = imageFile.replace(/\.png$/, ".json");
+    assert(files.includes(sidecar), "Expected wavespeed metadata sidecar");
+    const metadata = JSON.parse(fs.readFileSync(path.join(outputDir, sidecar), "utf8"));
+    assert.equal(metadata.source, "wavespeed");
+    assert.equal(metadata.kind, "image");
+    assert.equal(metadata.prompt, "smoke test");
+    assert.equal(metadata.output_file, imageFile);
   } finally {
     removeDir(outputDir);
   }
@@ -86,7 +124,16 @@ test("venice-video smoke test saves mocked mp4 output", () => {
     );
 
     const files = fs.readdirSync(outputDir);
-    assert(files.some((file) => file.startsWith("venice_") && file.endsWith(".mp4")), "Expected venice-video output file");
+    const videoFile = files.find((file) => file.startsWith("venice_") && file.endsWith(".mp4"));
+    assert(videoFile, "Expected venice-video output file");
+
+    const sidecar = videoFile.replace(/\.mp4$/, ".json");
+    assert(files.includes(sidecar), "Expected venice-video metadata sidecar");
+    const metadata = JSON.parse(fs.readFileSync(path.join(outputDir, sidecar), "utf8"));
+    assert.equal(metadata.source, "venice-video");
+    assert.equal(metadata.kind, "video");
+    assert.equal(metadata.prompt, "smoke test");
+    assert(metadata.queue_id, "Expected queue_id in metadata");
   } finally {
     removeDir(outputDir);
   }

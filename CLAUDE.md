@@ -96,6 +96,16 @@ These must be set in the shell environment, not hardcoded.
 
 File naming: images use `<source>_<timestamp>.png` or a URL-derived name; videos use `venice_<queue_id>.mp4` (Venice) or the `.mp4` URL-derived name (Wavespeed).
 
+### Metadata sidecars
+
+Every saved media file gets a JSON sidecar (`<basename>.json`) written alongside it with the generation parameters (prompt, model, seed, dimensions, LoRA, duration, prediction/queue id, etc.). This is the default; `--no-metadata` on any of the CLIs skips the write.
+
+- Implementation: each module exports a local `saveMetadata(mediaFilePath, metadata)` from its own `utils.js`. The helpers are duplicated across `venice/utils.js` and `wavespeed/utils.js` to preserve module independence — do not consolidate.
+- `saveMetadata` prunes `undefined`/`null`/empty strings/empty arrays before writing, so the sidecar only contains populated fields.
+- Sidecar shape is deliberately flat. Top-level fields always include `source` (`venice` | `venice-video` | `wavespeed`), `kind` (`image` | `video`), `generated_at`, `cli_version`, `model`, and `prompt`; other fields depend on the source.
+- When `wavespeed --optimize` rewrites the prompt, the sidecar records `prompt` (final) plus `original_prompt`, `optimize_mode`, `optimize_style`.
+- The smoke tests assert both the presence of the sidecar and a couple of key fields — when adding a new generator, write a sidecar and extend the smoke tests the same way.
+
 ### aiwdm Upload Integration
 
 Both CLIs support `--aiwdm` to push the saved image into the aiwdm media library by shelling out to the local `aiwdm upload` binary (`~/.npm-global/bin/aiwdm`). The prompt is forwarded via `--prompt` so `aiwdm` uses it verbatim as the description (skipping its AI description step).

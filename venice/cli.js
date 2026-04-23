@@ -131,6 +131,10 @@ export function setupCLI() {
       "Extra comma-separated tags passed to aiwdm upload (source tag `venice` is always added)."
     )
     .option(
+      "--no-metadata",
+      "Skip writing the JSON metadata sidecar next to the saved image."
+    )
+    .option(
       "--debug",
       "Enable debug mode to display additional logs"
     )
