@@ -22,6 +22,8 @@ const authHeaders = (extra = {}) => ({
   ...extra,
 });
 
+const AIWDM_CLI_DIR = "/home/petter/github/aiwdm/cli";
+
 const uploadToAiwdm = (filePath, { prompt, rating, tags }) => {
   const args = ["upload", filePath];
   if (rating) args.push("--rating", rating);
@@ -29,7 +31,8 @@ const uploadToAiwdm = (filePath, { prompt, rating, tags }) => {
   if (prompt) args.push("--prompt", prompt);
 
   return new Promise((resolve) => {
-    const proc = spawn("aiwdm", args, { stdio: "inherit" });
+    // cwd anchors the env lookup: aiwdm loads .env from cwd first.
+    const proc = spawn("aiwdm", args, { stdio: "inherit", cwd: AIWDM_CLI_DIR });
     proc.on("error", (err) => {
       console.error(`aiwdm upload failed: ${err.message}`);
       resolve();
