@@ -83,6 +83,8 @@ const readPromptFromFile = async (filePath) => {
     }
 };
 
+const randomSeed = () => Math.floor(Math.random() * 2_147_483_647);
+
 const buildInput = (options) => {
     const constraints = getModelConstraints(options.model);
     const divisor = constraints.widthHeightDivisor;
@@ -107,9 +109,8 @@ const buildInput = (options) => {
         hide_watermark: options.hideWatermark || DEFAULT_HIDE_WATERMARK,
         return_binary: options.returnBinary || DEFAULT_RETURN_BINARY,
         safe_mode: false,
+        seed: options.seed !== undefined ? parseInt(options.seed) : randomSeed(),
     };
-
-    if (options.seed !== undefined) input.seed = parseInt(options.seed);
     if (options.lora) input.style_preset = options.lora;
     if (options.negativePrompt) input.negative_prompt = options.negativePrompt;
     if (options.outputFormat) input.format = options.outputFormat;
@@ -158,6 +159,7 @@ const run = async (options) => {
         }
     }
 
+    const seedProvidedByUser = options.seed !== undefined;
     const input = buildInput(options);
 
     if (DEBUG) console.log("Input parameters:", JSON.stringify(input, null, 2));
@@ -167,7 +169,7 @@ const run = async (options) => {
         console.log(`Model: ${input.model}`);
         console.log(`Dimensions: ${input.width}x${input.height}`);
         console.log(`Steps: ${input.steps} | CFG Scale: ${input.cfg_scale}`);
-        if (input.seed) console.log(`Seed: ${input.seed}`);
+        console.log(`Seed: ${input.seed}${seedProvidedByUser ? "" : " (auto)"}`);
         console.log("‾".repeat(60) + "\n");
 
         const startTime = Date.now();
@@ -237,7 +239,7 @@ const run = async (options) => {
         }
 
         console.log("\n" + "__ Generation Summary " + "_".repeat(38));
-        if (input.seed) console.log(`Seed: ${input.seed}`);
+        console.log(`Seed: ${input.seed}${seedProvidedByUser ? "" : " (auto)"}`);
         console.log(`Total time: ${generationTime}s`);
         console.log(`Dimensions: ${input.width}x${input.height}`);
         console.log("‾".repeat(60) + "\n");

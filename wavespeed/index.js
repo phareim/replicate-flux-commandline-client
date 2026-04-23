@@ -22,6 +22,8 @@ const authHeaders = (extra = {}) => ({
   ...extra,
 });
 
+const randomSeed = () => Math.floor(Math.random() * 2_147_483_647);
+
 const AIWDM_CLI_DIR = "/home/petter/github/aiwdm/cli";
 
 const uploadToAiwdm = (filePath, { prompt, rating, tags }) => {
@@ -182,6 +184,9 @@ const run = async ({ prompt, originalPrompt, modelEndpoint, size, options }) => 
     console.log(`Category: ${category}`);
   }
 
+  const seedProvidedByUser = options.seed !== undefined && options.seed !== null;
+  const seed = seedProvidedByUser ? parseInt(options.seed, 10) : randomSeed();
+
   const input = buildParameters(category, {
     prompt,
     size,
@@ -189,7 +194,7 @@ const run = async ({ prompt, originalPrompt, modelEndpoint, size, options }) => 
     sync: options.sync,
     images: options.images,
     negativePrompt: options.negativePrompt,
-    seed: options.seed,
+    seed,
     aspectRatio: options.aspectRatio,
     resolution: options.resolution,
     outputFormat: options.outputFormat,
@@ -211,6 +216,7 @@ const run = async ({ prompt, originalPrompt, modelEndpoint, size, options }) => 
   if (isVideoCategory && input.duration) console.log(`Duration: ${input.duration}s`);
   if (isVideoCategory && input.resolution) console.log(`Resolution: ${input.resolution}`);
   if (isVideoCategory && input.aspect_ratio) console.log(`Aspect: ${input.aspect_ratio}`);
+  console.log(`Seed: ${seed}${seedProvidedByUser ? "" : " (auto)"}`);
   console.log("‾".repeat(60) + "\n");
 
   let result;
@@ -342,6 +348,7 @@ const run = async ({ prompt, originalPrompt, modelEndpoint, size, options }) => 
   console.log(`Model: ${modelInfo?.metadata?.display_name || modelEndpoint}`);
   if (!isVideoCategory) console.log(`Size: ${size}`);
   if (isVideoCategory && input.duration) console.log(`Duration: ${input.duration}s`);
+  console.log(`Seed: ${seed}${seedProvidedByUser ? "" : " (auto)"}`);
   if (result.id) console.log(`Prediction ID: ${result.id}`);
   if (result.created_at) console.log(`Created: ${result.created_at}`);
   console.log("‾".repeat(60) + "\n");

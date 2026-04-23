@@ -105,6 +105,7 @@ Every saved media file gets a JSON sidecar (`<basename>.json`) written alongside
 - Sidecar shape is deliberately flat. Top-level fields always include `source` (`venice` | `venice-video` | `wavespeed`), `kind` (`image` | `video`), `generated_at`, `cli_version`, `model`, and `prompt`; other fields depend on the source.
 - When `wavespeed --optimize` rewrites the prompt, the sidecar records `prompt` (final) plus `original_prompt`, `optimize_mode`, `optimize_style`.
 - The smoke tests assert both the presence of the sidecar and a couple of key fields — when adding a new generator, write a sidecar and extend the smoke tests the same way.
+- Seeds are always present in sidecars: each CLI auto-generates a random 32-bit seed (`Math.floor(Math.random() * 2_147_483_647)`) when `--seed` is omitted, sends it to the API, and records it back in the sidecar so every generation is reproducible. New generators should follow the same pattern instead of leaving seed unset. The generation banner marks auto-generated seeds with `(auto)` so users can tell them apart from user-supplied ones.
 
 ### aiwdm Upload Integration
 

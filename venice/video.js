@@ -130,19 +130,21 @@ const pollUntilReady = async (model, queueId, { interval = 5000, maxAttempts = 3
   throw new Error("Polling timeout: video generation took too long");
 };
 
+const randomSeed = () => Math.floor(Math.random() * 2_147_483_647);
+
 const buildQueueBody = (options, modelEntry) => {
   const body = {
     model: modelEntry.id,
     prompt: options.prompt,
     duration: options.duration,
     resolution: options.resolution,
+    seed: options.seed,
   };
 
   if (modelEntry.type === "text-to-video" && options.aspectRatio) {
     body.aspect_ratio = options.aspectRatio;
   }
   if (options.negativePrompt) body.negative_prompt = options.negativePrompt;
-  if (options.seed !== undefined) body.seed = options.seed;
   if (options.imageUrl) body.image_url = options.imageUrl;
   if (options.referenceImages?.length) body.reference_image_urls = options.referenceImages;
   if (options.videoUrl) body.video_url = options.videoUrl;
@@ -184,6 +186,9 @@ const run = async (options) => {
     process.exit(1);
   }
 
+  const seedProvidedByUser = options.seed !== undefined;
+  if (!seedProvidedByUser) options.seed = randomSeed();
+
   const body = buildQueueBody(options, modelEntry);
   if (DEBUG) console.log("Queue body:", JSON.stringify(body, null, 2));
 
@@ -191,6 +196,7 @@ const run = async (options) => {
   console.log(`Model: ${modelEntry.name} [${modelEntry.id}]`);
   console.log(`Duration: ${options.duration} | Resolution: ${options.resolution}`);
   if (modelEntry.type === "text-to-video") console.log(`Aspect: ${options.aspectRatio}`);
+  console.log(`Seed: ${options.seed}${seedProvidedByUser ? "" : " (auto)"}`);
   console.log("‾".repeat(60) + "\n");
 
   let queued;
@@ -257,6 +263,7 @@ const run = async (options) => {
   console.log(`Queue ID: ${queueId}`);
   console.log(`Duration: ${options.duration}`);
   console.log(`Resolution: ${options.resolution}`);
+  console.log(`Seed: ${options.seed}${seedProvidedByUser ? "" : " (auto)"}`);
   console.log("‾".repeat(60) + "\n");
 };
 

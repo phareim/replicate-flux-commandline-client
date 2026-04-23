@@ -55,6 +55,31 @@ test("venice smoke test saves mocked image output", () => {
     assert.equal(metadata.source, "venice");
     assert.equal(metadata.kind, "image");
     assert.equal(metadata.prompt, "smoke test");
+    assert.equal(typeof metadata.seed, "number", "Expected auto-generated seed in sidecar");
+    assert(metadata.seed >= 0, "Expected non-negative seed");
+  } finally {
+    removeDir(outputDir);
+  }
+});
+
+test("venice records user-supplied seed in sidecar", () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "venice-seed-"));
+  try {
+    runCli(
+      ["venice/index.js", "--prompt", "smoke test", "--seed", "12345"],
+      {
+        VENICE_API_TOKEN: "test-token",
+        VENICE_SMOKE_TEST: "1",
+        VENICE_PATH: outputDir,
+        NODE_ENV: "test"
+      }
+    );
+
+    const files = fs.readdirSync(outputDir);
+    const sidecar = files.find((file) => file.endsWith(".json"));
+    assert(sidecar, "Expected venice metadata sidecar");
+    const metadata = JSON.parse(fs.readFileSync(path.join(outputDir, sidecar), "utf8"));
+    assert.equal(metadata.seed, 12345, "Expected user-supplied seed preserved");
   } finally {
     removeDir(outputDir);
   }
@@ -105,6 +130,7 @@ test("wavespeed smoke test saves mocked image output", () => {
     assert.equal(metadata.kind, "image");
     assert.equal(metadata.prompt, "smoke test");
     assert.equal(metadata.output_file, imageFile);
+    assert.equal(typeof metadata.seed, "number", "Expected auto-generated seed in sidecar");
   } finally {
     removeDir(outputDir);
   }
@@ -134,6 +160,7 @@ test("venice-video smoke test saves mocked mp4 output", () => {
     assert.equal(metadata.kind, "video");
     assert.equal(metadata.prompt, "smoke test");
     assert(metadata.queue_id, "Expected queue_id in metadata");
+    assert.equal(typeof metadata.seed, "number", "Expected auto-generated seed in sidecar");
   } finally {
     removeDir(outputDir);
   }

@@ -176,6 +176,8 @@ venice-video --prompt "drone shot over forest" --no-metadata
 
 For Wavespeed runs with `--optimize`, the sidecar records both the `prompt` actually sent to the model and the `original_prompt` you typed.
 
+If you omit `--seed`, each CLI generates a random 32-bit seed client-side, sends it to the API, and records it in the sidecar — so every generation is reproducible by copying the seed back into a subsequent `--seed <n>` run. The generation banner marks auto-generated seeds with `(auto)`.
+
 ## Prompt Files
 
 Both services support reading prompts from a `prompt.txt` file in the current directory:
