@@ -1,6 +1,6 @@
 {
-  "name": "flux-client",
-  "version": "0.0.1",
+  "name": "wave-cli",
+  "version": "1.0.0",
   "description": "A client for image-generation models from venice.ai and wavespeed.ai",
   "main": "index.js",
   "bin": {

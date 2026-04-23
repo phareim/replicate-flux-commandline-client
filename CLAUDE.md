@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-flux-client is a CLI tool providing unified interfaces to two AI image and video generation services: Venice.ai and Wavespeed.ai. Each service is implemented as an independent module with its own CLI entry points.
+wave-cli is a CLI tool providing unified interfaces to two AI image and video generation services: Venice.ai and Wavespeed.ai. Each service is implemented as an independent module with its own CLI entry points.
 
 ## Development Commands
 
