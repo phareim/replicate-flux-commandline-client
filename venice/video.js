@@ -130,7 +130,7 @@ const pollUntilReady = async (model, queueId, { interval = 5000, maxAttempts = 3
   throw new Error("Polling timeout: video generation took too long");
 };
 
-const randomSeed = () => Math.floor(Math.random() * 2_147_483_647);
+const randomSeed = () => Math.floor(Math.random() * 1_000_000_000);
 
 const buildQueueBody = (options, modelEntry) => {
   const body = {

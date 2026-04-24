@@ -83,7 +83,7 @@ const readPromptFromFile = async (filePath) => {
     }
 };
 
-const randomSeed = () => Math.floor(Math.random() * 2_147_483_647);
+const randomSeed = () => Math.floor(Math.random() * 1_000_000_000);
 
 const buildInput = (options) => {
     const constraints = getModelConstraints(options.model);
