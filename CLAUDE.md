@@ -64,6 +64,7 @@ wavespeed/
 - `venice-models` → `venice/get-models.js` (refresh image model catalog)
 - `venice-video` → `venice/video.js` (WAN 2.7 video generation)
 - `wavespeed` → `wavespeed/index.js` (image + video generation)
+- `wave-replay` → `tools/replay.js` (reconstruct or re-run a CLI invocation from a sidecar)
 
 These are symlinked when installed globally via `npm install -g`.
 
@@ -106,6 +107,7 @@ Every saved media file gets a JSON sidecar (`<basename>.json`) written alongside
 - When `wavespeed --optimize` rewrites the prompt, the sidecar records `prompt` (final) plus `original_prompt`, `optimize_mode`, `optimize_style`.
 - The smoke tests assert both the presence of the sidecar and a couple of key fields — when adding a new generator, write a sidecar and extend the smoke tests the same way.
 - Seeds are always present in sidecars: each CLI auto-generates a random 32-bit seed (`Math.floor(Math.random() * 2_147_483_647)`) when `--seed` is omitted, sends it to the API, and records it back in the sidecar so every generation is reproducible. New generators should follow the same pattern instead of leaving seed unset. The generation banner marks auto-generated seeds with `(auto)` so users can tell them apart from user-supplied ones.
+- Sidecars are replayable via `wave-replay <sidecar-or-media>`: it dispatches on the `source` field and rebuilds the matching CLI invocation (`venice` / `venice-video` / `wavespeed`). When you add a new generator or new metadata fields, extend `tools/replay.js` so the round-trip stays complete — the smoke tests cover venice and wavespeed reconstruction plus `--exec` re-runs. For wavespeed sidecars with `original_prompt` set, replay uses the post-optimization `prompt` (the optimizer is non-deterministic, so re-optimizing would diverge).
 
 ### aiwdm Upload Integration
 

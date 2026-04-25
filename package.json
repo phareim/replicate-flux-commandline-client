@@ -7,7 +7,8 @@
     "venice": "./venice/index.js",
     "venice-models": "./venice/get-models.js",
     "venice-video": "./venice/video.js",
-    "wavespeed": "./wavespeed/index.js"
+    "wavespeed": "./wavespeed/index.js",
+    "wave-replay": "./tools/replay.js"
   },
   "type": "module",
   "scripts": {

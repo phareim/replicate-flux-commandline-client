@@ -178,6 +178,21 @@ For Wavespeed runs with `--optimize`, the sidecar records both the `prompt` actu
 
 If you omit `--seed`, each CLI generates a random 32-bit seed client-side, sends it to the API, and records it in the sidecar — so every generation is reproducible by copying the seed back into a subsequent `--seed <n>` run. The generation banner marks auto-generated seeds with `(auto)`.
 
+### Replay a generation — `wave-replay`
+
+`wave-replay` reads a metadata sidecar and reconstructs the exact `wave-cli` command that produced it. Useful when you want to regenerate, tweak one parameter, or remind yourself how a saved image was made.
+
+```bash
+# Print the original command (paste it back, or pipe to a shell)
+wave-replay images/venice/venice_1730000000.json
+wave-replay images/venice/venice_1730000000.png      # also works — finds the .json next to it
+
+# Re-run it directly (uses the matching wave-cli script from this install)
+wave-replay videos/venice/venice_<id>.mp4 --exec
+```
+
+For Wavespeed sidecars produced with `--optimize`, replay uses the *post-optimization* prompt (the one actually sent to the model) — re-running the optimizer is non-deterministic and would diverge from the saved output.
+
 ## Prompt Files
 
 Both services support reading prompts from a `prompt.txt` file in the current directory:
