@@ -93,7 +93,7 @@ export function setupCLI() {
     .option(
       "--keyword-model <id>",
       "Venice text model used for keyword-based prompt generation.",
-      "glm-4.6"
+      "zai-org-glm-4.6"
     )
     .helpOption("-h, --help", "Display this help message.")
     .on("--help", () => {

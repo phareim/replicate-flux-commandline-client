@@ -23,7 +23,7 @@ const buildSystemPrompt = (rating) => {
 const mockGeneratedPrompt = (keywords, rating) =>
   `[mock ${rating}] cinematic image inspired by: ${keywords}`;
 
-export const generatePromptFromKeywords = async ({ keywords, rating = "R", model = "glm-4.6", debug = false }) => {
+export const generatePromptFromKeywords = async ({ keywords, rating = "R", model = "zai-org-glm-4.6", debug = false }) => {
   if (!keywords || !keywords.trim()) {
     throw new Error("generatePromptFromKeywords: keywords are required");
   }

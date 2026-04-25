@@ -43,7 +43,7 @@ venice --prompt "Portrait" --model qwen-image --variants 4 --output-format png
 - `--debug`: Enable debug mode
 - `--keywords <text>`: Generate the image prompt from a keyword list using a Venice text model (overrides `--prompt`)
 - `--keyword-rating <rating>`: Content rating to steer keyword-based prompt generation: `G`, `PG`, `PG13`, or `R` (default: `R`)
-- `--keyword-model <id>`: Venice text model used for keyword expansion (default: `glm-4.6`)
+- `--keyword-model <id>`: Venice text model used for keyword expansion (default: `zai-org-glm-4.6`)
 
 **Note:** Images are automatically constrained to dimensions divisible by 16 (model requirement), with a maximum of 1280x1280.
 
