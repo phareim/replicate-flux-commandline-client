@@ -43,15 +43,15 @@ venice --prompt "Portrait" --model qwen-image --variants 4 --output-format png
 - `--debug`: Enable debug mode
 - `--keywords <text>`: Generate the image prompt from a keyword list using a Venice text model (overrides `--prompt`)
 - `--keyword-rating <rating>`: Content rating to steer keyword-based prompt generation: `G`, `PG`, `PG13`, or `R` (default: `R`)
-- `--keyword-model <id>`: Venice text model used for keyword expansion (default: `venice-uncensored`)
+- `--keyword-model <id>`: Venice text model used for keyword expansion (default: `glm-4.6`)
 
 **Note:** Images are automatically constrained to dimensions divisible by 16 (model requirement), with a maximum of 1280x1280.
 
-**Keyword-based prompts:** When `--keywords` is set, `venice` first calls Venice's chat completions endpoint with the supplied text model and asks it to expand the keywords into a vivid one-paragraph image prompt at the chosen rating, then uses that prompt for image generation. The keywords, rating, and text model are recorded in the sidecar alongside the final prompt.
+**Keyword-based prompts:** Both `venice` and `wavespeed` support `--keywords` — when set, the CLI calls Venice's chat completions endpoint (always Venice, even from the wavespeed CLI) with the supplied text model and asks it to expand the keywords into a vivid one-paragraph image prompt at the chosen rating, then uses that prompt for generation. The keywords, rating, and text model are recorded in the sidecar alongside the final prompt. The wavespeed variant requires `VENICE_API_TOKEN` in addition to `WAVESPEED_KEY`.
 
 ```bash
-venice --keywords "neon alley, woman in trench coat, rain" --keyword-rating PG13
-venice --keywords "ferns, dew, morning light" --keyword-rating G --keyword-model llama-3.3-70b
+venice    --keywords "neon alley, woman in trench coat, rain" --keyword-rating PG13
+wavespeed --keywords "ferns, dew, morning light" --keyword-rating G --keyword-model llama-3.3-70b
 ```
 
 ### Venice Models (`venice-models`)

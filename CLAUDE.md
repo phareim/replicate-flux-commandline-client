@@ -76,7 +76,11 @@ These are symlinked when installed globally via `npm install -g`.
 
 The file-based approach enables batch workflows and avoids shell escaping issues.
 
-**Keyword-based prompt expansion (Venice only)**: `venice --keywords "<csv>"` calls Venice's chat completions endpoint (`/api/v1/chat/completions`) via `venice/text.js` and uses the returned paragraph as the image prompt. Flags: `--keyword-rating <G|PG|PG13|R>` (default `R`) steers content via the system prompt; `--keyword-model <id>` (default `venice-uncensored`) picks the text model. The keywords, rating, and text model are recorded in the sidecar; `prompt` holds the final generated text. Smoke tests use `VENICE_SMOKE_TEST=1` to short-circuit the chat call to a `[mock <rating>] cinematic image inspired by: <keywords>` string. To extend to wavespeed/venice-video, mirror the same flag set and call `generatePromptFromKeywords` before the existing prompt-resolution path.
+**Keyword-based prompt expansion**: Both `venice` and `wavespeed` accept `--keywords "<csv>"`, which calls Venice's chat completions endpoint (`/api/v1/chat/completions`) via the module-local `text.js` and uses the returned paragraph as the image prompt. Flags: `--keyword-rating <G|PG|PG13|R>` (default `R`) steers content via the system prompt; `--keyword-model <id>` (default `glm-4.6`) picks the text model. The keywords, rating, and text model are recorded in the sidecar; `prompt` holds the final generated text. Wavespeed always calls Venice for this — `VENICE_API_TOKEN` is required even though the image generation goes to Wavespeed.
+
+- Implementation: `venice/text.js` and `wavespeed/text.js` are duplicates of the same `generatePromptFromKeywords` helper, mirroring the saveMetadata pattern to preserve module independence — do not consolidate. The wavespeed copy honors both `WAVESPEED_SMOKE_TEST` and `VENICE_SMOKE_TEST` for short-circuiting.
+- Smoke tests use `*_SMOKE_TEST=1` to short-circuit the chat call to a `[mock <rating>] cinematic image inspired by: <keywords>` string.
+- To extend to `venice-video`, mirror the same flag set and call `generatePromptFromKeywords` before the existing prompt-resolution path.
 
 **Model Endpoint Resolution**:
 - **Venice**: Uses `models.js` which dynamically loads model endpoint mappings from `models.json`. Also supports `getModelConstraints()` for model-specific parameter validation.

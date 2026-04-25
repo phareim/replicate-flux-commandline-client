@@ -146,7 +146,7 @@ export function setupCLI() {
     .option(
       "--keyword-model <id>",
       "Venice text model used for keyword-based prompt generation.",
-      "venice-uncensored"
+      "glm-4.6"
     )
     .option(
       "--debug",

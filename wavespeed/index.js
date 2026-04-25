@@ -10,6 +10,7 @@ import { getModelEndpoint, getModelInfo, constrainDimensions } from "./models.js
 import { image_size, API_BASE_URL } from "./config.js";
 import { buildParameters } from "./parameter-builders.js";
 import { handleResponse } from "./response-handlers.js";
+import { generatePromptFromKeywords, VALID_RATINGS } from "./text.js";
 
 let DEBUG = false;
 let localOutputOverride = false;
@@ -306,6 +307,9 @@ const run = async ({ prompt, originalPrompt, modelEndpoint, size, options }) => 
       original_prompt: originalPrompt,
       optimize_mode: originalPrompt ? options.optimizeMode : undefined,
       optimize_style: originalPrompt ? options.optimizeStyle : undefined,
+      keywords: options.keywords,
+      keyword_rating: options.keywords ? options.keywordRating : undefined,
+      keyword_model: options.keywords ? options.keywordModel : undefined,
       size: isVideoCategory ? undefined : size,
       aspect_ratio: input.aspect_ratio,
       resolution: input.resolution,
@@ -386,6 +390,32 @@ const main = async () => {
   const modelEndpoint = getModelEndpoint(options.model);
   const sizeFromFormat = image_size[options.format] || options.format || "4096*4096";
   const size = constrainDimensions(sizeFromFormat, modelEndpoint);
+
+  if (options.keywords) {
+    const rating = VALID_RATINGS.includes(options.keywordRating) ? options.keywordRating : "R";
+    if (rating !== options.keywordRating) {
+      console.warn(`Invalid --keyword-rating '${options.keywordRating}'. Using '${rating}'. Valid: ${VALID_RATINGS.join(", ")}`);
+      options.keywordRating = rating;
+    }
+    console.log("__Generating prompt from keywords" + "_".repeat(60 - 33));
+    console.log(`Keywords: ${options.keywords}`);
+    console.log(`Rating: ${rating}`);
+    console.log(`Text model: ${options.keywordModel}`);
+    console.log("‾".repeat(60));
+    try {
+      const generated = await generatePromptFromKeywords({
+        keywords: options.keywords,
+        rating,
+        model: options.keywordModel,
+        debug: DEBUG,
+      });
+      console.log(`Prompt: ${generated}\n`);
+      options.prompt = generated;
+    } catch (error) {
+      console.error(`Failed to generate prompt from keywords: ${error.message}`);
+      process.exit(1);
+    }
+  }
 
   if (options.allPrompts) {
     const currentDir = process.cwd();

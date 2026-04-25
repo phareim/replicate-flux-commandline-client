@@ -1,5 +1,6 @@
 const VENICE_CHAT_URL = "https://api.venice.ai/api/v1/chat/completions";
-const SMOKE_MODE = process.env.VENICE_SMOKE_TEST === "1";
+const SMOKE_MODE =
+  process.env.WAVESPEED_SMOKE_TEST === "1" || process.env.VENICE_SMOKE_TEST === "1";
 
 const RATING_GUIDANCE = {
   G:    "Family-friendly. No nudity, no violence, no drugs, no suggestive content.",
@@ -30,7 +31,7 @@ export const generatePromptFromKeywords = async ({ keywords, rating = "R", model
   if (SMOKE_MODE) return mockGeneratedPrompt(keywords.trim(), rating);
 
   if (!process.env.VENICE_API_TOKEN) {
-    throw new Error("VENICE_API_TOKEN is not set; required for --keywords prompt expansion.");
+    throw new Error("VENICE_API_TOKEN is not set; required for --keywords prompt expansion (uses Venice text models).");
   }
 
   const body = {

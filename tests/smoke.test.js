@@ -185,8 +185,34 @@ test("venice --keywords expands prompt via text model and records inputs in side
     const metadata = JSON.parse(fs.readFileSync(path.join(outputDir, sidecar), "utf8"));
     assert.equal(metadata.keywords, "neon, cat, alley");
     assert.equal(metadata.keyword_rating, "PG13");
-    assert.equal(metadata.keyword_model, "venice-uncensored");
+    assert.equal(metadata.keyword_model, "glm-4.6");
     assert.match(metadata.prompt, /\[mock PG13\] cinematic image inspired by: neon, cat, alley/);
+  } finally {
+    removeDir(outputDir);
+  }
+});
+
+test("wavespeed --keywords expands prompt via Venice text model and records inputs in sidecar", () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "wavespeed-keywords-"));
+  try {
+    runCli(
+      ["wavespeed/index.js", "--keywords", "rain, neon, samurai", "--keyword-rating", "PG"],
+      {
+        WAVESPEED_KEY: "test-key",
+        WAVESPEED_SMOKE_TEST: "1",
+        WAVESPEED_PATH: outputDir,
+        NODE_ENV: "test",
+      }
+    );
+
+    const files = fs.readdirSync(outputDir);
+    const sidecar = files.find((f) => f.endsWith(".json"));
+    assert(sidecar, "Expected wavespeed sidecar");
+    const metadata = JSON.parse(fs.readFileSync(path.join(outputDir, sidecar), "utf8"));
+    assert.equal(metadata.keywords, "rain, neon, samurai");
+    assert.equal(metadata.keyword_rating, "PG");
+    assert.equal(metadata.keyword_model, "glm-4.6");
+    assert.match(metadata.prompt, /\[mock PG\] cinematic image inspired by: rain, neon, samurai/);
   } finally {
     removeDir(outputDir);
   }

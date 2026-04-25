@@ -81,6 +81,20 @@ export function setupCLI() {
     .option("--aiwdm-rating <rating>", "Rating passed to aiwdm upload (G, PG, PG13, R).", "R")
     .option("--aiwdm-tags <tags>", "Extra comma-separated tags passed to aiwdm upload (source tag `wavespeed` is always added).")
     .option("--no-metadata", "Skip writing the JSON metadata sidecar next to each saved output.")
+    .option(
+      "--keywords <text>",
+      "Generate the image prompt from these keywords using a Venice text model (overrides --prompt; requires VENICE_API_TOKEN)."
+    )
+    .option(
+      "--keyword-rating <rating>",
+      "Content rating used to steer keyword-based prompt generation (G, PG, PG13, R).",
+      "R"
+    )
+    .option(
+      "--keyword-model <id>",
+      "Venice text model used for keyword-based prompt generation.",
+      "glm-4.6"
+    )
     .helpOption("-h, --help", "Display this help message.")
     .on("--help", () => {
       const availableSizes = Object.keys(image_size).join(", ");
