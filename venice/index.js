@@ -20,6 +20,7 @@ import {
     stylePresets as dynamicStylePresets
 } from "./models.js";
 import { saveImage, saveMetadata } from "./utils.js";
+import { generatePromptFromKeywords, VALID_RATINGS } from "./text.js";
 
 const VENICE_API_URL = "https://api.venice.ai/api/v1/image/generate";
 const SMOKE_MODE = process.env.VENICE_SMOKE_TEST === "1";
@@ -147,6 +148,32 @@ const run = async (options) => {
         process.exit(1);
     }
 
+    if (options.keywords) {
+        const rating = VALID_RATINGS.includes(options.keywordRating) ? options.keywordRating : "R";
+        if (rating !== options.keywordRating) {
+            console.warn(`Invalid --keyword-rating '${options.keywordRating}'. Using '${rating}'. Valid: ${VALID_RATINGS.join(", ")}`);
+            options.keywordRating = rating;
+        }
+        console.log("__Generating prompt from keywords" + "_".repeat(60 - 33));
+        console.log(`Keywords: ${options.keywords}`);
+        console.log(`Rating: ${rating}`);
+        console.log(`Text model: ${options.keywordModel}`);
+        console.log("‾".repeat(60));
+        try {
+            const generated = await generatePromptFromKeywords({
+                keywords: options.keywords,
+                rating,
+                model: options.keywordModel,
+                debug: DEBUG,
+            });
+            console.log(`Prompt: ${generated}\n`);
+            options.prompt = generated;
+        } catch (error) {
+            console.error(`Failed to generate prompt from keywords: ${error.message}`);
+            process.exit(1);
+        }
+    }
+
     if (!options.prompt) {
         const promptFilePath = options.file || "./prompt.txt";
         const promptFromFile = await readPromptFromFile(promptFilePath);
@@ -154,7 +181,7 @@ const run = async (options) => {
             options.prompt = promptFromFile;
             console.log(`Using prompt from ${promptFilePath}.`);
         } else {
-            console.error("Error: No prompt provided. Please use --prompt, --file, or create a ./prompt.txt file.");
+            console.error("Error: No prompt provided. Please use --prompt, --file, --keywords, or create a ./prompt.txt file.");
             process.exit(1);
         }
     }
@@ -211,6 +238,9 @@ const run = async (options) => {
                 model: input.model,
                 model_key: options.model,
                 prompt: input.prompt,
+                keywords: options.keywords,
+                keyword_rating: options.keywords ? options.keywordRating : undefined,
+                keyword_model: options.keywords ? options.keywordModel : undefined,
                 negative_prompt: input.negative_prompt,
                 width: input.width,
                 height: input.height,

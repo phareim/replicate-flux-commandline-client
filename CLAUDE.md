@@ -76,6 +76,8 @@ These are symlinked when installed globally via `npm install -g`.
 
 The file-based approach enables batch workflows and avoids shell escaping issues.
 
+**Keyword-based prompt expansion (Venice only)**: `venice --keywords "<csv>"` calls Venice's chat completions endpoint (`/api/v1/chat/completions`) via `venice/text.js` and uses the returned paragraph as the image prompt. Flags: `--keyword-rating <G|PG|PG13|R>` (default `R`) steers content via the system prompt; `--keyword-model <id>` (default `venice-uncensored`) picks the text model. The keywords, rating, and text model are recorded in the sidecar; `prompt` holds the final generated text. Smoke tests use `VENICE_SMOKE_TEST=1` to short-circuit the chat call to a `[mock <rating>] cinematic image inspired by: <keywords>` string. To extend to wavespeed/venice-video, mirror the same flag set and call `generatePromptFromKeywords` before the existing prompt-resolution path.
+
 **Model Endpoint Resolution**:
 - **Venice**: Uses `models.js` which dynamically loads model endpoint mappings from `models.json`. Also supports `getModelConstraints()` for model-specific parameter validation.
 - **Wavespeed**: Uses `models.js` with hardcoded `modelEndpoints` and `allModels` arrays. Includes `constrainDimensions()` to automatically scale dimensions to fit model-specific max width/height while preserving aspect ratio.

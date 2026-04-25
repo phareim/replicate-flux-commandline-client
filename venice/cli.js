@@ -135,6 +135,20 @@ export function setupCLI() {
       "Skip writing the JSON metadata sidecar next to the saved image."
     )
     .option(
+      "--keywords <text>",
+      "Generate the image prompt from these keywords using a Venice text model (overrides --prompt)."
+    )
+    .option(
+      "--keyword-rating <rating>",
+      "Content rating used to steer keyword-based prompt generation (G, PG, PG13, R).",
+      "R"
+    )
+    .option(
+      "--keyword-model <id>",
+      "Venice text model used for keyword-based prompt generation.",
+      "venice-uncensored"
+    )
+    .option(
       "--debug",
       "Enable debug mode to display additional logs"
     )

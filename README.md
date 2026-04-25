@@ -41,8 +41,18 @@ venice --prompt "Portrait" --model qwen-image --variants 4 --output-format png
 - `--hide-watermark`: Hide watermark in generated image
 - `--return-binary`: Return image as binary data (default: true)
 - `--debug`: Enable debug mode
+- `--keywords <text>`: Generate the image prompt from a keyword list using a Venice text model (overrides `--prompt`)
+- `--keyword-rating <rating>`: Content rating to steer keyword-based prompt generation: `G`, `PG`, `PG13`, or `R` (default: `R`)
+- `--keyword-model <id>`: Venice text model used for keyword expansion (default: `venice-uncensored`)
 
 **Note:** Images are automatically constrained to dimensions divisible by 16 (model requirement), with a maximum of 1280x1280.
+
+**Keyword-based prompts:** When `--keywords` is set, `venice` first calls Venice's chat completions endpoint with the supplied text model and asks it to expand the keywords into a vivid one-paragraph image prompt at the chosen rating, then uses that prompt for image generation. The keywords, rating, and text model are recorded in the sidecar alongside the final prompt.
+
+```bash
+venice --keywords "neon alley, woman in trench coat, rain" --keyword-rating PG13
+venice --keywords "ferns, dew, morning light" --keyword-rating G --keyword-model llama-3.3-70b
+```
 
 ### Venice Models (`venice-models`)
 Fetch and update the latest available Venice AI models from the API.

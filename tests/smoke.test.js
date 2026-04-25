@@ -166,6 +166,32 @@ test("venice-video smoke test saves mocked mp4 output", () => {
   }
 });
 
+test("venice --keywords expands prompt via text model and records inputs in sidecar", () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "venice-keywords-"));
+  try {
+    runCli(
+      ["venice/index.js", "--keywords", "neon, cat, alley", "--keyword-rating", "PG13"],
+      {
+        VENICE_API_TOKEN: "test-token",
+        VENICE_SMOKE_TEST: "1",
+        VENICE_PATH: outputDir,
+        NODE_ENV: "test",
+      }
+    );
+
+    const files = fs.readdirSync(outputDir);
+    const sidecar = files.find((f) => f.endsWith(".json"));
+    assert(sidecar, "Expected venice sidecar");
+    const metadata = JSON.parse(fs.readFileSync(path.join(outputDir, sidecar), "utf8"));
+    assert.equal(metadata.keywords, "neon, cat, alley");
+    assert.equal(metadata.keyword_rating, "PG13");
+    assert.equal(metadata.keyword_model, "venice-uncensored");
+    assert.match(metadata.prompt, /\[mock PG13\] cinematic image inspired by: neon, cat, alley/);
+  } finally {
+    removeDir(outputDir);
+  }
+});
+
 test("wave-replay reconstructs venice command from sidecar", () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "wave-replay-venice-"));
   try {
