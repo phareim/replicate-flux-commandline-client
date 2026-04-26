@@ -10,6 +10,19 @@ export const modelEndpoints = {
   "z-image-turbo": "wavespeed-ai/z-image/turbo",
   "z-image": "wavespeed-ai/z-image/turbo",
   "turbo": "wavespeed-ai/z-image/turbo",
+  "seedream-v5-lite": "bytedance/seedream-v5.0-lite",
+  "seedream-v5": "bytedance/seedream-v5.0-lite",
+  "v5-lite": "bytedance/seedream-v5.0-lite",
+  "v5": "bytedance/seedream-v5.0-lite",
+  "seedream-v5-lite-edit": "bytedance/seedream-v5.0-lite/edit",
+  "v5-lite-edit": "bytedance/seedream-v5.0-lite/edit",
+  "v5-edit": "bytedance/seedream-v5.0-lite/edit",
+  "seedream-v5-lite-sequential": "bytedance/seedream-v5.0-lite/sequential",
+  "v5-lite-seq": "bytedance/seedream-v5.0-lite/sequential",
+  "v5-seq": "bytedance/seedream-v5.0-lite/sequential",
+  "seedream-v5-lite-edit-sequential": "bytedance/seedream-v5.0-lite/edit-sequential",
+  "v5-lite-edit-seq": "bytedance/seedream-v5.0-lite/edit-sequential",
+  "v5-edit-seq": "bytedance/seedream-v5.0-lite/edit-sequential",
   "seedream-v4.5": "bytedance/seedream-v4.5",
   "seedream-v4.5-edit": "bytedance/seedream-v4.5/edit",
   "seedream-v4.5-sequential": "bytedance/seedream-v4.5/sequential",
@@ -89,6 +102,62 @@ export const allModels = [
       model_url: "https://api.wavespeed.ai/api/v3/wavespeed-ai/z-image/turbo'",
       maxWidth: 1536,
       maxHeight: 1536,
+    }
+  },
+  {
+    endpoint_id: "bytedance/seedream-v5.0-lite",
+    metadata: {
+      display_name: "Seedream V5.0 Lite",
+      category: "text-to-image",
+      description: "ByteDance Seedream 5.0 Lite — lightweight text-to-image with enhanced typography, sharp text rendering for posters/brand visuals, strong prompt adherence, up to 4K.",
+      status: "live",
+      tags: ["bytedance", "text-to-image", "lite", "4k", "v5"],
+      model_url: "https://wavespeed.ai/models/bytedance/seedream-v5.0-lite",
+      defaultSize: "2048*2048",
+      maxWidth: 4096,
+      maxHeight: 4096,
+    }
+  },
+  {
+    endpoint_id: "bytedance/seedream-v5.0-lite/edit",
+    metadata: {
+      display_name: "Seedream V5.0 Lite Edit",
+      category: "image-to-image",
+      description: "ByteDance Seedream 5.0 Lite Edit — lightweight image editing accepting up to 10 reference images for complex multi-figure edits, output up to 4K.",
+      status: "live",
+      tags: ["bytedance", "image-to-image", "edit", "lite", "v5"],
+      model_url: "https://wavespeed.ai/models/bytedance/seedream-v5.0-lite/edit",
+      defaultSize: "2048*2048",
+      maxWidth: 4096,
+      maxHeight: 4096,
+    }
+  },
+  {
+    endpoint_id: "bytedance/seedream-v5.0-lite/sequential",
+    metadata: {
+      display_name: "Seedream V5.0 Lite Sequential",
+      category: "text-to-image",
+      description: "ByteDance Seedream 5.0 Lite Sequential — generates a coherent series of images from one prompt with consistent character identity and style, up to 4K.",
+      status: "live",
+      tags: ["bytedance", "text-to-image", "sequential", "lite", "v5"],
+      model_url: "https://wavespeed.ai/models/bytedance/seedream-v5.0-lite/sequential",
+      defaultSize: "2048*2048",
+      maxWidth: 4096,
+      maxHeight: 4096,
+    }
+  },
+  {
+    endpoint_id: "bytedance/seedream-v5.0-lite/edit-sequential",
+    metadata: {
+      display_name: "Seedream V5.0 Lite Edit Sequential",
+      category: "image-to-image",
+      description: "ByteDance Seedream 5.0 Lite Edit Sequential — multi-image editing with locked character/object identity across the full sequence, up to 4K.",
+      status: "live",
+      tags: ["bytedance", "image-to-image", "edit", "sequential", "lite", "v5"],
+      model_url: "https://wavespeed.ai/models/bytedance/seedream-v5.0-lite/edit-sequential",
+      defaultSize: "2048*2048",
+      maxWidth: 4096,
+      maxHeight: 4096,
     }
   },
   {

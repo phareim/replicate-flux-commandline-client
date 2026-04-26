@@ -158,6 +158,72 @@
         "constraints": {
           "promptCharacterLimit": 3000,
           "aspectRatios": [
+            "auto",
+            "1:1",
+            "3:2",
+            "16:9",
+            "21:9",
+            "9:16",
+            "2:3",
+            "3:4",
+            "4:5"
+          ],
+          "defaultAspectRatio": "auto",
+          "steps": {
+            "default": 20,
+            "max": 50
+          },
+          "widthHeightDivisor": 1
+        },
+        "supportsWebSearch": false,
+        "name": "Flux 2 Max",
+        "offline": false,
+        "privacy": "anonymized",
+        "traits": []
+      },
+      "object": "model",
+      "owned_by": "venice.ai",
+      "type": "image"
+    },
+    {
+      "created": 1776729600,
+      "id": "gpt-image-2",
+      "model_spec": {
+        "pricing": {
+          "resolutions": {
+            "1K": {
+              "usd": 0.26,
+              "diem": 0.26
+            },
+            "2K": {
+              "usd": 0.5,
+              "diem": 0.5
+            },
+            "4K": {
+              "usd": 0.83,
+              "diem": 0.83
+            }
+          },
+          "upscale": {
+            "2x": {
+              "usd": 0.02,
+              "diem": 0.02
+            },
+            "4x": {
+              "usd": 0.08,
+              "diem": 0.08
+            }
+          }
+        },
+        "constraints": {
+          "promptCharacterLimit": 32000,
+          "defaultResolution": "1K",
+          "resolutions": [
+            "1K",
+            "2K",
+            "4K"
+          ],
+          "aspectRatios": [
             "1:1",
             "3:2",
             "16:9",
@@ -175,7 +241,7 @@
           "widthHeightDivisor": 1
         },
         "supportsWebSearch": false,
-        "name": "Flux 2 Max",
+        "name": "GPT Image 2",
         "offline": false,
         "privacy": "anonymized",
         "traits": []
@@ -220,71 +286,6 @@
         },
         "supportsWebSearch": false,
         "name": "GPT Image 1.5",
-        "offline": false,
-        "privacy": "anonymized",
-        "traits": []
-      },
-      "object": "model",
-      "owned_by": "venice.ai",
-      "type": "image"
-    },
-    {
-      "created": 1776729600,
-      "id": "gpt-image-2",
-      "model_spec": {
-        "pricing": {
-          "resolutions": {
-            "1K": {
-              "usd": 0.26,
-              "diem": 0.26
-            },
-            "2K": {
-              "usd": 0.5,
-              "diem": 0.5
-            },
-            "4K": {
-              "usd": 0.83,
-              "diem": 0.83
-            }
-          },
-          "upscale": {
-            "2x": {
-              "usd": 0.02,
-              "diem": 0.02
-            },
-            "4x": {
-              "usd": 0.08,
-              "diem": 0.08
-            }
-          }
-        },
-        "constraints": {
-          "promptCharacterLimit": 5000,
-          "defaultResolution": "1K",
-          "resolutions": [
-            "1K",
-            "2K",
-            "4K"
-          ],
-          "aspectRatios": [
-            "1:1",
-            "3:2",
-            "16:9",
-            "21:9",
-            "9:16",
-            "2:3",
-            "3:4",
-            "4:5"
-          ],
-          "defaultAspectRatio": "1:1",
-          "steps": {
-            "default": 20,
-            "max": 50
-          },
-          "widthHeightDivisor": 1
-        },
-        "supportsWebSearch": false,
-        "name": "GPT Image 2",
         "offline": false,
         "privacy": "anonymized",
         "traits": []
@@ -956,14 +957,7 @@
             "4:3",
             "3:4",
             "3:2",
-            "2:3",
-            "2:1",
-            "1:2",
-            "19.5:9",
-            "9:19.5",
-            "20:9",
-            "9:20",
-            "auto"
+            "2:3"
           ],
           "defaultAspectRatio": "1:1",
           "steps": {
@@ -1019,14 +1013,7 @@
             "4:3",
             "3:4",
             "3:2",
-            "2:3",
-            "2:1",
-            "1:2",
-            "19.5:9",
-            "9:19.5",
-            "20:9",
-            "9:20",
-            "auto"
+            "2:3"
           ],
           "defaultAspectRatio": "1:1",
           "steps": {
