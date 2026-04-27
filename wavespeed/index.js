@@ -215,7 +215,7 @@ const run = async ({ prompt, originalPrompt, modelEndpoint, size, options }) => 
     duration: options.duration,
     audio: options.audio,
     promptExpansion: options.promptExpansion,
-  });
+  }, modelInfo?.metadata || {});
 
   if (DEBUG) console.log("Request parameters:", JSON.stringify(input, null, 2));
 

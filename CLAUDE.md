@@ -178,9 +178,10 @@ const maxHeight = modelInfo.metadata.maxHeight;
 
 The `constrainDimensions()` function automatically scales down requested dimensions while preserving aspect ratio to fit within model limits. Examples:
 - `flux-2-flex` (FLUX.2 [flex]): 1536x1536 max
-- `z-image-turbo` (Z-Image-Turbo): 1536x1536 max
+- `z-image-turbo` (Z-Image-Turbo, default text-to-image): 1536x1536 max
+- `z-image-turbo/image-to-image` (turbo-i2i): 1536x1536 max — uses singular `image` field, not `images` array (handled via `singleImageInput` metadata flag)
 - `seedream-v5-lite` family (base, edit, sequential, edit-sequential): 4096x4096 max
-- `seedream-v4.5` family (base, edit, sequential, edit-sequential): 8192x8192 max — default model
+- `seedream-v4.5` family (base, edit, sequential, edit-sequential): 8192x8192 max
 - `seedream-v4` (Seedream v4): 4096x4096 max
 - `seedream-v3.1` (Seedream v3.1): 2048x2048 max
 - `wan-2.5` (WAN 2.5): 1440x1440 max

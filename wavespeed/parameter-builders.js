@@ -4,9 +4,10 @@ import { DEFAULT_FORMAT } from "./config.js";
  * Build parameters for Wavespeed API request
  * @param {string} category - The model category (e.g., 'text-to-image', 'image-to-image')
  * @param {Object} options - User-provided options from CLI
+ * @param {Object} [modelMetadata] - Optional model metadata for endpoint-specific quirks
  * @returns {Object} - Input parameters for the Wavespeed API
  */
-export function buildParameters(category, options) {
+export function buildParameters(category, options, modelMetadata = {}) {
   const params = { prompt: options.prompt };
 
   if (category === "text-to-image") {
@@ -17,7 +18,11 @@ export function buildParameters(category, options) {
     if (!options.images || !Array.isArray(options.images) || options.images.length === 0) {
       throw new Error("image-to-image models require at least one input image. Use --images <url1> <url2> ...");
     }
-    params.images = options.images;
+    if (modelMetadata.singleImageInput) {
+      params.image = options.images[0];
+    } else {
+      params.images = options.images;
+    }
     if (options.size) params.size = options.size;
   }
 

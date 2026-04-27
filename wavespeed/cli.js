@@ -102,11 +102,12 @@ export function setupCLI() {
       console.log(`
 Default Model:
   ${DEFAULT_MODEL} (${modelEndpoints[DEFAULT_MODEL]})
-  Seedream v4.5 - ByteDance's latest text-to-image model with crisp text rendering and up to 8K output.
+  Z-Image-Turbo - 6B parameter text-to-image model, photorealistic in sub-second time.
 
 Available Models:
   flux-2-flex, flux2, flex              FLUX.2 [flex] - Fast, flexible text-to-image with enhanced realism
-  z-image-turbo, z-image, turbo         Z-Image-Turbo - 6B parameter model, photorealistic in sub-second time
+  z-image-turbo, z-image, turbo         Z-Image-Turbo - 6B parameter text-to-image, photorealistic in sub-second time
+  turbo-i2i, turbo-edit, z-turbo-i2i    Z-Image-Turbo Image-to-Image - 6B parameter i2i, sub-second transforms
   seedream-v4.5, seedream, v4.5         Seedream v4.5 - Latest text-to-image by ByteDance (8K)
   seedream-v4.5-edit, seedream-edit     Seedream v4.5 Edit - High-fidelity editing with reference preservation (8K)
   seedream-v4.5-sequential, v4.5-seq    Seedream v4.5 Sequential - Multi-image sets with consistent characters (8K)
@@ -131,7 +132,7 @@ Available Formats:
   ${availableSizes}
 
 Examples:
-  # Basic usage (default model: seedream-v4.5)
+  # Basic usage (default model: turbo / Z-Image-Turbo)
   wavespeed --prompt "A futuristic cityscape at dusk"
 
   # Using specific models
@@ -163,6 +164,10 @@ Examples:
   wavespeed --prompt "portrait shot" --optimize --optimize-style photographic
   wavespeed --prompt "fantasy art" --optimize --optimize-style artistic
   wavespeed --prompt "creative scene" --optimize --optimize-style random --count 4
+
+  # Image-to-image (Z-Image-Turbo)
+  wavespeed --model turbo-i2i --images https://example.com/photo.jpg --prompt "Sharper, cinematic lighting"
+  wavespeed --model turbo-edit --images photo.jpg --prompt "Painterly style"
 
   # Image-to-image editing (Seedream v4.5 Edit)
   wavespeed --model seedream-edit --images https://example.com/photo.jpg --prompt "Professional headshot"

@@ -10,6 +10,11 @@ export const modelEndpoints = {
   "z-image-turbo": "wavespeed-ai/z-image/turbo",
   "z-image": "wavespeed-ai/z-image/turbo",
   "turbo": "wavespeed-ai/z-image/turbo",
+  "z-image-turbo-i2i": "wavespeed-ai/z-image-turbo/image-to-image",
+  "z-image-turbo-edit": "wavespeed-ai/z-image-turbo/image-to-image",
+  "z-turbo-i2i": "wavespeed-ai/z-image-turbo/image-to-image",
+  "turbo-i2i": "wavespeed-ai/z-image-turbo/image-to-image",
+  "turbo-edit": "wavespeed-ai/z-image-turbo/image-to-image",
   "seedream-v5-lite": "bytedance/seedream-v5.0-lite",
   "v5-lite": "bytedance/seedream-v5.0-lite",
   "seedream-v5-lite-edit": "bytedance/seedream-v5.0-lite/edit",
@@ -97,6 +102,20 @@ export const allModels = [
       model_url: "https://api.wavespeed.ai/api/v3/wavespeed-ai/z-image/turbo",
       maxWidth: 1536,
       maxHeight: 1536,
+    }
+  },
+  {
+    endpoint_id: "wavespeed-ai/z-image-turbo/image-to-image",
+    metadata: {
+      display_name: "Z-Image-Turbo Image-to-Image",
+      category: "image-to-image",
+      description: "6 billion parameter image-to-image model that transforms reference images in sub-second time. Best performance, no coldstarts, affordable pricing.",
+      status: "live",
+      tags: ["wavespeed", "image-to-image", "turbo", "fast", "6b"],
+      model_url: "https://wavespeed.ai/models/wavespeed-ai/z-image-turbo/image-to-image",
+      maxWidth: 1536,
+      maxHeight: 1536,
+      singleImageInput: true,
     }
   },
   {
