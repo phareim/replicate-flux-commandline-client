@@ -77,6 +77,7 @@ export const modelEndpoints = {
   "gpt-image-2": "openai/gpt-image-2/text-to-image",
   "gpt-image": "openai/gpt-image-2/text-to-image",
   "gpt2": "openai/gpt-image-2/text-to-image",
+  "gpt": "openai/gpt-image-2/text-to-image",
 };
 
 export const allModels = [
