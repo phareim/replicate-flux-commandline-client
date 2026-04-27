@@ -10,7 +10,7 @@ import { DEFAULT_FORMAT } from "./config.js";
 export function buildParameters(category, options, modelMetadata = {}) {
   const params = { prompt: options.prompt };
 
-  if (category === "text-to-image") {
+  if (category === "text-to-image" && !modelMetadata.noSize) {
     params.size = options.size || DEFAULT_FORMAT;
   }
 
@@ -42,11 +42,17 @@ export function buildParameters(category, options, modelMetadata = {}) {
   if (options.enableBase64) params.enable_base64_output = true;
   if (options.sync) params.enable_sync_mode = true;
   if (options.negativePrompt) params.negative_prompt = options.negativePrompt;
-  if (options.seed !== undefined && options.seed !== null) params.seed = parseInt(options.seed, 10);
+  if (options.seed !== undefined && options.seed !== null && !modelMetadata.noSeed) {
+    params.seed = parseInt(options.seed, 10);
+  }
   if (options.aspectRatio) params.aspect_ratio = options.aspectRatio;
   if (options.resolution) params.resolution = options.resolution;
   if (options.outputFormat) params.output_format = options.outputFormat;
-  if (options.quality) params.quality = options.quality;
+  if (options.quality) {
+    params.quality = options.quality;
+  } else if (modelMetadata.defaultQuality) {
+    params.quality = modelMetadata.defaultQuality;
+  }
   if (options.numImages) params.num_images = parseInt(options.numImages, 10);
 
   return params;

@@ -74,6 +74,9 @@ export const modelEndpoints = {
   "kling-image": "kwaivgi/kling-image-o1",
   "kling-o1": "kwaivgi/kling-image-o1",
   "kling": "kwaivgi/kling-image-o1",
+  "gpt-image-2": "openai/gpt-image-2/text-to-image",
+  "gpt-image": "openai/gpt-image-2/text-to-image",
+  "gpt2": "openai/gpt-image-2/text-to-image",
 };
 
 export const allModels = [
@@ -397,6 +400,20 @@ export const allModels = [
       fixedSizes: ["1024*1024", "768*1344", "864*1152", "1344*768", "1152*864", "1440*720", "720*1440"],
       supportsQuality: true,
       defaultQuality: "hd",
+    }
+  },
+  {
+    endpoint_id: "openai/gpt-image-2/text-to-image",
+    metadata: {
+      display_name: "GPT-Image-2",
+      category: "text-to-image",
+      description: "OpenAI GPT-Image-2 text-to-image — uses aspect_ratio + resolution (1k/2k/4k) and quality (low/medium/high). No size or seed parameters.",
+      status: "live",
+      tags: ["openai", "text-to-image", "gpt-image"],
+      model_url: "https://api.wavespeed.ai/api/v3/openai/gpt-image-2/text-to-image",
+      noSize: true,
+      noSeed: true,
+      defaultQuality: "low",
     }
   },
   {

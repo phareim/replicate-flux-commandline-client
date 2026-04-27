@@ -122,6 +122,7 @@ Available Models:
   grok-2-image, grok2, grok             Grok 2 Image - xAI's photorealistic image generation
   cogview-4, cogview, cog4              CogView-4 - Zhipu AI's HD quality text-to-image
   kling-image-o1, kling-image, kling    Kling Image O1 - Kuaishou's 2K model with reference images
+  gpt-image-2, gpt-image, gpt2          OpenAI GPT-Image-2 - aspect_ratio + resolution (1k/2k/4k), quality low/medium/high (default: low)
 
 Video Models:
   wan-2.7-t2v, wan-t2v, wan-video       WAN 2.7 Text-to-Video - up to 1080p, 2-15s, optional audio sync
