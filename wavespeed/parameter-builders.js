@@ -46,7 +46,11 @@ export function buildParameters(category, options, modelMetadata = {}) {
     params.seed = parseInt(options.seed, 10);
   }
   if (options.aspectRatio) params.aspect_ratio = options.aspectRatio;
-  if (options.resolution) params.resolution = options.resolution;
+  if (options.resolution) {
+    params.resolution = options.resolution;
+  } else if (modelMetadata.defaultResolution) {
+    params.resolution = modelMetadata.defaultResolution;
+  }
   if (options.outputFormat) params.output_format = options.outputFormat;
   if (options.quality) {
     params.quality = options.quality;

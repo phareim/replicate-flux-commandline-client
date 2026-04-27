@@ -414,6 +414,7 @@ export const allModels = [
       noSize: true,
       noSeed: true,
       defaultQuality: "low",
+      defaultResolution: "1k",
     }
   },
   {
