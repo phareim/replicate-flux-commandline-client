@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import { promises as fs } from "fs";
+import { existsSync } from "fs";
+import os from "os";
 import path from "path";
 import { spawn } from "child_process";
 
@@ -30,26 +32,49 @@ const saveVideo = async (buffer, fileName) => {
   return filePath;
 };
 
-const AIWDM_CLI_DIR = "/home/petter/github/aiwdm/cli";
+const resolveAiwdmDir = () => {
+  const candidates = [
+    process.env.AIWDM_CLI_DIR,
+    path.join(os.homedir(), "github/petter/aiwdm/cli"),
+    path.join(os.homedir(), "github/aiwdm/cli"),
+    "/home/petter/github/aiwdm/cli",
+  ].filter(Boolean);
+  return candidates.find((p) => existsSync(p));
+};
 
-const uploadToAiwdm = (filePath, { prompt, rating, tags }) => {
+const uploadToAiwdm = async (filePath, { prompt, rating, tags, metadata }) => {
   const args = ["upload", filePath];
   if (rating) args.push("--rating", rating);
   if (tags && tags.length) args.push("--tags", tags.join(","));
   if (prompt) args.push("--prompt", prompt);
 
-  return new Promise((resolve) => {
-    // cwd anchors the env lookup: aiwdm loads .env from cwd first.
-    const proc = spawn("aiwdm", args, { stdio: "inherit", cwd: AIWDM_CLI_DIR });
-    proc.on("error", (err) => {
-      console.error(`aiwdm upload failed: ${err.message}`);
-      resolve();
+  let metadataDir;
+  if (metadata) {
+    metadataDir = await fs.mkdtemp(path.join(os.tmpdir(), "wave-meta-"));
+    const metadataPath = path.join(metadataDir, "metadata.json");
+    await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+    args.push("--metadata-file", metadataPath);
+  }
+
+  try {
+    await new Promise((resolve) => {
+      // cwd anchors the env lookup: aiwdm loads .env from cwd first.
+      const cwd = resolveAiwdmDir();
+      const proc = spawn("aiwdm", args, { stdio: "inherit", ...(cwd ? { cwd } : {}) });
+      proc.on("error", (err) => {
+        console.error(`aiwdm upload failed: ${err.message}`);
+        resolve();
+      });
+      proc.on("close", (code) => {
+        if (code !== 0) console.error(`aiwdm exited with code ${code}`);
+        resolve();
+      });
     });
-    proc.on("close", (code) => {
-      if (code !== 0) console.error(`aiwdm exited with code ${code}`);
-      resolve();
-    });
-  });
+  } finally {
+    if (metadataDir) {
+      try { await fs.rm(metadataDir, { recursive: true, force: true }); } catch {}
+    }
+  }
 };
 
 const readPromptFromFile = async (filePath) => {
@@ -223,30 +248,35 @@ const run = async (options) => {
   const fileName = `venice_${queueId}.mp4`;
   const savedPath = await saveVideo(buffer, fileName);
 
-  if (options.metadata !== false && savedPath) {
-    await saveMetadata(savedPath, {
-      source: "venice-video",
-      kind: "video",
-      generated_at: new Date().toISOString(),
-      cli_version: "1.0.0",
-      model: modelEntry.id,
-      model_key: options.model,
-      model_type: modelEntry.type,
-      prompt: options.prompt,
-      negative_prompt: options.negativePrompt,
-      duration: options.duration,
-      resolution: options.resolution,
-      aspect_ratio: modelEntry.type === "text-to-video" ? options.aspectRatio : undefined,
-      seed: options.seed,
-      image_url: options.imageUrl,
-      reference_image_urls: options.referenceImages,
-      video_url: options.videoUrl,
-      audio_url: options.audioUrl,
-      queue_id: queueId,
-    });
+  // Metadata is stored remotely on the aiwdm record by default; the local
+  // sidecar is only written when the upload is skipped (--local or smoke mode).
+  const metadataBlob = options.metadata !== false && savedPath ? {
+    source: "venice-video",
+    kind: "video",
+    generated_at: new Date().toISOString(),
+    cli_version: "1.0.0",
+    model: modelEntry.id,
+    model_key: options.model,
+    model_type: modelEntry.type,
+    prompt: options.prompt,
+    negative_prompt: options.negativePrompt,
+    duration: options.duration,
+    resolution: options.resolution,
+    aspect_ratio: modelEntry.type === "text-to-video" ? options.aspectRatio : undefined,
+    seed: options.seed,
+    image_url: options.imageUrl,
+    reference_image_urls: options.referenceImages,
+    video_url: options.videoUrl,
+    audio_url: options.audioUrl,
+    queue_id: queueId,
+  } : null;
+
+  const willUpload = !options.local && !SMOKE_MODE && savedPath;
+  if (metadataBlob && !willUpload) {
+    await saveMetadata(savedPath, metadataBlob);
   }
 
-  if (options.aiwdm && !SMOKE_MODE && savedPath) {
+  if (willUpload) {
     const extraTags = options.aiwdmTags
       ? options.aiwdmTags.split(",").map((t) => t.trim()).filter(Boolean)
       : [];
@@ -255,6 +285,7 @@ const run = async (options) => {
       prompt: options.prompt,
       rating: options.aiwdmRating,
       tags,
+      metadata: metadataBlob,
     });
   }
 

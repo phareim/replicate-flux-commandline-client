@@ -76,11 +76,16 @@ These are symlinked when installed globally via `npm install -g`.
 
 The file-based approach enables batch workflows and avoids shell escaping issues.
 
-**Keyword-based prompt expansion**: Both `venice` and `wavespeed` accept `--keywords "<csv>"`, which calls Venice's chat completions endpoint (`/api/v1/chat/completions`) via the module-local `text.js` and uses the returned paragraph as the image prompt. Flags: `--keyword-rating <G|PG|PG13|R>` (default `R`) steers content via the system prompt; `--keyword-model <id>` (default `zai-org-glm-4.6`) picks the text model. The keywords, rating, and text model are recorded in the sidecar; `prompt` holds the final generated text. Wavespeed always calls Venice for this — `VENICE_API_TOKEN` is required even though the image generation goes to Wavespeed.
+**Keyword-based prompt expansion**: Both `venice` and `wavespeed` accept `--keywords "<csv>"`, which calls Venice's chat completions endpoint (`/api/v1/chat/completions`) via the module-local `text.js`. Two modes:
+- **Generate mode** (no `--prompt` and no `prompt.txt`): Venice writes a fresh prompt from the keywords.
+- **Rewrite mode** (a prompt is supplied via `--prompt`, `--file`, `prompt.txt`, or per-file in `--all-prompts`): Venice rewrites the existing prompt to incorporate the keywords while preserving subject and style. The user's original prompt is preserved in the sidecar's `original_prompt` field.
 
-- Implementation: `venice/text.js` and `wavespeed/text.js` are duplicates of the same `generatePromptFromKeywords` helper, mirroring the saveMetadata pattern to preserve module independence — do not consolidate. The wavespeed copy honors both `WAVESPEED_SMOKE_TEST` and `VENICE_SMOKE_TEST` for short-circuiting.
-- Smoke tests use `*_SMOKE_TEST=1` to short-circuit the chat call to a `[mock <rating>] cinematic image inspired by: <keywords>` string.
-- To extend to `venice-video`, mirror the same flag set and call `generatePromptFromKeywords` before the existing prompt-resolution path.
+Flags: `--keyword-rating <G|PG|PG13|R>` (default `R`) steers content via the system prompt; `--keyword-model <id>` (default `zai-org-glm-4.6`) picks the text model. The keywords, rating, and text model are recorded in the sidecar; `prompt` holds the final text (rewritten or generated). Wavespeed always calls Venice for this — `VENICE_API_TOKEN` is required even though the image generation goes to Wavespeed.
+
+- Implementation: `venice/text.js` and `wavespeed/text.js` are duplicates of the same `generatePromptFromKeywords` helper, mirroring the saveMetadata pattern to preserve module independence — do not consolidate. The helper takes an optional `existingPrompt`; when provided it switches the system prompt into rewrite mode. The wavespeed copy honors both `WAVESPEED_SMOKE_TEST` and `VENICE_SMOKE_TEST` for short-circuiting.
+- Wavespeed applies the keyword step inside `generateBatch` so it runs per prompt — including each file in `--all-prompts` mode — and feeds the rewritten/generated prompt into the existing `--optimize` pipeline. When both rewrite and optimize run, `original_prompt` records the user's input (pre-rewrite) and `optimize_mode`/`optimize_style` are only set if optimize actually changed the prompt.
+- Smoke tests use `*_SMOKE_TEST=1` to short-circuit the chat call. Generate mode returns `[mock <rating>] cinematic image inspired by: <keywords>`; rewrite mode returns `[mock <rating> rewrite] <existingPrompt> :: incorporating <keywords>`.
+- To extend to `venice-video`, mirror the same flag set and call `generatePromptFromKeywords` (with `existingPrompt` when the user supplied one) before the existing prompt-resolution path.
 
 **Model Endpoint Resolution**:
 - **Venice**: Uses `models.js` which dynamically loads model endpoint mappings from `models.json`. Also supports `getModelConstraints()` for model-specific parameter validation.
@@ -105,23 +110,27 @@ File naming: images use `<source>_<timestamp>.png` or a URL-derived name; videos
 
 ### Metadata sidecars
 
-Every saved media file gets a JSON sidecar (`<basename>.json`) written alongside it with the generation parameters (prompt, model, seed, dimensions, LoRA, duration, prediction/queue id, etc.). This is the default; `--no-metadata` on any of the CLIs skips the write.
+Every generation produces a metadata blob describing the generation parameters (prompt, model, seed, dimensions, LoRA, duration, prediction/queue id, etc.). By default the blob travels with the aiwdm upload and is stored on the media record in D1 as the `metadata` column; **no local file is written in the default path**. `--no-metadata` on any CLI suppresses the blob entirely.
 
-- Implementation: each module exports a local `saveMetadata(mediaFilePath, metadata)` from its own `utils.js`. The helpers are duplicated across `venice/utils.js` and `wavespeed/utils.js` to preserve module independence — do not consolidate.
-- `saveMetadata` prunes `undefined`/`null`/empty strings/empty arrays before writing, so the sidecar only contains populated fields.
-- Sidecar shape is deliberately flat. Top-level fields always include `source` (`venice` | `venice-video` | `wavespeed`), `kind` (`image` | `video`), `generated_at`, `cli_version`, `model`, and `prompt`; other fields depend on the source.
-- When `wavespeed --optimize` rewrites the prompt, the sidecar records `prompt` (final) plus `original_prompt`, `optimize_mode`, `optimize_style`.
-- The smoke tests assert both the presence of the sidecar and a couple of key fields — when adding a new generator, write a sidecar and extend the smoke tests the same way.
-- Seeds are always present in sidecars: each CLI auto-generates a random 32-bit seed (`Math.floor(Math.random() * 2_147_483_647)`) when `--seed` is omitted, sends it to the API, and records it back in the sidecar so every generation is reproducible. New generators should follow the same pattern instead of leaving seed unset. The generation banner marks auto-generated seeds with `(auto)` so users can tell them apart from user-supplied ones.
-- Sidecars are replayable via `wave-replay <sidecar-or-media>`: it dispatches on the `source` field and rebuilds the matching CLI invocation (`venice` / `venice-video` / `wavespeed`). When you add a new generator or new metadata fields, extend `tools/replay.js` so the round-trip stays complete — the smoke tests cover venice and wavespeed reconstruction plus `--exec` re-runs. For wavespeed sidecars with `original_prompt` set, replay uses the post-optimization `prompt` (the optimizer is non-deterministic, so re-optimizing would diverge).
+The local sidecar path still exists as a fallback for two cases:
+- `--local` (skip the aiwdm upload) — the sidecar is the only place the blob can land.
+- Smoke-test mode (`*_SMOKE_TEST=1`) — the smoke tests assert against a local sidecar.
+
+- Remote storage: the wave-cli helper `uploadToAiwdm` writes the blob to a temp JSON file and forwards it to `aiwdm upload --metadata-file <path>`. The aiwdm worker (`worker/src/index.js` upserts) accepts a `metadata` field and stores it via `serializeMetadata` from `worker/src/utils.js`; the serializers parse it back with `parseMetadata` so API consumers see an object. Updates use `metadata = COALESCE(?, metadata)` so re-uploading without metadata preserves the existing blob. Schema lives in `worker/migrations/014_add_metadata.sql` (run with `wrangler d1 migrations apply <db>`).
+- Local fallback: each module exports a local `saveMetadata(mediaFilePath, metadata)` from its own `utils.js`. The helpers are duplicated across `venice/utils.js` and `wavespeed/utils.js` to preserve module independence — do not consolidate. `saveMetadata` prunes `undefined`/`null`/empty strings/empty arrays before writing, so the sidecar only contains populated fields.
+- Blob shape is deliberately flat. Top-level fields always include `source` (`venice` | `venice-video` | `wavespeed`), `kind` (`image` | `video`), `generated_at`, `cli_version`, `model`, and `prompt`; other fields depend on the source.
+- When `wavespeed --optimize` rewrites the prompt, the blob records `prompt` (final) plus `original_prompt`, `optimize_mode`, `optimize_style`.
+- The smoke tests run with `*_SMOKE_TEST=1` (which forces the local-sidecar fallback) and assert both the presence of the sidecar and a couple of key fields. When adding a new generator, build the blob the same way and extend the smoke tests.
+- Seeds are always present in the blob: each CLI auto-generates a random 32-bit seed (`Math.floor(Math.random() * 2_147_483_647)`) when `--seed` is omitted, sends it to the API, and records it back so every generation is reproducible. The generation banner marks auto-generated seeds with `(auto)`.
+- `wave-replay <sidecar-or-media>` reconstructs the original CLI invocation from a sidecar JSON (whether local or downloaded from aiwdm). It dispatches on the `source` field. When you add a new generator or new metadata fields, extend `tools/replay.js` so the round-trip stays complete — the smoke tests cover venice and wavespeed reconstruction plus `--exec` re-runs. For wavespeed blobs with `original_prompt` set, replay uses the post-optimization `prompt` (the optimizer is non-deterministic, so re-optimizing would diverge).
 
 ### aiwdm Upload Integration
 
-Both CLIs support `--aiwdm` to push the saved image into the aiwdm media library by shelling out to the local `aiwdm upload` binary (`~/.npm-global/bin/aiwdm`). The prompt is forwarded via `--prompt` so `aiwdm` uses it verbatim as the description (skipping its AI description step).
+Both CLIs upload the saved image into the aiwdm media library by default, by shelling out to the local `aiwdm upload` binary (`~/.npm-global/bin/aiwdm`). The prompt is forwarded via `--prompt` so `aiwdm` uses it verbatim as the description (skipping its AI description step). Pass `--local` to skip the upload (file is still saved on disk).
 
-- Flags: `--aiwdm`, `--aiwdm-rating <G|PG|PG13|R>` (default `R`), `--aiwdm-tags <a,b>` (comma-separated extras; a source tag `venice` or `wavespeed` is always prepended).
+- Flags: `--local` (skip upload), `--aiwdm-rating <G|PG|PG13|R>` (default `R`), `--aiwdm-tags <a,b>` (comma-separated extras; a source tag `venice` or `wavespeed` is always prepended).
 - Skipped in smoke-test mode (`VENICE_SMOKE_TEST=1` / `WAVESPEED_SMOKE_TEST=1`).
-- Wavespeed: `fetchImages` now returns saved file paths, and `handleResponse` returns `{ ok, savedPaths }`. When adding new response handlers, follow the same shape so `--aiwdm` keeps working.
+- Wavespeed: `fetchImages` returns saved file paths, and `handleResponse` returns `{ ok, savedPaths }`. When adding new response handlers, follow the same shape so the upload keeps working.
 - Implementation is inlined in each `index.js` (`uploadToAiwdm`) to preserve module independence — no shared helper.
 
 ### API Response Handling

@@ -43,10 +43,10 @@ export function setupVideoCLI() {
     .option("--video-url <url>", "Input video URL (for video-to-video).")
     .option("--audio-url <url>", "Input audio URL (for models that accept audio input).")
     .option("--out", "Save video to ./videos/venice/ instead of $VENICE_VIDEO_PATH.")
-    .option("--aiwdm", "Upload the saved video to the aiwdm media library via the local `aiwdm` CLI.")
+    .option("--local", "Skip uploading to the aiwdm media library; only save locally.")
     .option("--aiwdm-rating <rating>", "Rating passed to aiwdm upload (G, PG, PG13, R).", "R")
     .option("--aiwdm-tags <tags>", "Extra comma-separated tags (source tag `venice-video` is always added).")
-    .option("--no-metadata", "Skip writing the JSON metadata sidecar next to the saved video.")
+    .option("--no-metadata", "Skip recording generation metadata (uploaded to aiwdm by default; written as a local sidecar with --local).")
     .option("--debug", "Verbose logging.")
     .helpOption("-h, --help", "Display this help message.")
     .on("--help", () => {

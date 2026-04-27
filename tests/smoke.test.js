@@ -218,6 +218,71 @@ test("wavespeed --keywords expands prompt via Venice text model and records inpu
   }
 });
 
+test("venice --keywords + --prompt rewrites the prompt and records original_prompt", () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "venice-rewrite-"));
+  try {
+    runCli(
+      [
+        "venice/index.js",
+        "--prompt", "a quiet bookshop interior",
+        "--keywords", "neon, cat, alley",
+        "--keyword-rating", "PG13",
+      ],
+      {
+        VENICE_API_TOKEN: "test-token",
+        VENICE_SMOKE_TEST: "1",
+        VENICE_PATH: outputDir,
+        NODE_ENV: "test",
+      }
+    );
+
+    const files = fs.readdirSync(outputDir);
+    const sidecar = files.find((f) => f.endsWith(".json"));
+    assert(sidecar, "Expected venice sidecar");
+    const metadata = JSON.parse(fs.readFileSync(path.join(outputDir, sidecar), "utf8"));
+    assert.equal(metadata.original_prompt, "a quiet bookshop interior");
+    assert.equal(metadata.keywords, "neon, cat, alley");
+    assert.equal(metadata.keyword_rating, "PG13");
+    assert.match(metadata.prompt, /\[mock PG13 rewrite\] a quiet bookshop interior :: incorporating neon, cat, alley/);
+  } finally {
+    removeDir(outputDir);
+  }
+});
+
+test("wavespeed --keywords + --prompt rewrites the prompt and records original_prompt", () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "wavespeed-rewrite-"));
+  try {
+    runCli(
+      [
+        "wavespeed/index.js",
+        "--prompt", "a quiet bookshop interior",
+        "--keywords", "rain, neon, samurai",
+        "--keyword-rating", "PG",
+      ],
+      {
+        WAVESPEED_KEY: "test-key",
+        WAVESPEED_SMOKE_TEST: "1",
+        WAVESPEED_PATH: outputDir,
+        NODE_ENV: "test",
+      }
+    );
+
+    const files = fs.readdirSync(outputDir);
+    const sidecar = files.find((f) => f.endsWith(".json"));
+    assert(sidecar, "Expected wavespeed sidecar");
+    const metadata = JSON.parse(fs.readFileSync(path.join(outputDir, sidecar), "utf8"));
+    assert.equal(metadata.original_prompt, "a quiet bookshop interior");
+    assert.equal(metadata.keywords, "rain, neon, samurai");
+    assert.equal(metadata.keyword_rating, "PG");
+    assert.match(metadata.prompt, /\[mock PG rewrite\] a quiet bookshop interior :: incorporating rain, neon, samurai/);
+    // optimize_mode/style should not be set since --optimize was not used
+    assert.equal(metadata.optimize_mode, undefined);
+    assert.equal(metadata.optimize_style, undefined);
+  } finally {
+    removeDir(outputDir);
+  }
+});
+
 test("wave-replay reconstructs venice command from sidecar", () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "wave-replay-venice-"));
   try {

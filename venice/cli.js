@@ -118,8 +118,8 @@ export function setupCLI() {
       "Return image as binary data"
     )
     .option(
-      "--aiwdm",
-      "Upload the generated image to the aiwdm media library via the local `aiwdm` CLI."
+      "--local",
+      "Skip uploading to the aiwdm media library; only save locally."
     )
     .option(
       "--aiwdm-rating <rating>",
@@ -132,7 +132,7 @@ export function setupCLI() {
     )
     .option(
       "--no-metadata",
-      "Skip writing the JSON metadata sidecar next to the saved image."
+      "Skip recording generation metadata (uploaded to aiwdm by default; written as a local sidecar with --local)."
     )
     .option(
       "--keywords <text>",

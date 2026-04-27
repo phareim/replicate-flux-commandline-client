@@ -8,8 +8,16 @@ const RATING_GUIDANCE = {
   R:    "Adult content allowed: nudity, mature themes, gore, strong sexuality. Be vivid and uninhibited where it serves the image.",
 };
 
-const buildSystemPrompt = (rating) => {
+const buildSystemPrompt = (rating, mode) => {
   const guidance = RATING_GUIDANCE[rating] || RATING_GUIDANCE.R;
+  if (mode === "rewrite") {
+    return [
+      "You are a prompt engineer for AI image generation models.",
+      "Rewrite the user's existing image prompt so it naturally incorporates the supplied keywords. Preserve the original subject, intent, and style; weave each keyword in as a concrete detail (object, setting, attribute, mood, lighting, etc.).",
+      "Output ONE vivid English prompt as a single paragraph of plain text. No markdown, no quotation marks, no preamble, no trailing notes.",
+      `Content rating: ${rating}. ${guidance}`,
+    ].join(" ");
+  }
   return [
     "You are a prompt engineer for AI image generation models.",
     "Given a comma-separated list of keywords and a content rating, write ONE vivid English prompt for a single image.",
@@ -19,31 +27,47 @@ const buildSystemPrompt = (rating) => {
   ].join(" ");
 };
 
-const mockGeneratedPrompt = (keywords, rating) =>
-  `[mock ${rating}] cinematic image inspired by: ${keywords}`;
+const mockGeneratedPrompt = (keywords, rating, existingPrompt) =>
+  existingPrompt
+    ? `[mock ${rating} rewrite] ${existingPrompt} :: incorporating ${keywords}`
+    : `[mock ${rating}] cinematic image inspired by: ${keywords}`;
 
-export const generatePromptFromKeywords = async ({ keywords, rating = "R", model = "zai-org-glm-4.6", debug = false }) => {
+export const generatePromptFromKeywords = async ({
+  keywords,
+  rating = "R",
+  model = "zai-org-glm-4.6",
+  existingPrompt,
+  debug = false,
+}) => {
   if (!keywords || !keywords.trim()) {
     throw new Error("generatePromptFromKeywords: keywords are required");
   }
 
-  if (SMOKE_MODE) return mockGeneratedPrompt(keywords.trim(), rating);
+  const trimmedExisting = existingPrompt && existingPrompt.trim() ? existingPrompt.trim() : null;
+  const mode = trimmedExisting ? "rewrite" : "generate";
+
+  if (SMOKE_MODE) return mockGeneratedPrompt(keywords.trim(), rating, trimmedExisting);
 
   if (!process.env.VENICE_API_TOKEN) {
     throw new Error("VENICE_API_TOKEN is not set; required for --keywords prompt expansion.");
   }
 
+  const userContent = trimmedExisting
+    ? `Existing prompt:\n${trimmedExisting}\n\nKeywords to incorporate: ${keywords.trim()}`
+    : `Keywords: ${keywords.trim()}`;
+
   const body = {
     model,
     temperature: 0.85,
     messages: [
-      { role: "system", content: buildSystemPrompt(rating) },
-      { role: "user", content: `Keywords: ${keywords.trim()}` },
+      { role: "system", content: buildSystemPrompt(rating, mode) },
+      { role: "user", content: userContent },
     ],
   };
 
   if (debug) {
     console.log("Text-model URL:", VENICE_CHAT_URL);
+    console.log("Text-model mode:", mode);
     console.log("Text-model body:", JSON.stringify(body, null, 2));
   }
 

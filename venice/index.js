@@ -64,25 +64,42 @@ const resolveAiwdmDir = () => {
     return candidates.find((p) => existsSync(p));
 };
 
-const uploadToAiwdm = (filePath, { prompt, rating, tags }) => {
+const uploadToAiwdm = async (filePath, { prompt, rating, tags, metadata }) => {
     const args = ["upload", filePath];
     if (rating) args.push("--rating", rating);
     if (tags && tags.length) args.push("--tags", tags.join(","));
     if (prompt) args.push("--prompt", prompt);
 
-    return new Promise((resolve) => {
-        // cwd anchors the env lookup: aiwdm loads .env from cwd first.
-        const cwd = resolveAiwdmDir();
-        const proc = spawn("aiwdm", args, { stdio: "inherit", ...(cwd ? { cwd } : {}) });
-        proc.on("error", (err) => {
-            console.error(`aiwdm upload failed: ${err.message}`);
-            resolve();
+    // Metadata is forwarded as a temp JSON file: shell-escaping a multi-KB JSON
+    // blob is brittle, and aiwdm reads the file as the system of record now that
+    // wave-cli no longer writes a local sidecar.
+    let metadataDir;
+    if (metadata) {
+        metadataDir = await fs.mkdtemp(path.join(os.tmpdir(), "wave-meta-"));
+        const metadataPath = path.join(metadataDir, "metadata.json");
+        await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+        args.push("--metadata-file", metadataPath);
+    }
+
+    try {
+        await new Promise((resolve) => {
+            // cwd anchors the env lookup: aiwdm loads .env from cwd first.
+            const cwd = resolveAiwdmDir();
+            const proc = spawn("aiwdm", args, { stdio: "inherit", ...(cwd ? { cwd } : {}) });
+            proc.on("error", (err) => {
+                console.error(`aiwdm upload failed: ${err.message}`);
+                resolve();
+            });
+            proc.on("close", (code) => {
+                if (code !== 0) console.error(`aiwdm exited with code ${code}`);
+                resolve();
+            });
         });
-        proc.on("close", (code) => {
-            if (code !== 0) console.error(`aiwdm exited with code ${code}`);
-            resolve();
-        });
-    });
+    } finally {
+        if (metadataDir) {
+            try { await fs.rm(metadataDir, { recursive: true, force: true }); } catch {}
+        }
+    }
 };
 
 const readPromptFromFile = async (filePath) => {
@@ -159,13 +176,25 @@ const run = async (options) => {
         process.exit(1);
     }
 
+    if (!options.prompt) {
+        const promptFilePath = options.file || "./prompt.txt";
+        const promptFromFile = await readPromptFromFile(promptFilePath);
+        if (promptFromFile) {
+            options.prompt = promptFromFile;
+            console.log(`Using prompt from ${promptFilePath}.`);
+        }
+    }
+
+    let originalPrompt;
     if (options.keywords) {
         const rating = VALID_RATINGS.includes(options.keywordRating) ? options.keywordRating : "R";
         if (rating !== options.keywordRating) {
             console.warn(`Invalid --keyword-rating '${options.keywordRating}'. Using '${rating}'. Valid: ${VALID_RATINGS.join(", ")}`);
             options.keywordRating = rating;
         }
-        console.log("__Generating prompt from keywords" + "_".repeat(60 - 33));
+        const existingPrompt = options.prompt && options.prompt.trim() ? options.prompt.trim() : null;
+        const header = existingPrompt ? "__Rewriting prompt with keywords" : "__Generating prompt from keywords";
+        console.log(header + "_".repeat(Math.max(0, 60 - header.length)));
         console.log(`Keywords: ${options.keywords}`);
         console.log(`Rating: ${rating}`);
         console.log(`Text model: ${options.keywordModel}`);
@@ -175,9 +204,11 @@ const run = async (options) => {
                 keywords: options.keywords,
                 rating,
                 model: options.keywordModel,
+                existingPrompt: existingPrompt || undefined,
                 debug: DEBUG,
             });
             console.log(`Prompt: ${generated}\n`);
+            if (existingPrompt) originalPrompt = existingPrompt;
             options.prompt = generated;
         } catch (error) {
             console.error(`Failed to generate prompt from keywords: ${error.message}`);
@@ -186,15 +217,8 @@ const run = async (options) => {
     }
 
     if (!options.prompt) {
-        const promptFilePath = options.file || "./prompt.txt";
-        const promptFromFile = await readPromptFromFile(promptFilePath);
-        if (promptFromFile) {
-            options.prompt = promptFromFile;
-            console.log(`Using prompt from ${promptFilePath}.`);
-        } else {
-            console.error("Error: No prompt provided. Please use --prompt, --file, --keywords, or create a ./prompt.txt file.");
-            process.exit(1);
-        }
+        console.error("Error: No prompt provided. Please use --prompt, --file, --keywords, or create a ./prompt.txt file.");
+        process.exit(1);
     }
 
     const seedProvidedByUser = options.seed !== undefined;
@@ -240,34 +264,42 @@ const run = async (options) => {
 
         const savedPath = await saveImage(buffer, fileName, localOutputOverride);
 
-        if (options.metadata !== false && savedPath) {
-            await saveMetadata(savedPath, {
-                source: "venice",
-                kind: "image",
-                generated_at: new Date().toISOString(),
-                cli_version: "1.0.0",
-                model: input.model,
-                model_key: options.model,
-                prompt: input.prompt,
-                keywords: options.keywords,
-                keyword_rating: options.keywords ? options.keywordRating : undefined,
-                keyword_model: options.keywords ? options.keywordModel : undefined,
-                negative_prompt: input.negative_prompt,
-                width: input.width,
-                height: input.height,
-                steps: input.steps,
-                cfg_scale: input.cfg_scale,
-                seed: input.seed,
-                style_preset: input.style_preset,
-                lora_strength: input.lora_strength,
-                output_format: input.format,
-                hide_watermark: input.hide_watermark,
-                variants: input.variants,
-                generation_time_ms: generationTimeMs,
-            });
+        // Metadata is the system of record for replay/debugging. By default it
+        // travels to aiwdm as a JSON blob alongside the upload. When the upload
+        // is skipped (--local or smoke mode), we fall back to a local sidecar so
+        // the data isn't lost.
+        const metadataBlob = options.metadata !== false && savedPath ? {
+            source: "venice",
+            kind: "image",
+            generated_at: new Date().toISOString(),
+            cli_version: "1.0.0",
+            model: input.model,
+            model_key: options.model,
+            prompt: input.prompt,
+            original_prompt: originalPrompt,
+            keywords: options.keywords,
+            keyword_rating: options.keywords ? options.keywordRating : undefined,
+            keyword_model: options.keywords ? options.keywordModel : undefined,
+            negative_prompt: input.negative_prompt,
+            width: input.width,
+            height: input.height,
+            steps: input.steps,
+            cfg_scale: input.cfg_scale,
+            seed: input.seed,
+            style_preset: input.style_preset,
+            lora_strength: input.lora_strength,
+            output_format: input.format,
+            hide_watermark: input.hide_watermark,
+            variants: input.variants,
+            generation_time_ms: generationTimeMs,
+        } : null;
+
+        const willUpload = !options.local && !SMOKE_MODE && savedPath;
+        if (metadataBlob && !willUpload) {
+            await saveMetadata(savedPath, metadataBlob);
         }
 
-        if (options.aiwdm && !SMOKE_MODE && savedPath) {
+        if (willUpload) {
             const extraTags = options.aiwdmTags
                 ? options.aiwdmTags.split(",").map((t) => t.trim()).filter(Boolean)
                 : [];
@@ -276,6 +308,7 @@ const run = async (options) => {
                 prompt: options.prompt,
                 rating: options.aiwdmRating,
                 tags,
+                metadata: metadataBlob,
             });
         }
 

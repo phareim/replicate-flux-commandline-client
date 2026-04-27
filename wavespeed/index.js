@@ -37,25 +37,41 @@ const resolveAiwdmDir = () => {
   return candidates.find((p) => existsSync(p));
 };
 
-const uploadToAiwdm = (filePath, { prompt, rating, tags }) => {
+const uploadToAiwdm = async (filePath, { prompt, rating, tags, metadata }) => {
   const args = ["upload", filePath];
   if (rating) args.push("--rating", rating);
   if (tags && tags.length) args.push("--tags", tags.join(","));
   if (prompt) args.push("--prompt", prompt);
 
-  return new Promise((resolve) => {
-    // cwd anchors the env lookup: aiwdm loads .env from cwd first.
-    const cwd = resolveAiwdmDir();
-    const proc = spawn("aiwdm", args, { stdio: "inherit", ...(cwd ? { cwd } : {}) });
-    proc.on("error", (err) => {
-      console.error(`aiwdm upload failed: ${err.message}`);
-      resolve();
+  // Forward the sidecar JSON via a temp file: aiwdm now stores it as the
+  // remote system of record, replacing the local sidecar we used to write.
+  let metadataDir;
+  if (metadata) {
+    metadataDir = await fs.mkdtemp(path.join(os.tmpdir(), "wave-meta-"));
+    const metadataPath = path.join(metadataDir, "metadata.json");
+    await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+    args.push("--metadata-file", metadataPath);
+  }
+
+  try {
+    await new Promise((resolve) => {
+      // cwd anchors the env lookup: aiwdm loads .env from cwd first.
+      const cwd = resolveAiwdmDir();
+      const proc = spawn("aiwdm", args, { stdio: "inherit", ...(cwd ? { cwd } : {}) });
+      proc.on("error", (err) => {
+        console.error(`aiwdm upload failed: ${err.message}`);
+        resolve();
+      });
+      proc.on("close", (code) => {
+        if (code !== 0) console.error(`aiwdm exited with code ${code}`);
+        resolve();
+      });
     });
-    proc.on("close", (code) => {
-      if (code !== 0) console.error(`aiwdm exited with code ${code}`);
-      resolve();
-    });
-  });
+  } finally {
+    if (metadataDir) {
+      try { await fs.rm(metadataDir, { recursive: true, force: true }); } catch {}
+    }
+  }
 };
 
 /**
@@ -187,7 +203,7 @@ const optimizePrompt = async (promptText, mode = "image", style = "default", ima
 /**
  * Generate one image (or batch) using the Wavespeed API.
  */
-const run = async ({ prompt, originalPrompt, modelEndpoint, size, options }) => {
+const run = async ({ prompt, originalPrompt, optimizeApplied = false, modelEndpoint, size, options }) => {
   const modelInfo = getModelInfo(modelEndpoint);
   const category = modelInfo?.metadata?.category || "text-to-image";
 
@@ -304,38 +320,44 @@ const run = async ({ prompt, originalPrompt, modelEndpoint, size, options }) => 
     return;
   }
 
-  if (options.metadata !== false && savedPaths.length > 0) {
-    const baseMetadata = {
-      source: "wavespeed",
-      kind: isVideoCategory ? "video" : "image",
-      generated_at: new Date().toISOString(),
-      cli_version: "1.0.0",
-      model: modelEndpoint,
-      model_key: options.model,
-      model_display_name: modelInfo?.metadata?.display_name,
-      category,
-      prompt,
-      original_prompt: originalPrompt,
-      optimize_mode: originalPrompt ? options.optimizeMode : undefined,
-      optimize_style: originalPrompt ? options.optimizeStyle : undefined,
-      keywords: options.keywords,
-      keyword_rating: options.keywords ? options.keywordRating : undefined,
-      keyword_model: options.keywords ? options.keywordModel : undefined,
-      size: isVideoCategory ? undefined : size,
-      aspect_ratio: input.aspect_ratio,
-      resolution: input.resolution,
-      duration: input.duration,
-      negative_prompt: input.negative_prompt,
-      seed: input.seed,
-      output_format: input.output_format,
-      quality: input.quality,
-      num_images: input.num_images,
-      audio: input.audio,
-      enable_prompt_expansion: input.enable_prompt_expansion,
-      input_images: options.images,
-      prediction_id: result?.id,
-      created_at: result?.created_at,
-    };
+  // Metadata travels with the aiwdm upload as a JSON blob (system of record).
+  // When the upload is skipped (--local or smoke mode), we fall back to a local
+  // sidecar so the data isn't lost.
+  const baseMetadata = options.metadata !== false && savedPaths.length > 0 ? {
+    source: "wavespeed",
+    kind: isVideoCategory ? "video" : "image",
+    generated_at: new Date().toISOString(),
+    cli_version: "1.0.0",
+    model: modelEndpoint,
+    model_key: options.model,
+    model_display_name: modelInfo?.metadata?.display_name,
+    category,
+    prompt,
+    original_prompt: originalPrompt,
+    optimize_mode: optimizeApplied ? options.optimizeMode : undefined,
+    optimize_style: optimizeApplied ? options.optimizeStyle : undefined,
+    keywords: options.keywords,
+    keyword_rating: options.keywords ? options.keywordRating : undefined,
+    keyword_model: options.keywords ? options.keywordModel : undefined,
+    size: isVideoCategory ? undefined : size,
+    aspect_ratio: input.aspect_ratio,
+    resolution: input.resolution,
+    duration: input.duration,
+    negative_prompt: input.negative_prompt,
+    seed: input.seed,
+    output_format: input.output_format,
+    quality: input.quality,
+    num_images: input.num_images,
+    audio: input.audio,
+    enable_prompt_expansion: input.enable_prompt_expansion,
+    input_images: options.images,
+    prediction_id: result?.id,
+    created_at: result?.created_at,
+  } : null;
+
+  const willUpload = !options.local && !WAVESPEED_SMOKE_MODE && savedPaths.length > 0;
+
+  if (baseMetadata && !willUpload) {
     for (const savedPath of savedPaths) {
       await saveMetadata(savedPath, {
         ...baseMetadata,
@@ -344,16 +366,20 @@ const run = async ({ prompt, originalPrompt, modelEndpoint, size, options }) => 
     }
   }
 
-  if (options.aiwdm && !WAVESPEED_SMOKE_MODE && savedPaths.length > 0) {
+  if (willUpload) {
     const extraTags = options.aiwdmTags
       ? options.aiwdmTags.split(",").map((t) => t.trim()).filter(Boolean)
       : [];
     const tags = ["wavespeed", ...extraTags];
     for (const savedPath of savedPaths) {
+      const perFileMetadata = baseMetadata
+        ? { ...baseMetadata, output_file: path.basename(savedPath) }
+        : null;
       await uploadToAiwdm(savedPath, {
         prompt,
         rating: options.aiwdmRating,
         tags,
+        metadata: perFileMetadata,
       });
     }
   }
@@ -376,12 +402,60 @@ const generateBatch = async (promptText, modelEndpoint, size, options) => {
       console.log(`\n${"=".repeat(60)}\nGeneration ${i + 1} of ${count}\n${"=".repeat(60)}\n`);
     }
 
-    const finalPrompt = options.optimize
-      ? await optimizePrompt(promptText, options.optimizeMode, options.optimizeStyle, options.optimizeImage)
-      : promptText;
-    const originalPrompt = options.optimize && finalPrompt !== promptText ? promptText : undefined;
+    const userPrompt = promptText && promptText.trim() ? promptText.trim() : "";
+    let promptAfterKeywords = userPrompt;
+    let userPromptForRewrite;
 
-    await run({ prompt: finalPrompt, originalPrompt, modelEndpoint, size, options });
+    if (options.keywords) {
+      const rating = VALID_RATINGS.includes(options.keywordRating) ? options.keywordRating : "R";
+      if (rating !== options.keywordRating) {
+        console.warn(`Invalid --keyword-rating '${options.keywordRating}'. Using '${rating}'. Valid: ${VALID_RATINGS.join(", ")}`);
+        options.keywordRating = rating;
+      }
+      const existingPrompt = userPrompt || null;
+      const header = existingPrompt ? "__Rewriting prompt with keywords" : "__Generating prompt from keywords";
+      console.log(header + "_".repeat(Math.max(0, 60 - header.length)));
+      console.log(`Keywords: ${options.keywords}`);
+      console.log(`Rating: ${rating}`);
+      console.log(`Text model: ${options.keywordModel}`);
+      console.log("‾".repeat(60));
+      try {
+        const generated = await generatePromptFromKeywords({
+          keywords: options.keywords,
+          rating,
+          model: options.keywordModel,
+          existingPrompt: existingPrompt || undefined,
+          debug: DEBUG,
+        });
+        console.log(`Prompt: ${generated}\n`);
+        if (existingPrompt) userPromptForRewrite = existingPrompt;
+        promptAfterKeywords = generated;
+      } catch (error) {
+        console.error(`Failed to generate prompt from keywords: ${error.message}`);
+        process.exit(1);
+      }
+    }
+
+    if (!promptAfterKeywords || !promptAfterKeywords.trim()) {
+      console.error("Error: No prompt provided. Please use --prompt, --file, --keywords, or create a ./prompt.txt file.");
+      process.exit(1);
+    }
+
+    const optimizedPrompt = options.optimize
+      ? await optimizePrompt(promptAfterKeywords, options.optimizeMode, options.optimizeStyle, options.optimizeImage)
+      : promptAfterKeywords;
+    const optimizeApplied = options.optimize && optimizedPrompt !== promptAfterKeywords;
+    const originalPrompt = userPromptForRewrite
+      ?? (optimizeApplied ? promptAfterKeywords : undefined);
+
+    await run({
+      prompt: optimizedPrompt,
+      originalPrompt,
+      optimizeApplied,
+      modelEndpoint,
+      size,
+      options,
+    });
   }
 };
 
@@ -401,32 +475,6 @@ const main = async () => {
   const modelEndpoint = getModelEndpoint(options.model);
   const sizeFromFormat = image_size[options.format] || options.format || "4096*4096";
   const size = constrainDimensions(sizeFromFormat, modelEndpoint);
-
-  if (options.keywords) {
-    const rating = VALID_RATINGS.includes(options.keywordRating) ? options.keywordRating : "R";
-    if (rating !== options.keywordRating) {
-      console.warn(`Invalid --keyword-rating '${options.keywordRating}'. Using '${rating}'. Valid: ${VALID_RATINGS.join(", ")}`);
-      options.keywordRating = rating;
-    }
-    console.log("__Generating prompt from keywords" + "_".repeat(60 - 33));
-    console.log(`Keywords: ${options.keywords}`);
-    console.log(`Rating: ${rating}`);
-    console.log(`Text model: ${options.keywordModel}`);
-    console.log("‾".repeat(60));
-    try {
-      const generated = await generatePromptFromKeywords({
-        keywords: options.keywords,
-        rating,
-        model: options.keywordModel,
-        debug: DEBUG,
-      });
-      console.log(`Prompt: ${generated}\n`);
-      options.prompt = generated;
-    } catch (error) {
-      console.error(`Failed to generate prompt from keywords: ${error.message}`);
-      process.exit(1);
-    }
-  }
 
   if (options.allPrompts) {
     const currentDir = process.cwd();
@@ -461,14 +509,21 @@ const main = async () => {
   }
 
   const promptFile = options.file || "prompt.txt";
-  let promptText;
-  try {
-    promptText = options.prompt
-      ? options.prompt
-      : await getPromptFromFile(path.resolve(process.cwd(), promptFile));
-  } catch (error) {
-    console.error("Failed to get prompt:", error);
-    return;
+  let promptText = "";
+  if (options.prompt) {
+    promptText = options.prompt;
+  } else {
+    const promptFilePath = path.resolve(process.cwd(), promptFile);
+    try {
+      promptText = (await fs.readFile(promptFilePath, "utf-8")).trim();
+    } catch (error) {
+      if (!options.keywords) {
+        console.error(`Error reading file ${promptFilePath}:`, error);
+        console.error("Failed to get prompt:", error);
+        return;
+      }
+      // No prompt file is fine when --keywords is supplied; we'll generate from keywords.
+    }
   }
 
   await generateBatch(promptText, modelEndpoint, size, options);
