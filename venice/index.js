@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
-import { promises as fs } from "fs";
+import { promises as fs, existsSync } from "fs";
+import os from "os";
+import path from "path";
 import { spawn } from "child_process";
 
 import { setupCLI } from "./cli.js";
@@ -52,7 +54,15 @@ const requestImage = async (body) => {
 let DEBUG = false;
 let localOutputOverride = false;
 
-const AIWDM_CLI_DIR = "/home/petter/github/aiwdm/cli";
+const resolveAiwdmDir = () => {
+    const candidates = [
+        process.env.AIWDM_CLI_DIR,
+        path.join(os.homedir(), "github/petter/aiwdm/cli"),
+        path.join(os.homedir(), "github/aiwdm/cli"),
+        "/home/petter/github/aiwdm/cli",
+    ].filter(Boolean);
+    return candidates.find((p) => existsSync(p));
+};
 
 const uploadToAiwdm = (filePath, { prompt, rating, tags }) => {
     const args = ["upload", filePath];
@@ -62,7 +72,8 @@ const uploadToAiwdm = (filePath, { prompt, rating, tags }) => {
 
     return new Promise((resolve) => {
         // cwd anchors the env lookup: aiwdm loads .env from cwd first.
-        const proc = spawn("aiwdm", args, { stdio: "inherit", cwd: AIWDM_CLI_DIR });
+        const cwd = resolveAiwdmDir();
+        const proc = spawn("aiwdm", args, { stdio: "inherit", ...(cwd ? { cwd } : {}) });
         proc.on("error", (err) => {
             console.error(`aiwdm upload failed: ${err.message}`);
             resolve();
