@@ -543,15 +543,25 @@ const main = async () => {
 
     console.log(`Found ${txtFiles.length} prompt file(s) in ${batchDir}: ${txtFiles.join(", ")}\n`);
 
-    for (const txtFile of txtFiles) {
-      const promptFilePath = path.resolve(batchDir, txtFile);
-      try {
-        const promptText = await getPromptFromFile(promptFilePath);
-        console.log(`\n##\n# Processing: ${txtFile}\n##\n`);
-        await generateBatch(promptText, modelEndpoint, size, options);
-      } catch (error) {
-        console.error(`Failed to read prompt from ${txtFile}:`, error.message);
-        console.log(`Skipping ${txtFile}...\n`);
+    // In batch-dir mode, --count rotates over the file list rather than running
+    // each file count times back-to-back. So for 3 files with --count 2 you get
+    // file1, file2, file3, file1, file2, file3 — not file1×2, file2×2, file3×2.
+    const rounds = parseInt(options.count, 10) || 1;
+    const perFileOptions = { ...options, count: "1" };
+    for (let round = 0; round < rounds; round++) {
+      if (rounds > 1) {
+        console.log(`\n==\nRound ${round + 1} of ${rounds}\n==\n`);
+      }
+      for (const txtFile of txtFiles) {
+        const promptFilePath = path.resolve(batchDir, txtFile);
+        try {
+          const promptText = await getPromptFromFile(promptFilePath);
+          console.log(`\n##\n# Processing: ${txtFile}\n##\n`);
+          await generateBatch(promptText, modelEndpoint, size, perFileOptions);
+        } catch (error) {
+          console.error(`Failed to read prompt from ${txtFile}:`, error.message);
+          console.log(`Skipping ${txtFile}...\n`);
+        }
       }
     }
     return;

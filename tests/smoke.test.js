@@ -413,6 +413,43 @@ test("wavespeed --file <directory> processes every .txt inside", () => {
   }
 });
 
+test("wavespeed --file <directory> --count rotates files instead of repeating each", () => {
+  const promptDir = fs.mkdtempSync(path.join(os.tmpdir(), "wavespeed-dir-count-"));
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "wavespeed-dir-count-out-"));
+  try {
+    fs.writeFileSync(path.join(promptDir, "a.txt"), "first prompt");
+    fs.writeFileSync(path.join(promptDir, "b.txt"), "second prompt");
+
+    const result = runCli(
+      ["wavespeed/index.js", "--file", promptDir, "--count", "2"],
+      {
+        WAVESPEED_KEY: "test-key",
+        WAVESPEED_SMOKE_TEST: "1",
+        WAVESPEED_PATH: outputDir,
+        NODE_ENV: "test",
+      }
+    );
+
+    assert.match(result.stdout, /Round 1 of 2/);
+    assert.match(result.stdout, /Round 2 of 2/);
+    // Each file should be processed once per round (twice total).
+    const aHits = result.stdout.match(/# Processing: a\.txt/g) || [];
+    const bHits = result.stdout.match(/# Processing: b\.txt/g) || [];
+    assert.equal(aHits.length, 2, "a.txt should be processed in each round");
+    assert.equal(bHits.length, 2, "b.txt should be processed in each round");
+    // The per-generation banner from generateBatch should not appear, since
+    // each generateBatch call runs with count=1 in this path.
+    assert.doesNotMatch(result.stdout, /Generation 1 of/);
+    // Round 1 should see a.txt before b.txt, and round 2 should run a.txt
+    // again before any second b.txt — i.e. a, b, a, b (not a, a, b, b).
+    const order = [...result.stdout.matchAll(/# Processing: ([ab])\.txt/g)].map((m) => m[1]);
+    assert.deepEqual(order, ["a", "b", "a", "b"]);
+  } finally {
+    removeDir(promptDir);
+    removeDir(outputDir);
+  }
+});
+
 test("venice --file <directory> processes every .txt inside", () => {
   const promptDir = fs.mkdtempSync(path.join(os.tmpdir(), "venice-dir-prompts-"));
   const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "venice-dir-out-"));
