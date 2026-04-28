@@ -136,7 +136,7 @@ const optimizePrompt = async (promptText, mode = "image", style = "default", ima
     return `Optimized: ${promptText}`;
   }
 
-  console.log("__Optimizing prompt" + "_".repeat(60 - 18));
+  console.log("__Optimizing prompt__");
   console.log(`Mode: ${mode}`);
   console.log(`Style: ${style}`);
   if (imageUrl) console.log(`Reference Image: ${imageUrl}`);
@@ -239,7 +239,7 @@ const run = async ({ prompt, originalPrompt, optimizeApplied = false, modelEndpo
 
   const isVideoCategory = category.endsWith("-to-video");
   const header = isVideoCategory ? "__Generating video" : "__Generating image";
-  console.log(header + "_".repeat(60 - header.length));
+  console.log(header + "__");
   console.log(`Model: ${modelInfo?.metadata?.display_name || modelEndpoint}`);
   console.log(`Category: ${category}`);
   if (!isVideoCategory && !noSize) console.log(`Size: ${size}`);
@@ -389,8 +389,8 @@ const run = async ({ prompt, originalPrompt, optimizeApplied = false, modelEndpo
     }
   }
 
-  const nsfwFlag = result.has_nsfw_contents?.some((x) => x) ? " 🔞" : "__";
-  console.log("\n__ Generation Summary " + "_".repeat(36) + nsfwFlag);
+  const nsfwFlag = result.has_nsfw_contents?.some((x) => x) ? " 🔞" : "";
+  console.log("\n__ Generation Summary __" + nsfwFlag);
   console.log(`Model: ${modelInfo?.metadata?.display_name || modelEndpoint}`);
   if (!isVideoCategory && !noSize) console.log(`Size: ${size}`);
   if (isVideoCategory && input.duration) console.log(`Duration: ${input.duration}s`);
@@ -419,7 +419,7 @@ const generateBatch = async (promptText, modelEndpoint, size, options) => {
       }
       const existingPrompt = userPrompt || null;
       const header = existingPrompt ? "__Rewriting prompt with keywords" : "__Generating prompt from keywords";
-      console.log(header + "_".repeat(Math.max(0, 60 - header.length)));
+      console.log(header + "__");
       console.log(`Keywords: ${options.keywords}`);
       console.log(`Rating: ${rating}`);
       console.log(`Text model: ${options.keywordModel}`);

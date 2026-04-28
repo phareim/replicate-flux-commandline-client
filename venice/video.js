@@ -217,7 +217,7 @@ const run = async (options) => {
   const body = buildQueueBody(options, modelEntry);
   if (DEBUG) console.log("Queue body:", JSON.stringify(body, null, 2));
 
-  console.log("__Generating video" + "_".repeat(60 - 18));
+  console.log("__Generating video__");
   console.log(`Model: ${modelEntry.name} [${modelEntry.id}]`);
   console.log(`Duration: ${options.duration} | Resolution: ${options.resolution}`);
   if (modelEntry.type === "text-to-video") console.log(`Aspect: ${options.aspectRatio}`);
@@ -289,7 +289,7 @@ const run = async (options) => {
     });
   }
 
-  console.log("\n__ Generation Summary " + "_".repeat(38));
+  console.log("\n__ Generation Summary __");
   console.log(`Model: ${modelEntry.name}`);
   console.log(`Queue ID: ${queueId}`);
   console.log(`Duration: ${options.duration}`);

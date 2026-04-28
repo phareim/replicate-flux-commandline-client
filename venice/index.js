@@ -194,7 +194,7 @@ const run = async (options) => {
         }
         const existingPrompt = options.prompt && options.prompt.trim() ? options.prompt.trim() : null;
         const header = existingPrompt ? "__Rewriting prompt with keywords" : "__Generating prompt from keywords";
-        console.log(header + "_".repeat(Math.max(0, 60 - header.length)));
+        console.log(header + "__");
         console.log(`Keywords: ${options.keywords}`);
         console.log(`Rating: ${rating}`);
         console.log(`Text model: ${options.keywordModel}`);
@@ -227,7 +227,7 @@ const run = async (options) => {
     if (DEBUG) console.log("Input parameters:", JSON.stringify(input, null, 2));
 
     try {
-        console.log("__Generating image" + "_".repeat(60 - 18));
+        console.log("__Generating image__");
         console.log(`Model: ${input.model}`);
         console.log(`Dimensions: ${input.width}x${input.height}`);
         console.log(`Steps: ${input.steps} | CFG Scale: ${input.cfg_scale}`);
@@ -312,7 +312,7 @@ const run = async (options) => {
             });
         }
 
-        console.log("\n" + "__ Generation Summary " + "_".repeat(38));
+        console.log("\n__ Generation Summary __");
         console.log(`Seed: ${input.seed}${seedProvidedByUser ? "" : " (auto)"}`);
         console.log(`Total time: ${generationTime}s`);
         console.log(`Dimensions: ${input.width}x${input.height}`);
