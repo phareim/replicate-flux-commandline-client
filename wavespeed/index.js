@@ -20,6 +20,14 @@ const WAVESPEED_SMOKE_MODE = process.env.WAVESPEED_SMOKE_TEST === "1";
 const VALID_OPTIMIZE_MODES = ["image", "video"];
 const VALID_OPTIMIZE_STYLES = ["default", "artistic", "photographic", "technical", "realistic"];
 
+const deriveAspectRatio = (sizeStr) => {
+  const [w, h] = String(sizeStr).split("*").map(Number);
+  if (!w || !h) return null;
+  const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+  const g = gcd(w, h);
+  return `${w / g}:${h / g}`;
+};
+
 const authHeaders = (extra = {}) => ({
   Authorization: `Bearer ${process.env.WAVESPEED_KEY}`,
   ...extra,
@@ -480,6 +488,24 @@ const main = async () => {
   const modelEndpoint = getModelEndpoint(options.model);
   const sizeFromFormat = image_size[options.format] || options.format || "4096*4096";
   const size = constrainDimensions(sizeFromFormat, modelEndpoint);
+
+  // noSize models (e.g. gpt-image-2) take aspect_ratio instead of size, so
+  // --format would otherwise be silently dropped. Translate the format key
+  // into an aspect ratio when we can derive one; warn when we can't.
+  const modelInfo = getModelInfo(modelEndpoint);
+  if (options.format && modelInfo?.metadata?.noSize) {
+    if (options.aspectRatio) {
+      console.warn(`Note: --format '${options.format}' ignored — --aspect-ratio '${options.aspectRatio}' takes precedence for this model.`);
+    } else {
+      const derived = deriveAspectRatio(sizeFromFormat);
+      if (derived) {
+        console.warn(`Note: this model takes aspect_ratio, not size — translating --format '${options.format}' → --aspect-ratio '${derived}'.`);
+        options.aspectRatio = derived;
+      } else {
+        console.warn(`Note: --format '${options.format}' ignored — this model takes aspect_ratio, not size. Use --aspect-ratio explicitly.`);
+      }
+    }
+  }
 
   // --all-prompts processes every .txt in cwd; --file <dir> does the same for an
   // arbitrary directory. Both fall through to the same loop.
