@@ -76,6 +76,8 @@ These are symlinked when installed globally via `npm install -g`.
 
 The file-based approach enables batch workflows and avoids shell escaping issues.
 
+**Batch directory mode (`--file <dir>`)**: All three CLIs (`venice`, `venice-video`, `wavespeed`) detect when `--file` points at a directory. In that case they iterate over every direct-child `.txt` file in sorted order and run the generation pipeline once per prompt — non-recursive, mirroring the semantics of wavespeed's existing `--all-prompts`. Wavespeed routes through the existing batch loop in `index.js`; venice and venice-video clone `options` per iteration with `prompt: undefined` and `file: <full path>` so the single-file path inside `run()` keeps doing the actual reading. `--prompt` short-circuits batch mode in both venice CLIs (a single prompt is incompatible with multiple files); wavespeed lets `--prompt` win the same way it always has.
+
 **Keyword-based prompt expansion**: Both `venice` and `wavespeed` accept `--keywords "<csv>"`, which calls Venice's chat completions endpoint (`/api/v1/chat/completions`) via the module-local `text.js`. Two modes:
 - **Generate mode** (no `--prompt` and no `prompt.txt`): Venice writes a fresh prompt from the keywords.
 - **Rewrite mode** (a prompt is supplied via `--prompt`, `--file`, `prompt.txt`, or per-file in `--all-prompts`): Venice rewrites the existing prompt to incorporate the keywords while preserving subject and style. The user's original prompt is preserved in the sidecar's `original_prompt` field.

@@ -481,26 +481,40 @@ const main = async () => {
   const sizeFromFormat = image_size[options.format] || options.format || "4096*4096";
   const size = constrainDimensions(sizeFromFormat, modelEndpoint);
 
+  // --all-prompts processes every .txt in cwd; --file <dir> does the same for an
+  // arbitrary directory. Both fall through to the same loop.
+  let batchDir = null;
   if (options.allPrompts) {
-    const currentDir = process.cwd();
+    batchDir = process.cwd();
+  } else if (options.file) {
+    const filePath = path.resolve(process.cwd(), options.file);
+    try {
+      const stat = await fs.stat(filePath);
+      if (stat.isDirectory()) batchDir = filePath;
+    } catch {
+      // Missing path; let the single-file branch report it.
+    }
+  }
+
+  if (batchDir) {
     let txtFiles;
     try {
-      const files = await fs.readdir(currentDir);
+      const files = await fs.readdir(batchDir);
       txtFiles = files.filter((file) => file.endsWith(".txt")).sort();
     } catch (error) {
-      console.error("Failed to read directory:", error);
+      console.error(`Failed to read directory ${batchDir}:`, error);
       process.exit(1);
     }
 
     if (txtFiles.length === 0) {
-      console.error("No .txt files found in the current directory.");
+      console.error(`No .txt files found in ${batchDir}.`);
       process.exit(1);
     }
 
-    console.log(`Found ${txtFiles.length} prompt file(s): ${txtFiles.join(", ")}\n`);
+    console.log(`Found ${txtFiles.length} prompt file(s) in ${batchDir}: ${txtFiles.join(", ")}\n`);
 
     for (const txtFile of txtFiles) {
-      const promptFilePath = path.resolve(currentDir, txtFile);
+      const promptFilePath = path.resolve(batchDir, txtFile);
       try {
         const promptText = await getPromptFromFile(promptFilePath);
         console.log(`\n${"#".repeat(60)}\n# Processing: ${txtFile}\n${"#".repeat(60)}\n`);

@@ -302,6 +302,39 @@ const main = async () => {
   const options = setupVideoCLI();
   DEBUG = options.debug || false;
   localOutputOverride = options.out || false;
+
+  // --file accepts a directory: iterate over each .txt file inside.
+  if (options.file && !options.prompt) {
+    const filePath = path.resolve(process.cwd(), options.file);
+    let stat;
+    try {
+      stat = await fs.stat(filePath);
+    } catch {
+      // Missing path; let run() surface the read error.
+    }
+    if (stat?.isDirectory()) {
+      let txtFiles;
+      try {
+        const entries = await fs.readdir(filePath);
+        txtFiles = entries.filter((f) => f.endsWith(".txt")).sort();
+      } catch (error) {
+        console.error(`Failed to read directory ${filePath}:`, error);
+        process.exit(1);
+      }
+      if (txtFiles.length === 0) {
+        console.error(`No .txt files found in ${filePath}.`);
+        process.exit(1);
+      }
+      console.log(`Found ${txtFiles.length} prompt file(s) in ${filePath}: ${txtFiles.join(", ")}\n`);
+      for (const txtFile of txtFiles) {
+        const promptFilePath = path.join(filePath, txtFile);
+        console.log(`\n${"#".repeat(60)}\n# Processing: ${txtFile}\n${"#".repeat(60)}\n`);
+        await run({ ...options, file: promptFilePath, prompt: undefined });
+      }
+      return;
+    }
+  }
+
   await run(options);
 };
 

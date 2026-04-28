@@ -16,7 +16,7 @@ export function setupCLI() {
     )
     .option(
       "--file <path>",
-      "Read prompt from a specified file (default: ./prompt.txt)"
+      "Read prompt from a file, or process every .txt file inside a directory (default: ./prompt.txt)"
     )
     .option("--model <modelKey>", "Choose the AI model to use.", DEFAULT_MODEL)
     .option("--format <formatKey>", "Specify image size/format (e.g., '2048*2048', 'square_hd', 'portrait').")
@@ -156,6 +156,9 @@ Examples:
   # Process all .txt files in current directory
   wavespeed --all-prompts
 
+  # Process all .txt files in a specific directory (catalog)
+  wavespeed --file ./prompts/
+
   # Process all .txt files with optimization and multiple generations per file
   wavespeed --all-prompts --optimize --optimize-style random --count 2
 
@@ -197,6 +200,7 @@ Notes:
   - When using --prompt, provide the prompt as a command-line argument.
   - Without --prompt, the script reads from 'prompt.txt' in the current directory.
   - With --all-prompts, the script processes all .txt files in the current directory.
+  - --file may also point at a directory; every .txt inside is processed in sorted order.
   - The 'WAVESPEED_KEY' environment variable must be set with your Wavespeed API key.
   - Images are saved to the directory specified by 'WAVESPEED_PATH' or './images' by default.
         `);

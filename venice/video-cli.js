@@ -31,7 +31,7 @@ export function setupVideoCLI() {
     .version("1.0.0")
     .description("Generate videos via the Venice.ai /video/queue API.")
     .option("--prompt <text>", "Text prompt for video generation.")
-    .option("--file <path>", "Read prompt from a file (default: ./prompt.txt)")
+    .option("--file <path>", "Read prompt from a file, or process every .txt file inside a directory (default: ./prompt.txt)")
     .option("--model <modelKey>", "Video model alias or Venice model id.", DEFAULT_VIDEO_MODEL)
     .option("--duration <duration>", 'Clip length (e.g. "5s", "10s", "15s").', "5s")
     .option("--resolution <res>", "Output resolution (720p or 1080p).", "720p")

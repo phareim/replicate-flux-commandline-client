@@ -382,6 +382,65 @@ test("wave-replay --exec re-runs venice from a sidecar", () => {
   }
 });
 
+test("wavespeed --file <directory> processes every .txt inside", () => {
+  const promptDir = fs.mkdtempSync(path.join(os.tmpdir(), "wavespeed-dir-prompts-"));
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "wavespeed-dir-out-"));
+  try {
+    fs.writeFileSync(path.join(promptDir, "a.txt"), "first prompt");
+    fs.writeFileSync(path.join(promptDir, "b.txt"), "second prompt");
+    fs.writeFileSync(path.join(promptDir, "skip.md"), "ignored");
+
+    // The wavespeed mock returns a fixed URL, so the two generations overwrite the
+    // same sidecar on disk — assert via stdout that both .txt files were visited
+    // (and that skip.md was filtered out).
+    const result = runCli(
+      ["wavespeed/index.js", "--file", promptDir],
+      {
+        WAVESPEED_KEY: "test-key",
+        WAVESPEED_SMOKE_TEST: "1",
+        WAVESPEED_PATH: outputDir,
+        NODE_ENV: "test",
+      }
+    );
+
+    assert.match(result.stdout, /Found 2 prompt file\(s\)/);
+    assert.match(result.stdout, /# Processing: a\.txt/);
+    assert.match(result.stdout, /# Processing: b\.txt/);
+    assert.doesNotMatch(result.stdout, /skip\.md/);
+  } finally {
+    removeDir(promptDir);
+    removeDir(outputDir);
+  }
+});
+
+test("venice --file <directory> processes every .txt inside", () => {
+  const promptDir = fs.mkdtempSync(path.join(os.tmpdir(), "venice-dir-prompts-"));
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "venice-dir-out-"));
+  try {
+    fs.writeFileSync(path.join(promptDir, "a.txt"), "alpha prompt");
+    fs.writeFileSync(path.join(promptDir, "b.txt"), "beta prompt");
+
+    runCli(
+      ["venice/index.js", "--file", promptDir],
+      {
+        VENICE_API_TOKEN: "test-token",
+        VENICE_SMOKE_TEST: "1",
+        VENICE_PATH: outputDir,
+        NODE_ENV: "test",
+      }
+    );
+
+    const sidecars = fs.readdirSync(outputDir).filter((f) => f.endsWith(".json"));
+    const prompts = sidecars
+      .map((f) => JSON.parse(fs.readFileSync(path.join(outputDir, f), "utf8")).prompt)
+      .sort();
+    assert.deepEqual(prompts, ["alpha prompt", "beta prompt"]);
+  } finally {
+    removeDir(promptDir);
+    removeDir(outputDir);
+  }
+});
+
 test("wavespeed smoke test with optimize flag", () => {
   const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "wavespeed-opt-smoke-"));
   try {

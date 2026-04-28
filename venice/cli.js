@@ -33,7 +33,7 @@ export function setupCLI() {
     )
     .option(
       "--file <path>",
-      "Read prompt from a specified file (default: ./prompt.txt)"
+      "Read prompt from a file, or process every .txt file inside a directory (default: ./prompt.txt)"
     )
     .option(
       "--negative-prompt <text>",
