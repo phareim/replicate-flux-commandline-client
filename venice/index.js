@@ -27,6 +27,9 @@ import { generatePromptFromKeywords, VALID_RATINGS } from "./text.js";
 const VENICE_API_URL = "https://api.venice.ai/api/v1/image/generate";
 const SMOKE_MODE = process.env.VENICE_SMOKE_TEST === "1";
 
+const slugifyModelTag = (s) =>
+    String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
 const mockResponse = () => {
     const buffer = Buffer.from("mock venice image");
     return {
@@ -303,7 +306,8 @@ const run = async (options) => {
             const extraTags = options.aiwdmTags
                 ? options.aiwdmTags.split(",").map((t) => t.trim()).filter(Boolean)
                 : [];
-            const tags = ["venice", ...extraTags];
+            const modelTag = slugifyModelTag(options.model);
+            const tags = [...new Set(["venice", modelTag, ...extraTags].filter(Boolean))];
             await uploadToAiwdm(savedPath, {
                 prompt: options.prompt,
                 rating: options.aiwdmRating,

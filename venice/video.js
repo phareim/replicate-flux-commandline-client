@@ -12,6 +12,9 @@ import { saveMetadata } from "./utils.js";
 const VENICE_API_BASE = "https://api.venice.ai/api/v1";
 const SMOKE_MODE = process.env.VENICE_SMOKE_TEST === "1";
 
+const slugifyModelTag = (s) =>
+  String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
 let DEBUG = false;
 let localOutputOverride = false;
 
@@ -280,7 +283,8 @@ const run = async (options) => {
     const extraTags = options.aiwdmTags
       ? options.aiwdmTags.split(",").map((t) => t.trim()).filter(Boolean)
       : [];
-    const tags = ["venice-video", ...extraTags];
+    const modelTag = slugifyModelTag(modelEntry.id);
+    const tags = [...new Set(["venice-video", modelTag, ...extraTags].filter(Boolean))];
     await uploadToAiwdm(savedPath, {
       prompt: options.prompt,
       rating: options.aiwdmRating,

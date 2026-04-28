@@ -20,6 +20,9 @@ const WAVESPEED_SMOKE_MODE = process.env.WAVESPEED_SMOKE_TEST === "1";
 const VALID_OPTIMIZE_MODES = ["image", "video"];
 const VALID_OPTIMIZE_STYLES = ["default", "artistic", "photographic", "technical", "realistic"];
 
+const slugifyModelTag = (s) =>
+  String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
 const deriveAspectRatio = (sizeStr) => {
   const [w, h] = String(sizeStr).split("*").map(Number);
   if (!w || !h) return null;
@@ -383,7 +386,8 @@ const run = async ({ prompt, originalPrompt, optimizeApplied = false, modelEndpo
     const extraTags = options.aiwdmTags
       ? options.aiwdmTags.split(",").map((t) => t.trim()).filter(Boolean)
       : [];
-    const tags = ["wavespeed", ...extraTags];
+    const modelTag = slugifyModelTag(modelInfo?.metadata?.display_name || options.model);
+    const tags = [...new Set(["wavespeed", modelTag, ...extraTags].filter(Boolean))];
     for (const savedPath of savedPaths) {
       const perFileMetadata = baseMetadata
         ? { ...baseMetadata, output_file: path.basename(savedPath) }
