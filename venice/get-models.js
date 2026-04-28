@@ -48,7 +48,7 @@ const fetchModels = async () => {
 
     // Print out the models
     console.log("\nAvailable Venice AI Image Models:");
-    console.log("=".repeat(60));
+    console.log("==");
 
     // Find default model - prefer chroma (uncensored generation)
     const chromaModel = imageModels.find(m => m.id === "chroma");
@@ -78,7 +78,7 @@ const fetchModels = async () => {
       }
     });
 
-    console.log("\n" + "=".repeat(60));
+    console.log("\n==");
     console.log(`\nModels saved to: ${modelsPath}`);
     console.log(`Total models: ${imageModels.length}`);
 

@@ -198,7 +198,7 @@ const run = async (options) => {
         console.log(`Keywords: ${options.keywords}`);
         console.log(`Rating: ${rating}`);
         console.log(`Text model: ${options.keywordModel}`);
-        console.log("‾".repeat(60));
+        console.log("‾‾");
         try {
             const generated = await generatePromptFromKeywords({
                 keywords: options.keywords,
@@ -232,7 +232,7 @@ const run = async (options) => {
         console.log(`Dimensions: ${input.width}x${input.height}`);
         console.log(`Steps: ${input.steps} | CFG Scale: ${input.cfg_scale}`);
         console.log(`Seed: ${input.seed}${seedProvidedByUser ? "" : " (auto)"}`);
-        console.log("‾".repeat(60) + "\n");
+        console.log("‾‾\n");
 
         const startTime = Date.now();
         const progressInterval = setInterval(() => {
@@ -316,7 +316,7 @@ const run = async (options) => {
         console.log(`Seed: ${input.seed}${seedProvidedByUser ? "" : " (auto)"}`);
         console.log(`Total time: ${generationTime}s`);
         console.log(`Dimensions: ${input.width}x${input.height}`);
-        console.log("‾".repeat(60) + "\n");
+        console.log("‾‾\n");
     } catch (error) {
         console.error("Error during image generation:", error);
     }
@@ -358,7 +358,7 @@ const main = async () => {
             console.log(`Found ${txtFiles.length} prompt file(s) in ${filePath}: ${txtFiles.join(", ")}\n`);
             for (const txtFile of txtFiles) {
                 const promptFilePath = path.join(filePath, txtFile);
-                console.log(`\n${"#".repeat(60)}\n# Processing: ${txtFile}\n${"#".repeat(60)}\n`);
+                console.log(`\n##\n# Processing: ${txtFile}\n##\n`);
                 await run({ ...options, file: promptFilePath, prompt: undefined });
             }
             return;

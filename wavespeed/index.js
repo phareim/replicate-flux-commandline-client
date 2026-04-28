@@ -140,7 +140,7 @@ const optimizePrompt = async (promptText, mode = "image", style = "default", ima
   console.log(`Mode: ${mode}`);
   console.log(`Style: ${style}`);
   if (imageUrl) console.log(`Reference Image: ${imageUrl}`);
-  console.log("‾".repeat(60) + "\n");
+  console.log("‾‾\n");
 
   const url = `${API_BASE_URL}/wavespeed-ai/prompt-optimizer`;
   const payload = { enable_sync_mode: false, text: promptText, mode, style };
@@ -250,7 +250,7 @@ const run = async ({ prompt, originalPrompt, optimizeApplied = false, modelEndpo
   if (isVideoCategory && input.resolution) console.log(`Resolution: ${input.resolution}`);
   if (isVideoCategory && input.aspect_ratio) console.log(`Aspect: ${input.aspect_ratio}`);
   if (!noSeed) console.log(`Seed: ${seed}${seedProvidedByUser ? "" : " (auto)"}`);
-  console.log("‾".repeat(60) + "\n");
+  console.log("‾‾\n");
 
   let result;
 
@@ -397,14 +397,14 @@ const run = async ({ prompt, originalPrompt, optimizeApplied = false, modelEndpo
   if (!noSeed) console.log(`Seed: ${seed}${seedProvidedByUser ? "" : " (auto)"}`);
   if (result.id) console.log(`Prediction ID: ${result.id}`);
   if (result.created_at) console.log(`Created: ${result.created_at}`);
-  console.log("‾".repeat(60) + "\n");
+  console.log("‾‾\n");
 };
 
 const generateBatch = async (promptText, modelEndpoint, size, options) => {
   const count = parseInt(options.count, 10) || 1;
   for (let i = 0; i < count; i++) {
     if (count > 1) {
-      console.log(`\n${"=".repeat(60)}\nGeneration ${i + 1} of ${count}\n${"=".repeat(60)}\n`);
+      console.log(`\n==\nGeneration ${i + 1} of ${count}\n==\n`);
     }
 
     const userPrompt = promptText && promptText.trim() ? promptText.trim() : "";
@@ -423,7 +423,7 @@ const generateBatch = async (promptText, modelEndpoint, size, options) => {
       console.log(`Keywords: ${options.keywords}`);
       console.log(`Rating: ${rating}`);
       console.log(`Text model: ${options.keywordModel}`);
-      console.log("‾".repeat(60));
+      console.log("‾‾");
       try {
         const generated = await generatePromptFromKeywords({
           keywords: options.keywords,
@@ -517,7 +517,7 @@ const main = async () => {
       const promptFilePath = path.resolve(batchDir, txtFile);
       try {
         const promptText = await getPromptFromFile(promptFilePath);
-        console.log(`\n${"#".repeat(60)}\n# Processing: ${txtFile}\n${"#".repeat(60)}\n`);
+        console.log(`\n##\n# Processing: ${txtFile}\n##\n`);
         await generateBatch(promptText, modelEndpoint, size, options);
       } catch (error) {
         console.error(`Failed to read prompt from ${txtFile}:`, error.message);

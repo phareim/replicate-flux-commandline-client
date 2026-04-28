@@ -222,7 +222,7 @@ const run = async (options) => {
   console.log(`Duration: ${options.duration} | Resolution: ${options.resolution}`);
   if (modelEntry.type === "text-to-video") console.log(`Aspect: ${options.aspectRatio}`);
   console.log(`Seed: ${options.seed}${seedProvidedByUser ? "" : " (auto)"}`);
-  console.log("‾".repeat(60) + "\n");
+  console.log("‾‾\n");
 
   let queued;
   try {
@@ -295,7 +295,7 @@ const run = async (options) => {
   console.log(`Duration: ${options.duration}`);
   console.log(`Resolution: ${options.resolution}`);
   console.log(`Seed: ${options.seed}${seedProvidedByUser ? "" : " (auto)"}`);
-  console.log("‾".repeat(60) + "\n");
+  console.log("‾‾\n");
 };
 
 const main = async () => {
@@ -328,7 +328,7 @@ const main = async () => {
       console.log(`Found ${txtFiles.length} prompt file(s) in ${filePath}: ${txtFiles.join(", ")}\n`);
       for (const txtFile of txtFiles) {
         const promptFilePath = path.join(filePath, txtFile);
-        console.log(`\n${"#".repeat(60)}\n# Processing: ${txtFile}\n${"#".repeat(60)}\n`);
+        console.log(`\n##\n# Processing: ${txtFile}\n##\n`);
         await run({ ...options, file: promptFilePath, prompt: undefined });
       }
       return;
