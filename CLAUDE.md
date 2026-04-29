@@ -66,6 +66,7 @@ wavespeed/
 - `wavespeed` → `wavespeed/index.js` (image + video generation)
 - `wave-replay` → `tools/replay.js` (reconstruct or re-run a CLI invocation from a sidecar)
 - `wave-balance` → `tools/balance.js` (show current Venice + Wavespeed account balance; `--json`, `--venice-only`, `--wavespeed-only`)
+- `wan2.6-flash` → `venice/wan26-flash.js` (Venice Wan 2.6 Flash image-to-video; positional `<image>` accepts a local path or https URL — local files are read and inlined as a base64 data URI in `image_url`. Defaults: `--prompt "animate"`, `--duration 5s`, `--resolution 720p`. Model rejects `seed` so none is sent.)
 
 These are symlinked when installed globally via `npm install -g`.
 

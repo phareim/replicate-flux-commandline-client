@@ -9,7 +9,8 @@
     "venice-video": "./venice/video.js",
     "wavespeed": "./wavespeed/index.js",
     "wave-replay": "./tools/replay.js",
-    "wave-balance": "./tools/balance.js"
+    "wave-balance": "./tools/balance.js",
+    "wan2.6-flash": "./venice/wan26-flash.js"
   },
   "type": "module",
   "scripts": {
