@@ -65,6 +65,7 @@ wavespeed/
 - `venice-video` → `venice/video.js` (WAN 2.7 video generation)
 - `wavespeed` → `wavespeed/index.js` (image + video generation)
 - `wave-replay` → `tools/replay.js` (reconstruct or re-run a CLI invocation from a sidecar)
+- `wave-balance` → `tools/balance.js` (show current Venice + Wavespeed account balance; `--json`, `--venice-only`, `--wavespeed-only`)
 
 These are symlinked when installed globally via `npm install -g`.
 
